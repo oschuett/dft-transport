@@ -4,6 +4,7 @@ FROM cp2k/toolchain:latest
 RUN apt-get update && apt-get install -y --no-install-recommends \
     vim                   \
     git                   \
+    lcov                  \
     && rm -rf /var/lib/apt/lists/*
 
 # download and compile libc2pk

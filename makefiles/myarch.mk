@@ -7,7 +7,7 @@ CXX      = mpic++
 CC       = gcc 
 NVCC     = /usr/local/cuda-7.5/bin/nvcc 
 
-CFLAGS    = -g -w -Wall -fopenmp 
+CFLAGS    = -g -w -Wall -fopenmp --coverage
 CXXFLAGS  = -std=c++11 $(CFLAGS)
 NVCCFLAGS = -Xcompiler=--std=gnu++98 -D__GNUC__=4 -D__GNUC_MINOR__=9 -w
 
@@ -44,7 +44,7 @@ LIBCUDA       = -L/usr/local/cuda-7.5/lib64/ -lcudart -lcublas -lcusparse -lblas
 #LFLAGS   = $(LIBCP2K) $(LIBPEXSI) $(LIBPARDISO) $(LIBPARMETIS) $(LIBSLUDIST) $(LIBSSPARSE) $(LIBMUMPS) $(LIBHYPRE) $(LIBQHULL) $(LIBCUDA) $(LIBMAGMA)
 LFLAGS   = $(LIBCP2K) $(LIBPEXSI) $(LIBPARMETIS) $(LIBSLUDIST)
 
-DFLAGS   = -g -DAdd_
+DFLAGS   = -DAdd_
 
 LIBS     = -lrt -ldl -lstdc++ -lgfortran -lmpifort -L/opt/cp2k-toolchain/install/scalapack-2.0.2/lib -lscalapack -L/opt/cp2k-toolchain/install/openblas-0.2.20/lib -lopenblas
 
