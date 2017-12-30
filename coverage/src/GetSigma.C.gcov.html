@@ -1,0 +1,848 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/GetSigma.C</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - GetSigma.C<span style="font-size: 80%;"> (source / <a href="GetSigma.C.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">321</td>
+            <td class="headerCovTableEntry">463</td>
+            <td class="headerCovTableEntryLo">69.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntryLo">71.4 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &lt;mpi.h&gt;
+<span class="lineNum">      13 </span>            : #include &lt;math.h&gt;
+<span class="lineNum">      14 </span>            : #include &lt;iostream&gt;
+<span class="lineNum">      15 </span>            : #include &lt;time.h&gt;
+<span class="lineNum">      16 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">      17 </span>            : #include &lt;stdio.h&gt;
+<span class="lineNum">      18 </span>            : #include &lt;valarray&gt;
+<span class="lineNum">      19 </span>            : #include &quot;ScaLapack.H&quot;
+<span class="lineNum">      20 </span>            : #include &quot;InjectionBeyn.H&quot;
+<span class="lineNum">      21 </span>            : #include &quot;InjectionIEV.H&quot;
+<span class="lineNum">      22 </span>            : #include &quot;GetSigma.H&quot;
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span><span class="lineCov">          4 : BoundarySelfEnergy::BoundarySelfEnergy()</span>
+<span class="lineNum">      25 </span>            : {
+<span class="lineNum">      26 </span><span class="lineCov">          2 :     sigma = NULL;</span>
+<span class="lineNum">      27 </span><span class="lineCov">          2 :     inj = NULL;</span>
+<span class="lineNum">      28 </span><span class="lineCov">          2 :     gamma = NULL;</span>
+<span class="lineNum">      29 </span><span class="lineCov">          2 :     spsigmadist = NULL;</span>
+<span class="lineNum">      30 </span><span class="lineCov">          2 :     spainjdist = NULL;</span>
+<span class="lineNum">      31 </span><span class="lineCov">          2 :     lambdapro = NULL;</span>
+<span class="lineNum">      32 </span><span class="lineCov">          2 :     n_propagating=-1;</span>
+<span class="lineNum">      33 </span><span class="lineCov">          2 :     rcond=1.0;</span>
+<span class="lineNum">      34 </span><span class="lineCov">          2 :     n_dec=-1;</span>
+<span class="lineNum">      35 </span><span class="lineCov">          2 :     eigval_degeneracy=-1;</span>
+<span class="lineNum">      36 </span>            : 
+<span class="lineNum">      37 </span><span class="lineCov">          2 :     master_rank=-1;</span>
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span><span class="lineCov">          2 :     H0 = NULL;</span>
+<span class="lineNum">      40 </span><span class="lineCov">          2 :     H1 = NULL;</span>
+<span class="lineNum">      41 </span><span class="lineCov">          2 :     H1t = NULL;</span>
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span><span class="lineCov">          2 :     H = NULL;</span>
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span><span class="lineCov">          2 :     compute_inj=0;</span>
+<span class="lineNum">      46 </span><span class="lineCov">          2 :     compute_gamma=0;</span>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">          2 : }</span></a>
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span><span class="lineCov">          4 : BoundarySelfEnergy::~BoundarySelfEnergy()</span>
+<span class="lineNum">      50 </span>            : {
+<span class="lineNum">      51 </span><span class="lineCov">          2 :     if (sigma || inj || gamma || spsigmadist || spainjdist || lambdapro || H || H0 || H1 || H1t ) throw std::exception();</span>
+<span class="lineNum">      52 </span><span class="lineCov">          2 : }</span>
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 : void BoundarySelfEnergy::create_M_matrix(CPX *M,int NR,TCSR&lt;CPX&gt; **A,int bw,CPX z)</span>
+<span class="lineNum">      55 </span>            : {
+<span class="lineNum">      56 </span><span class="lineNoCov">          0 :     init_var(M,NR*NR);</span>
+<span class="lineNum">      57 </span>            :  
+<span class="lineNum">      58 </span><span class="lineNoCov">          0 :     for(int IP=-bw;IP&lt;bw+1;IP++){</span>
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :         TCSR&lt;CPX&gt;* AA = A[IP+bw];</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :         int ffindx = AA-&gt;findx;</span>
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :         CPX zz = pow(z,IP);</span>
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :         for(int IR=0;IR&lt;NR;IR++){</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :             for(int IJ=AA-&gt;edge_i[IR]-ffindx;IJ&lt;AA-&gt;edge_i[IR+1]-ffindx;IJ++){</span>
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :                 M[IR+(AA-&gt;index_j[IJ]-ffindx)*NR] += zz*AA-&gt;nnz[IJ];</span>
+<span class="lineNum">      65 </span>            :             }
+<span class="lineNum">      66 </span>            :         }
+<span class="lineNum">      67 </span>            :     }
+<a name="68"><span class="lineNum">      68 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span><span class="lineCov">          2 : void BoundarySelfEnergy::Deallocate_Sigma()</span>
+<span class="lineNum">      71 </span>            : {
+<span class="lineNum">      72 </span><span class="lineCov">          2 :     delete spsigmadist;</span>
+<span class="lineNum">      73 </span><span class="lineCov">          2 :     spsigmadist = NULL;</span>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">          2 : }</span></a>
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 : void BoundarySelfEnergy::Deallocate_Gamma()</span>
+<span class="lineNum">      77 </span>            : {
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :     if (compute_gamma) {</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :         delete[] gamma;</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :         gamma = NULL;</span>
+<span class="lineNum">      81 </span>            :     }
+<a name="82"><span class="lineNum">      82 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span><span class="lineCov">          2 : void BoundarySelfEnergy::Deallocate_Injection()</span>
+<span class="lineNum">      85 </span>            : {
+<span class="lineNum">      86 </span><span class="lineCov">          2 :     if (compute_inj) {</span>
+<span class="lineNum">      87 </span><span class="lineCov">          2 :         delete spainjdist;</span>
+<span class="lineNum">      88 </span><span class="lineCov">          2 :         spainjdist = NULL;</span>
+<span class="lineNum">      89 </span><span class="lineCov">          2 :         delete[] lambdapro;</span>
+<span class="lineNum">      90 </span><span class="lineCov">          2 :         lambdapro = NULL;</span>
+<span class="lineNum">      91 </span>            :     }
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">          2 : }</span></a>
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 : void BoundarySelfEnergy::Finalize()</span>
+<span class="lineNum">      95 </span>            : {
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :     delete[] sigma;</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :     sigma = NULL;</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :     if (compute_inj) {</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :         delete[] inj;</span>
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :         inj = NULL;</span>
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :         delete[] lambdapro;</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :         lambdapro = NULL;</span>
+<span class="lineNum">     103 </span>            :     }
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :     if (compute_gamma) {</span>
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :         delete[] gamma;</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :         gamma = NULL;</span>
+<span class="lineNum">     107 </span>            :     }
+<a name="108"><span class="lineNum">     108 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span><span class="lineCov">          2 : int BoundarySelfEnergy::Set_master(MPI_Comm matrix_comm,MPI_Comm boundary_comm)</span>
+<span class="lineNum">     111 </span>            : {
+<span class="lineNum">     112 </span>            :     int matrix_rank, matrix_procs;
+<span class="lineNum">     113 </span><span class="lineCov">          2 :     MPI_Comm_size(matrix_comm,&amp;matrix_procs);</span>
+<span class="lineNum">     114 </span><span class="lineCov">          2 :     MPI_Comm_rank(matrix_comm,&amp;matrix_rank);</span>
+<span class="lineNum">     115 </span>            :     int boundary_rank, boundary_procs;
+<span class="lineNum">     116 </span><span class="lineCov">          2 :     MPI_Comm_size(boundary_comm,&amp;boundary_procs);</span>
+<span class="lineNum">     117 </span><span class="lineCov">          2 :     MPI_Comm_rank(boundary_comm,&amp;boundary_rank);</span>
+<span class="lineNum">     118 </span>            : /*
+<span class="lineNum">     119 </span>            :     MPI_Group matrix_group;
+<span class="lineNum">     120 </span>            :     MPI_Group boundary_group;
+<span class="lineNum">     121 </span>            :     MPI_Comm_group(matrix_comm,&amp;matrix_group);
+<span class="lineNum">     122 </span>            :     MPI_Comm_group(boundary_comm,&amp;boundary_group);
+<span class="lineNum">     123 </span>            :     int *matrix_ranks_array = new int[matrix_procs];
+<span class="lineNum">     124 </span>            :     for (int i=0;i&lt;matrix_procs;i++) matrix_ranks_array[i]=i;
+<span class="lineNum">     125 </span>            :     int *boundary_ranks_array = new int[matrix_procs];
+<span class="lineNum">     126 </span>            :     MPI_Group_translate_ranks(matrix_group,matrix_procs,matrix_ranks_array,boundary_group,boundary_ranks_array);
+<span class="lineNum">     127 </span>            :     master_rank=-1;
+<span class="lineNum">     128 </span>            :     for (int irank=0;irank&lt;matrix_procs;irank++) {
+<span class="lineNum">     129 </span>            :         if (boundary_ranks_array[irank]==0 &amp;&amp; master_rank==-1) {
+<span class="lineNum">     130 </span>            :             master_rank=matrix_ranks_array[irank];
+<span class="lineNum">     131 </span>            :         } else if (boundary_ranks_array[irank]==0 &amp;&amp; master_rank!=-1) {
+<span class="lineNum">     132 </span>            :             return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     133 </span>            :         }
+<span class="lineNum">     134 </span>            :     }
+<span class="lineNum">     135 </span>            :     delete[] matrix_ranks_array;
+<span class="lineNum">     136 </span>            :     delete[] boundary_ranks_array;
+<span class="lineNum">     137 </span>            : */
+<span class="lineNum">     138 </span><span class="lineCov">          2 :     if (!boundary_rank) master_rank = matrix_rank;</span>
+<span class="lineNum">     139 </span><span class="lineCov">          2 :     return 0;</span>
+<a name="140"><span class="lineNum">     140 </span>            : }</a>
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span><span class="lineCov">          2 : int BoundarySelfEnergy::Cutout(TCSR&lt;CPX&gt; *SumHamC,contact_type pcontact,CPX penergy,transport_methods::transport_method_type transport_method,MPI_Comm matrix_comm)</span>
+<span class="lineNum">     143 </span>            : {
+<span class="lineNum">     144 </span><span class="lineCov">          2 :     energy=penergy;</span>
+<span class="lineNum">     145 </span><span class="lineCov">          2 :     if (transport_method==transport_methods::WF) compute_inj=1;</span>
+<span class="lineNum">     146 </span><span class="lineCov">          2 :     if (transport_method==transport_methods::NEGF) compute_gamma=1;</span>
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span><span class="lineCov">          2 :     contact=pcontact;</span>
+<span class="lineNum">     149 </span><span class="lineCov">          2 :     int inj_sign=contact.inj_sign;</span>
+<span class="lineNum">     150 </span><span class="lineCov">          2 :     int ndof=contact.ndof;</span>
+<span class="lineNum">     151 </span><span class="lineCov">          2 :     int bandwidth=contact.bandwidth;</span>
+<span class="lineNum">     152 </span><span class="lineCov">          2 :     int ntriblock=bandwidth*ndof;</span>
+<span class="lineNum">     153 </span><span class="lineCov">          2 :     int start=contact.start;</span>
+<span class="lineNum">     154 </span><span class="lineCov">          2 :     if (inj_sign==-1) {</span>
+<span class="lineNum">     155 </span><span class="lineCov">          1 :         start+=-(bandwidth-1)*ndof;</span>
+<span class="lineNum">     156 </span>            :     }
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            :     int iam,nprocs;
+<span class="lineNum">     159 </span><span class="lineCov">          2 :     MPI_Comm_size(matrix_comm,&amp;nprocs);</span>
+<span class="lineNum">     160 </span><span class="lineCov">          2 :     MPI_Comm_rank(matrix_comm,&amp;iam);</span>
+<span class="lineNum">     161 </span>            : /*
+<span class="lineNum">     162 </span>            :     int *gathered_master_ranks = new int[nprocs];
+<span class="lineNum">     163 </span>            :     MPI_Allgather(&amp;master_rank,1,MPI_INT,gathered_master_ranks,1,MPI_INT,matrix_comm);
+<span class="lineNum">     164 </span>            :     master_rank=-1;
+<span class="lineNum">     165 </span>            :     for (int irank=0;irank&lt;nprocs;irank++) {
+<span class="lineNum">     166 </span>            :         if (gathered_master_ranks[irank]&gt;=0) {
+<span class="lineNum">     167 </span>            :             master_rank=gathered_master_ranks[irank];
+<span class="lineNum">     168 </span>            :         }
+<span class="lineNum">     169 </span>            :     }
+<span class="lineNum">     170 </span>            :     delete[] gathered_master_ranks;
+<span class="lineNum">     171 </span>            : */
+<span class="lineNum">     172 </span><span class="lineCov">          2 :     int master_rank_local = master_rank;</span>
+<span class="lineNum">     173 </span><span class="lineCov">          2 :     MPI_Allreduce(&amp;master_rank_local,&amp;master_rank,1,MPI_INT,MPI_MAX,matrix_comm);</span>
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span><span class="lineCov">          2 :     TCSR&lt;CPX&gt; *H0cut = new TCSR&lt;CPX&gt;(SumHamC,start,ntriblock,start,ntriblock);</span>
+<span class="lineNum">     176 </span><span class="lineCov">          2 :     TCSR&lt;CPX&gt; *H1cut = new TCSR&lt;CPX&gt;(SumHamC,start,ntriblock,start+inj_sign*ntriblock,ntriblock);</span>
+<span class="lineNum">     177 </span><span class="lineCov">          2 :     H0 = new TCSR&lt;CPX&gt;(H0cut,master_rank,matrix_comm);</span>
+<span class="lineNum">     178 </span><span class="lineCov">          2 :     H1 = new TCSR&lt;CPX&gt;(H1cut,master_rank,matrix_comm);</span>
+<span class="lineNum">     179 </span><span class="lineCov">          2 :     delete H0cut;</span>
+<span class="lineNum">     180 </span><span class="lineCov">          2 :     delete H1cut;</span>
+<span class="lineNum">     181 </span><span class="lineCov">          2 :     if (iam==master_rank) {</span>
+<span class="lineNum">     182 </span><span class="lineCov">          2 :         H1t = new TCSR&lt;CPX&gt;(H1-&gt;size,H1-&gt;n_nonzeros,H1-&gt;findx);</span>
+<span class="lineNum">     183 </span><span class="lineCov">          2 :         H1t-&gt;sparse_transpose(H1);</span>
+<span class="lineNum">     184 </span><span class="lineCov">          2 :         H = new TCSR&lt;CPX&gt;*[2*bandwidth+1];</span>
+<span class="lineNum">     185 </span><span class="lineCov">          2 :         if (contact.inj_sign==+1) {</span>
+<span class="lineNum">     186 </span><span class="lineCov">          7 :             for (int ibw=bandwidth;ibw&lt;2*bandwidth;ibw++) {</span>
+<span class="lineNum">     187 </span><span class="lineCov">          3 :                 H[ibw] = new TCSR&lt;CPX&gt;(H0,0,ndof,(ibw-bandwidth)*ndof,ndof);</span>
+<span class="lineNum">     188 </span>            :             }
+<span class="lineNum">     189 </span><span class="lineCov">          1 :             H[2*bandwidth] = new TCSR&lt;CPX&gt;(H1,0,ndof,0,ndof);</span>
+<span class="lineNum">     190 </span><span class="lineCov">          4 :             for (int ibw=1;ibw&lt;=bandwidth;ibw++) {</span>
+<span class="lineNum">     191 </span><span class="lineCov">          3 :                 H[bandwidth-ibw] = new TCSR&lt;CPX&gt;(H[bandwidth+ibw]);</span>
+<span class="lineNum">     192 </span><span class="lineCov">          3 :                 H[bandwidth-ibw]-&gt;sparse_transpose(H[bandwidth+ibw]);</span>
+<span class="lineNum">     193 </span>            :             }
+<span class="lineNum">     194 </span><span class="lineCov">          1 :         } else if (contact.inj_sign==-1) {</span>
+<span class="lineNum">     195 </span><span class="lineCov">          1 :             H[0] =  new TCSR&lt;CPX&gt;(H1,ntriblock-ndof,ndof,ntriblock-ndof,ndof);</span>
+<span class="lineNum">     196 </span><span class="lineCov">          4 :             for (int ibw=1;ibw&lt;bandwidth+1;ibw++) {</span>
+<span class="lineNum">     197 </span><span class="lineCov">          3 :                 H[ibw] = new TCSR&lt;CPX&gt;(H0,ntriblock-ndof,ndof,(ibw-1)*ndof,ndof);</span>
+<span class="lineNum">     198 </span>            :             }
+<span class="lineNum">     199 </span><span class="lineCov">          7 :             for (int ibw=1;ibw&lt;=bandwidth;ibw++) {</span>
+<span class="lineNum">     200 </span><span class="lineCov">          3 :                 H[bandwidth+ibw] = new TCSR&lt;CPX&gt;(H[bandwidth-ibw]);</span>
+<span class="lineNum">     201 </span><span class="lineCov">          3 :                 H[bandwidth+ibw]-&gt;sparse_transpose(H[bandwidth-ibw]);</span>
+<span class="lineNum">     202 </span>            :             }
+<span class="lineNum">     203 </span>            :         }
+<span class="lineNum">     204 </span>            :         int tau_from_ndof_blocks=0;
+<span class="lineNum">     205 </span>            :         if (tau_from_ndof_blocks) {
+<span class="lineNum">     206 </span>            :             CPX* Hfull = new CPX[3*ntriblock*ntriblock]();
+<span class="lineNum">     207 </span>            :             for (int ibw=0;ibw&lt;bandwidth;ibw++) {
+<span class="lineNum">     208 </span>            :                 for (int jbw=0;jbw&lt;2*bandwidth+1;jbw++) {
+<span class="lineNum">     209 </span>            :                     for(int i=0;i&lt;ndof;i++){
+<span class="lineNum">     210 </span>            :                         for(int e=H[jbw]-&gt;edge_i[i]-H[jbw]-&gt;findx;e&lt;H[jbw]-&gt;edge_i[i+1]-H[jbw]-&gt;findx;e++){
+<span class="lineNum">     211 </span>            :                             int j=H[jbw]-&gt;index_j[e]-H[jbw]-&gt;findx;
+<span class="lineNum">     212 </span>            :                             Hfull[ndof*ibw+(ibw+jbw)*ndof*ntriblock+i+j*ntriblock]=H[jbw]-&gt;nnz[e];
+<span class="lineNum">     213 </span>            :                         }
+<span class="lineNum">     214 </span>            :                     }
+<span class="lineNum">     215 </span>            :                 }
+<span class="lineNum">     216 </span>            :             }
+<span class="lineNum">     217 </span>            :             H1t-&gt;full_to_sparse(&amp;Hfull[(1-inj_sign)*ntriblock*ntriblock],ntriblock,ntriblock);
+<span class="lineNum">     218 </span>            :             H0-&gt; full_to_sparse(&amp;Hfull[             ntriblock*ntriblock],ntriblock,ntriblock);
+<span class="lineNum">     219 </span>            :             H1-&gt; full_to_sparse(&amp;Hfull[(1+inj_sign)*ntriblock*ntriblock],ntriblock,ntriblock);
+<span class="lineNum">     220 </span>            :             delete[] Hfull;
+<span class="lineNum">     221 </span>            :         }
+<span class="lineNum">     222 </span>            :     } else {
+<span class="lineNum">     223 </span><span class="lineNoCov">          0 :         delete H0;</span>
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :         delete H1;</span>
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :         H0 = NULL;</span>
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :         H1 = NULL;</span>
+<span class="lineNum">     227 </span>            :     }
+<span class="lineNum">     228 </span><span class="lineCov">          2 :     return 0;</span>
+<span class="lineNum">     229 </span>            : }
+<span class="lineNum">     230 </span>            : 
+<span class="lineNum">     231 </span><span class="lineCov">          2 : void BoundarySelfEnergy::Distribute(TCSR&lt;CPX&gt; *SumHamC,MPI_Comm matrix_comm)</span>
+<span class="lineNum">     232 </span>            : {
+<span class="lineNum">     233 </span>            :     int iam;
+<span class="lineNum">     234 </span><span class="lineCov">          2 :     MPI_Comm_rank(matrix_comm,&amp;iam);</span>
+<span class="lineNum">     235 </span><span class="lineCov">          2 :     int ndof=contact.ndof;</span>
+<span class="lineNum">     236 </span><span class="lineCov">          2 :     int bandwidth=contact.bandwidth;</span>
+<span class="lineNum">     237 </span><span class="lineCov">          2 :     int ntriblock=bandwidth*ndof;</span>
+<span class="lineNum">     238 </span><span class="lineCov">          2 :     int start=contact.start;</span>
+<span class="lineNum">     239 </span><span class="lineCov">          2 :     if (contact.inj_sign==-1) {</span>
+<span class="lineNum">     240 </span><span class="lineCov">          1 :         start+=-(bandwidth-1)*ndof;</span>
+<span class="lineNum">     241 </span>            :     }
+<span class="lineNum">     242 </span>            : 
+<span class="lineNum">     243 </span><span class="lineCov">          2 :     MPI_Bcast(&amp;n_propagating,1,MPI_INT,master_rank,matrix_comm);</span>
+<span class="lineNum">     244 </span><span class="lineCov">          2 :     MPI_Bcast(&amp;rcond,1,MPI_DOUBLE,master_rank,matrix_comm);</span>
+<span class="lineNum">     245 </span><span class="lineCov">          2 :     MPI_Bcast(&amp;n_dec,1,MPI_INT,master_rank,matrix_comm);</span>
+<span class="lineNum">     246 </span><span class="lineCov">          2 :     MPI_Bcast(&amp;eigval_degeneracy,1,MPI_INT,master_rank,matrix_comm);</span>
+<span class="lineNum">     247 </span>            : 
+<span class="lineNum">     248 </span><span class="lineCov">          2 :     if (compute_gamma) {</span>
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :         gamma = new CPX[ntriblock*ntriblock];</span>
+<span class="lineNum">     250 </span><span class="lineNoCov">          0 :         if (iam==master_rank) {</span>
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :             full_transpose(ntriblock,ntriblock,sigma,gamma);</span>
+<span class="lineNum">     252 </span><span class="lineNoCov">          0 :             c_dscal(ntriblock*ntriblock,-1.0,((double*)gamma)+1,2);</span>
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :             c_zaxpy(ntriblock*ntriblock,CPX(-1.0,0.0),sigma,1,gamma,1);</span>
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :             c_zscal(ntriblock*ntriblock,CPX(0.0,-1.0),gamma,1);</span>
+<span class="lineNum">     255 </span>            :         }
+<span class="lineNum">     256 </span><span class="lineNoCov">          0 :         MPI_Bcast(gamma,ntriblock*ntriblock,MPI_DOUBLE_COMPLEX,master_rank,matrix_comm);</span>
+<span class="lineNum">     257 </span>            :     }
+<span class="lineNum">     258 </span>            : 
+<span class="lineNum">     259 </span><span class="lineCov">          2 :     TCSR&lt;CPX&gt; *spsigma = NULL;</span>
+<span class="lineNum">     260 </span><span class="lineCov">          2 :     if (iam==master_rank) {</span>
+<span class="lineNum">     261 </span><span class="lineCov">          2 :         spsigma = new TCSR&lt;CPX&gt;(SumHamC-&gt;size_tot,ntriblock*ntriblock,SumHamC-&gt;findx);</span>
+<span class="lineNum">     262 </span><span class="lineCov">          2 :         spsigma-&gt;full_to_sparse(sigma,ntriblock,ntriblock,start,start);</span>
+<span class="lineNum">     263 </span><span class="lineCov">          2 :         delete[] sigma;</span>
+<span class="lineNum">     264 </span><span class="lineCov">          2 :         sigma = NULL;</span>
+<span class="lineNum">     265 </span>            :     }
+<span class="lineNum">     266 </span><span class="lineCov">          2 :     spsigmadist = new TCSR&lt;CPX&gt;(SumHamC,spsigma,master_rank,matrix_comm);</span>
+<span class="lineNum">     267 </span><span class="lineCov">          2 :     if (iam==master_rank) {</span>
+<span class="lineNum">     268 </span><span class="lineCov">          2 :         delete spsigma;</span>
+<span class="lineNum">     269 </span>            :     }
+<span class="lineNum">     270 </span>            : 
+<span class="lineNum">     271 </span><span class="lineCov">          2 :     if (compute_inj) {</span>
+<span class="lineNum">     272 </span><span class="lineCov">          2 :         if (iam!=master_rank) {</span>
+<span class="lineNum">     273 </span><span class="lineNoCov">          0 :             lambdapro = new CPX[n_propagating];</span>
+<span class="lineNum">     274 </span>            :         }
+<span class="lineNum">     275 </span><span class="lineCov">          2 :         MPI_Bcast(lambdapro,n_propagating,MPI_DOUBLE_COMPLEX,master_rank,matrix_comm);</span>
+<span class="lineNum">     276 </span><span class="lineCov">          2 :         TCSR&lt;CPX&gt; *spainj = NULL;</span>
+<span class="lineNum">     277 </span><span class="lineCov">          2 :         if (iam==master_rank) {</span>
+<span class="lineNum">     278 </span><span class="lineCov">          2 :             spainj = new TCSR&lt;CPX&gt;(SumHamC-&gt;size_tot,ntriblock*n_propagating,SumHamC-&gt;findx);</span>
+<span class="lineNum">     279 </span><span class="lineCov">          2 :             spainj-&gt;full_to_sparse(inj,ntriblock,n_propagating,start,0);</span>
+<span class="lineNum">     280 </span><span class="lineCov">          2 :             delete[] inj;</span>
+<span class="lineNum">     281 </span><span class="lineCov">          2 :             inj = NULL;</span>
+<span class="lineNum">     282 </span>            :         }
+<span class="lineNum">     283 </span><span class="lineCov">          2 :         spainjdist = new TCSR&lt;CPX&gt;(SumHamC,spainj,master_rank,matrix_comm);</span>
+<span class="lineNum">     284 </span><span class="lineCov">          2 :         if (iam==master_rank) delete spainj;</span>
+<span class="lineNum">     285 </span>            :     }
+<span class="lineNum">     286 </span><span class="lineCov">          2 : }</span>
+<span class="lineNum">     287 </span>            : 
+<span class="lineNum">     288 </span><span class="lineCov">          2 : int BoundarySelfEnergy::GetSigma(MPI_Comm boundary_comm,transport_parameters transport_params)</span>
+<span class="lineNum">     289 </span>            : {
+<span class="lineNum">     290 </span><span class="lineCov">          4 :     if (imag(energy) &amp;&amp; transport_params.n_points_inv) {</span>
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :         if (GetSigmaInv(boundary_comm,transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     292 </span>            :     } else {
+<span class="lineNum">     293 </span><span class="lineCov">          2 :         if (GetSigmaEig(boundary_comm,transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     294 </span>            :     }
+<span class="lineNum">     295 </span>            :     return 0;
+<span class="lineNum">     296 </span>            : }
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 : int BoundarySelfEnergy::GetSigmaInv(MPI_Comm boundary_comm,transport_parameters transport_params)</span>
+<span class="lineNum">     299 </span>            : {
+<span class="lineNum">     300 </span><span class="lineNoCov">          0 :     int complexenergypoint=0;</span>
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 :     if (imag(energy)) complexenergypoint=1;</span>
+<span class="lineNum">     302 </span><span class="lineNoCov">          0 :     int inj_sign=contact.inj_sign;</span>
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :     int ndof=contact.ndof;</span>
+<span class="lineNum">     304 </span><span class="lineNoCov">          0 :     int bandwidth=contact.bandwidth;</span>
+<span class="lineNum">     305 </span><span class="lineNoCov">          0 :     int ndofsq=ndof*ndof;</span>
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 :     int nblocksband=2*bandwidth+1;</span>
+<span class="lineNum">     307 </span><span class="lineNoCov">          0 :     int ntriblock=bandwidth*ndof;</span>
+<span class="lineNum">     308 </span><span class="lineNoCov">          0 :     int triblocksize=ntriblock*ntriblock;</span>
+<span class="lineNum">     309 </span><span class="lineNoCov">          0 :     int NK=transport_params.n_points_inv;</span>
+<span class="lineNum">     310 </span><span class="lineNoCov">          0 :     double imag_shift=0.0;</span>
+<span class="lineNum">     311 </span>            :     int boundary_rank,boundary_size;
+<span class="lineNum">     312 </span><span class="lineNoCov">          0 :     MPI_Comm_rank(boundary_comm,&amp;boundary_rank);</span>
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :     MPI_Comm_size(boundary_comm,&amp;boundary_size);</span>
+<span class="lineNum">     314 </span><span class="lineNoCov">          0 :     CPX **B=NULL;</span>
+<span class="lineNum">     315 </span><span class="lineNoCov">          0 :     CPX *BB=NULL;</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :     CPX *M=NULL;</span>
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 : int worldrank; MPI_Comm_rank(MPI_COMM_WORLD,&amp;worldrank);</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 : double sabtime=get_time(0.0);</span>
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :     if (!boundary_rank) {</span>
+<span class="lineNum">     320 </span><span class="lineNoCov">          0 :         B=new CPX*[4*bandwidth-1];</span>
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :         for (int IB=0;IB&lt;4*bandwidth-1;IB++) {</span>
+<span class="lineNum">     322 </span><span class="lineNoCov">          0 :             B[IB]=new CPX[ndofsq]();</span>
+<span class="lineNum">     323 </span>            :         }
+<span class="lineNum">     324 </span><span class="lineNoCov">          0 :         M=new CPX[ndofsq];</span>
+<span class="lineNum">     325 </span>            :     }
+<span class="lineNum">     326 </span><span class="lineNoCov">          0 :     for (int IK=0;IK&lt;NK;IK++) {</span>
+<span class="lineNum">     327 </span><span class="lineNoCov">          0 :         CPX z = exp(CPX(0.0,2.0*(IK+0.5)*M_PI/double(NK)))+imag_shift*CPX(0.0,1.0);</span>
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :         if (!boundary_rank) {</span>
+<span class="lineNum">     329 </span><span class="lineNoCov">          0 :             create_M_matrix(M,ndof,H,bandwidth,z);</span>
+<span class="lineNum">     330 </span>            :         }
+<span class="lineNum">     331 </span><span class="lineNoCov">          0 :         if (p_inv(M,ndof,boundary_comm)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :         if (!boundary_rank) {</span>
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 :             for (int IB=0;IB&lt;4*bandwidth-1;IB++) {</span>
+<span class="lineNum">     334 </span><span class="lineNoCov">          0 :                 CPX expfac=pow(z,IB-(2*bandwidth-1))/double(NK);</span>
+<span class="lineNum">     335 </span><span class="lineNoCov">          0 :                 c_zaxpy(ndofsq,expfac,M,1,B[IB],1);</span>
+<span class="lineNum">     336 </span>            :             }
+<span class="lineNum">     337 </span>            :         }
+<span class="lineNum">     338 </span>            :     }
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :     if (!boundary_rank) {</span>
+<span class="lineNum">     340 </span><span class="lineNoCov">          0 :         delete[] M;</span>
+<span class="lineNum">     341 </span>            :     }
+<span class="lineNum">     342 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR SIGMA SOLVER INTEGRATION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :     if (!boundary_rank) {</span>
+<span class="lineNum">     344 </span><span class="lineNoCov">          0 :         sigma = new CPX[triblocksize];</span>
+<span class="lineNum">     345 </span><span class="lineNoCov">          0 :         BB = new CPX[triblocksize];</span>
+<span class="lineNum">     346 </span><span class="lineNoCov">          0 :         for (int IB=0;IB&lt;bandwidth;IB++) {</span>
+<span class="lineNum">     347 </span><span class="lineNoCov">          0 :             for (int JB=0;JB&lt;bandwidth;JB++) {</span>
+<span class="lineNum">     348 </span><span class="lineNoCov">          0 :                 c_zlacpy('A',ndof,ndof,B[IB-JB+2*bandwidth-1-inj_sign*bandwidth],ndof,&amp;sigma[ndof*IB+ntriblock*ndof*JB],ntriblock);</span>
+<span class="lineNum">     349 </span>            :             }
+<span class="lineNum">     350 </span>            :         }
+<span class="lineNum">     351 </span><span class="lineNoCov">          0 :         full_transpose(ntriblock,ntriblock,sigma,BB);</span>
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :         for (int IB=0;IB&lt;bandwidth;IB++) {</span>
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 :             for (int JB=0;JB&lt;bandwidth;JB++) {</span>
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :                 c_zlacpy('A',ndof,ndof,B[IB-JB+2*bandwidth-1],ndof,&amp;sigma[ndof*IB+ntriblock*ndof*JB],ntriblock);</span>
+<span class="lineNum">     355 </span>            :             }
+<span class="lineNum">     356 </span>            :         }
+<span class="lineNum">     357 </span>            :     }
+<span class="lineNum">     358 </span><span class="lineNoCov">          0 :     if (p_lin(sigma,BB,BB,ntriblock,ntriblock,boundary_comm)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     359 </span><span class="lineNoCov">          0 :     if (!boundary_rank) {</span>
+<span class="lineNum">     360 </span><span class="lineNoCov">          0 :         H1t-&gt;trans_mat_vec_mult(BB,sigma,ntriblock,1);</span>
+<span class="lineNum">     361 </span><span class="lineNoCov">          0 :         c_zscal(triblocksize,CPX(-1.0,0.0),sigma,1);</span>
+<span class="lineNum">     362 </span><span class="lineNoCov">          0 :         delete[] BB;</span>
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :         for (int IB=0;IB&lt;4*bandwidth-1;IB++) {</span>
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :             delete[] B[IB];</span>
+<span class="lineNum">     365 </span>            :         }
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :         delete[] B;</span>
+<span class="lineNum">     367 </span><span class="lineNoCov">          0 :         for (int ibw=0;ibw&lt;nblocksband;ibw++) {</span>
+<span class="lineNum">     368 </span><span class="lineNoCov">          0 :             delete H[ibw];</span>
+<span class="lineNum">     369 </span>            :         }
+<span class="lineNum">     370 </span><span class="lineNoCov">          0 :         delete[] H;</span>
+<span class="lineNum">     371 </span><span class="lineNoCov">          0 :         H = NULL;</span>
+<span class="lineNum">     372 </span><span class="lineNoCov">          0 :         delete H0;</span>
+<span class="lineNum">     373 </span><span class="lineNoCov">          0 :         H0 = NULL;</span>
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :         delete H1;</span>
+<span class="lineNum">     375 </span><span class="lineNoCov">          0 :         H1 = NULL;</span>
+<span class="lineNum">     376 </span><span class="lineNoCov">          0 :         delete H1t;</span>
+<span class="lineNum">     377 </span><span class="lineNoCov">          0 :         H1t = NULL;</span>
+<span class="lineNum">     378 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR SIGMA SOLVER &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     379 </span>            : // ONLY CHANGES THE RESULT SLIGHTLY BUT IS IMPORTANT FOR PEXSI
+<span class="lineNum">     380 </span>            : // /*
+<span class="lineNum">     381 </span><span class="lineNoCov">          0 :         if (complexenergypoint) {</span>
+<span class="lineNum">     382 </span><span class="lineNoCov">          0 :             for (int i=0;i&lt;ntriblock;i++) for (int j=0;j&lt;i;j++) {</span>
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :                 sigma[i+ntriblock*j]+=sigma[j+ntriblock*i];</span>
+<span class="lineNum">     384 </span><span class="lineNoCov">          0 :                 sigma[i+ntriblock*j]*=0.5;</span>
+<span class="lineNum">     385 </span>            :             }
+<span class="lineNum">     386 </span><span class="lineNoCov">          0 :             for (int i=0;i&lt;ntriblock;i++) for (int j=0;j&lt;i;j++) {</span>
+<span class="lineNum">     387 </span><span class="lineNoCov">          0 :                 sigma[j+ntriblock*i]=sigma[i+ntriblock*j];</span>
+<span class="lineNum">     388 </span>            :             }
+<span class="lineNum">     389 </span>            :         }
+<span class="lineNum">     390 </span>            : // */
+<span class="lineNum">     391 </span>            :     }
+<span class="lineNum">     392 </span>            :     return 0;
+<span class="lineNum">     393 </span>            : }
+<span class="lineNum">     394 </span>            : 
+<span class="lineNum">     395 </span><span class="lineCov">          2 : int BoundarySelfEnergy::GetSigmaEig(MPI_Comm boundary_comm,transport_parameters transport_params)</span>
+<span class="lineNum">     396 </span>            : {
+<span class="lineNum">     397 </span><span class="lineCov">          2 :     double d_one=1.0;</span>
+<span class="lineNum">     398 </span><span class="lineCov">          2 :     double d_zer=0.0;</span>
+<span class="lineNum">     399 </span><span class="lineCov">          2 :     CPX z_one=CPX(d_one,d_zer);</span>
+<span class="lineNum">     400 </span><span class="lineCov">          2 :     CPX z_zer=CPX(d_zer,d_zer);</span>
+<span class="lineNum">     401 </span>            : double sabtime;
+<span class="lineNum">     402 </span><span class="lineCov">          2 :     int iinfo=0;</span>
+<span class="lineNum">     403 </span>            : // set parameters
+<span class="lineNum">     404 </span><span class="lineCov">          2 :     int complexenergypoint=0;</span>
+<span class="lineNum">     405 </span><span class="lineCov">          4 :     if (imag(energy)) complexenergypoint=1;</span>
+<span class="lineNum">     406 </span><span class="lineCov">          2 :     int inj_sign=contact.inj_sign;</span>
+<span class="lineNum">     407 </span><span class="lineCov">          2 :     int ndof=contact.ndof;</span>
+<span class="lineNum">     408 </span><span class="lineCov">          2 :     int bandwidth=contact.bandwidth;</span>
+<span class="lineNum">     409 </span><span class="lineCov">          2 :     int ndofsq=ndof*ndof;</span>
+<span class="lineNum">     410 </span><span class="lineCov">          2 :     int nblocksband=2*bandwidth+1;</span>
+<span class="lineNum">     411 </span><span class="lineCov">          2 :     int ntriblock=bandwidth*ndof;</span>
+<span class="lineNum">     412 </span><span class="lineCov">          2 :     int triblocksize=ntriblock*ntriblock;</span>
+<span class="lineNum">     413 </span><span class="lineCov">          2 :     injection_methods::injection_method_type injection_method=transport_params.injection_method;</span>
+<span class="lineNum">     414 </span><span class="lineCov">          2 :     double colzerothr=transport_params.colzero_threshold;</span>
+<span class="lineNum">     415 </span><span class="lineCov">          2 :     double eps_limit=transport_params.eps_limit;</span>
+<span class="lineNum">     416 </span><span class="lineCov">          2 :     if (complexenergypoint) eps_limit=transport_params.eps_limit_cc;</span>
+<span class="lineNum">     417 </span><span class="lineCov">          4 :     int neigbeyn=max(1,int(transport_params.fac_neigbeyn*ndof));</span>
+<span class="lineNum">     418 </span><span class="lineCov">          2 :     if (complexenergypoint) neigbeyn=max(1,int(transport_params.fac_neigbeyn_cc*ndof));</span>
+<span class="lineNum">     419 </span><span class="lineCov">          2 :     double eps_decay=transport_params.eps_decay;</span>
+<span class="lineNum">     420 </span><span class="lineCov">          2 :     double eps_eigval_degen=transport_params.eps_eigval_degen;</span>
+<span class="lineNum">     421 </span><span class="lineCov">          2 :     double svd_fac=transport_params.svd_cutoff;</span>
+<span class="lineNum">     422 </span><span class="lineCov">          2 :     double NQ_beyn=transport_params.n_points_beyn;</span>
+<span class="lineNum">     423 </span><span class="lineCov">          2 :     double NCRC_beyn=transport_params.NCRC_beyn;</span>
+<span class="lineNum">     424 </span><span class="lineCov">          2 :     int ntasks_beyn=transport_params.tasks_per_integration_point;</span>
+<span class="lineNum">     425 </span>            :     int boundary_rank;
+<span class="lineNum">     426 </span><span class="lineCov">          2 :     MPI_Comm_rank(boundary_comm,&amp;boundary_rank);</span>
+<span class="lineNum">     427 </span><span class="lineCov">          2 : int worldrank; MPI_Comm_rank(MPI_COMM_WORLD,&amp;worldrank);</span>
+<span class="lineNum">     428 </span><span class="lineCov">          2 :     CPX *Vtra=NULL;</span>
+<span class="lineNum">     429 </span><span class="lineCov">          2 :     CPX *Vref=NULL;</span>
+<span class="lineNum">     430 </span><span class="lineCov">          2 :     CPX *lambdatra=NULL;</span>
+<span class="lineNum">     431 </span><span class="lineCov">          2 :     CPX *lambdaref=NULL;</span>
+<span class="lineNum">     432 </span><span class="lineCov">          2 :     double *veltra=NULL;</span>
+<span class="lineNum">     433 </span><span class="lineCov">          2 :     double *velref=NULL;</span>
+<span class="lineNum">     434 </span><span class="lineCov">          2 :     CPX *lambdavec=NULL;</span>
+<span class="lineNum">     435 </span><span class="lineCov">          2 :     CPX *eigvecc=NULL;</span>
+<span class="lineNum">     436 </span><span class="lineCov">          2 :     int neigval=0;</span>
+<span class="lineNum">     437 </span><span class="lineCov">          2 :     int ndectra=0;</span>
+<span class="lineNum">     438 </span><span class="lineCov">          2 :     int ndecref=0;</span>
+<span class="lineNum">     439 </span><span class="lineCov">          2 :     int nprotra=0;</span>
+<span class="lineNum">     440 </span><span class="lineCov">          2 :     int nproref=0;</span>
+<span class="lineNum">     441 </span><span class="lineCov">          2 :     if (!boundary_rank) {</span>
+<span class="lineNum">     442 </span><span class="lineCov">      93314 :         Vtra=new CPX[ntriblock*ntriblock];</span>
+<span class="lineNum">     443 </span><span class="lineCov">      93314 :         Vref=new CPX[ntriblock*ntriblock];</span>
+<span class="lineNum">     444 </span><span class="lineCov">        434 :         lambdatra=new CPX[ntriblock];</span>
+<span class="lineNum">     445 </span><span class="lineCov">        434 :         lambdaref=new CPX[ntriblock];</span>
+<span class="lineNum">     446 </span><span class="lineCov">          2 :         veltra=new double[ntriblock];</span>
+<span class="lineNum">     447 </span><span class="lineCov">          2 :         velref=new double[ntriblock];</span>
+<span class="lineNum">     448 </span><span class="lineCov">        868 :         lambdavec=new CPX[2*bandwidth*ndof];</span>
+<span class="lineNum">     449 </span><span class="lineCov">      62210 :         eigvecc=new CPX[ndof*2*bandwidth*ndof];</span>
+<span class="lineNum">     450 </span>            :     }
+<span class="lineNum">     451 </span><span class="lineCov">          2 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     452 </span><span class="lineCov">          2 :     if (injection_method==injection_methods::BEYN) {</span>
+<span class="lineNum">     453 </span><span class="lineCov">          2 :         if (complexenergypoint) {</span>
+<span class="lineNum">     454 </span><span class="lineNoCov">          0 :             InjectionBeyn&lt;CPX&gt; *k_inj = new InjectionBeyn&lt;CPX&gt;(2*bandwidth,1.0/eps_limit,svd_fac,NQ_beyn,NCRC_beyn,ntasks_beyn);</span>
+<span class="lineNum">     455 </span><span class="lineNoCov">          0 :             neigval = k_inj-&gt;execute(H,ndof,neigbeyn,lambdavec,eigvecc,inj_sign,boundary_comm);</span>
+<span class="lineNum">     456 </span><span class="lineNoCov">          0 :             delete k_inj;</span>
+<span class="lineNum">     457 </span>            :         } else {
+<span class="lineNum">     458 </span><span class="lineCov">          2 :             InjectionBeyn&lt;double&gt; *k_inj = new InjectionBeyn&lt;double&gt;(2*bandwidth,1.0/eps_limit,svd_fac,NQ_beyn,NCRC_beyn,ntasks_beyn);</span>
+<span class="lineNum">     459 </span><span class="lineCov">          2 :             neigval = k_inj-&gt;execute(H,ndof,neigbeyn,lambdavec,eigvecc,inj_sign,boundary_comm);</span>
+<span class="lineNum">     460 </span><span class="lineCov">          2 :             delete k_inj;</span>
+<span class="lineNum">     461 </span>            :         }
+<span class="lineNum">     462 </span>            :     } else {
+<span class="lineNum">     463 </span><span class="lineNoCov">          0 :         CPX* KScpx=NULL;</span>
+<span class="lineNum">     464 </span><span class="lineNoCov">          0 :         if (!boundary_rank) {</span>
+<span class="lineNum">     465 </span><span class="lineNoCov">          0 :             KScpx = new CPX[ndofsq*nblocksband];</span>
+<span class="lineNum">     466 </span><span class="lineNoCov">          0 :             for (int ibw=0;ibw&lt;nblocksband;ibw++) {</span>
+<span class="lineNum">     467 </span><span class="lineNoCov">          0 :                 H[ibw]-&gt;sparse_to_full(&amp;KScpx[ndofsq*ibw],ndof,ndof);</span>
+<span class="lineNum">     468 </span>            :             }
+<span class="lineNum">     469 </span>            :         }
+<span class="lineNum">     470 </span>            :         InjectionIEV inj_iev;
+<span class="lineNum">     471 </span><span class="lineNoCov">          0 :         if (inj_iev.Compute(neigval,lambdavec,eigvecc,KScpx,ndof,bandwidth,inj_sign,complexenergypoint,colzerothr,boundary_comm)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     472 </span><span class="lineNoCov">          0 :         if (!boundary_rank) {</span>
+<span class="lineNum">     473 </span><span class="lineNoCov">          0 :             delete[] KScpx;</span>
+<span class="lineNum">     474 </span>            :         }
+<span class="lineNum">     475 </span>            :     }
+<span class="lineNum">     476 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR EIGENVALUE SOLVER &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     477 </span><span class="lineCov">          2 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     478 </span><span class="lineCov">          2 :     if (!boundary_rank) {</span>
+<span class="lineNum">     479 </span>            : // DETERMINE TYPE OF EIGENVALUE/VECTOR
+<span class="lineNum">     480 </span><span class="lineCov">          2 :         int *dectravec=new int[neigval];</span>
+<span class="lineNum">     481 </span><span class="lineCov">          4 :         int *decrefvec=new int[neigval];</span>
+<span class="lineNum">     482 </span><span class="lineCov">          4 :         int *protravec=new int[neigval];</span>
+<span class="lineNum">     483 </span><span class="lineCov">          4 :         int *prorefvec=new int[neigval];</span>
+<span class="lineNum">     484 </span><span class="lineCov">      10372 :         CPX *matcdof=new CPX[ndofsq]();</span>
+<span class="lineNum">     485 </span><span class="lineCov">        146 :         CPX *vecout=new CPX[ndof];</span>
+<span class="lineNum">     486 </span><span class="lineCov">        102 :         for (int iindnzcoln=0;iindnzcoln&lt;neigval;iindnzcoln++) {</span>
+<span class="lineNum">     487 </span><span class="lineCov">         50 :             CPX lambda=lambdavec[iindnzcoln];</span>
+<span class="lineNum">     488 </span><span class="lineCov">        100 :             if (abs(lambda)&gt;eps_limit &amp;&amp; abs(lambda)&lt;1.0/eps_limit) {</span>
+<span class="lineNum">     489 </span><span class="lineCov">        100 :                 if ((abs(lambda)&gt;d_one+eps_decay &amp;&amp; inj_sign&gt;0) || (abs(lambda)&lt;d_one-eps_decay &amp;&amp; inj_sign&lt;0))</span>
+<span class="lineNum">     490 </span><span class="lineNoCov">          0 :                     dectravec[ndectra++]=iindnzcoln;</span>
+<span class="lineNum">     491 </span><span class="lineCov">         79 :                 else if ((abs(lambda)&lt;d_one-eps_decay &amp;&amp; inj_sign&gt;0) || (abs(lambda)&gt;d_one+eps_decay &amp;&amp; inj_sign&lt;0))</span>
+<span class="lineNum">     492 </span><span class="lineCov">         42 :                     decrefvec[ndecref++]=iindnzcoln;</span>
+<span class="lineNum">     493 </span>            :                 else {
+<span class="lineNum">     494 </span>            :                     c_zscal(ndofsq,z_zer,matcdof,1);
+<span class="lineNum">     495 </span><span class="lineCov">         56 :                     for (int ibandw=1;ibandw&lt;=bandwidth;ibandw++)</span>
+<span class="lineNum">     496 </span><span class="lineCov">         72 :                         H[bandwidth+ibandw]-&gt;add_sparse_to_full(matcdof,ndof,ndof,CPX(ibandw,d_zer)*pow(lambda,-(ibandw-1)));//ACHTUNG IST DAS AUCH FUER BEIDE INJ SIGNS SO RICHTIG MIT DEM VZ</span>
+<span class="lineNum">     497 </span><span class="lineCov">         16 :                     c_zgemv('N',ndof,ndof,z_one,matcdof,ndof,&amp;eigvecc[iindnzcoln*ndof],1,z_zer,vecout,1);</span>
+<span class="lineNum">     498 </span><span class="lineCov">         32 :                     double velnum=-2.0*imag(z_one/lambda*c_zdotc(ndof,&amp;eigvecc[iindnzcoln*ndof],1,vecout,1));</span>
+<span class="lineNum">     499 </span>            : // the velocity is this numerator divided by &quot;bandwidth*C'*(s_0+sum_i=1^bandwidth(lambda^i s_i+lambda^-i s_-i))*C&quot;
+<span class="lineNum">     500 </span>            : // but as i think this number is always positive i didnt implement it yet
+<span class="lineNum">     501 </span><span class="lineCov">          8 :                    if (velnum*inj_sign&gt;0) {</span>
+<span class="lineNum">     502 </span><span class="lineCov">          8 :                        veltra[nprotra]=abs(velnum);</span>
+<span class="lineNum">     503 </span><span class="lineCov">          4 :                        protravec[nprotra++]=iindnzcoln;</span>
+<span class="lineNum">     504 </span><span class="lineCov">          4 :                     } else if (velnum*inj_sign&lt;0) {</span>
+<span class="lineNum">     505 </span><span class="lineCov">          8 :                        velref[nproref]=abs(velnum);</span>
+<span class="lineNum">     506 </span><span class="lineCov">          4 :                        prorefvec[nproref++]=iindnzcoln;</span>
+<span class="lineNum">     507 </span><span class="lineNoCov">          0 :                     } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     508 </span>            :                 } // END IF decaying or propagating
+<span class="lineNum">     509 </span>            :             } // END IF k not infinite
+<span class="lineNum">     510 </span>            :         } // END FOR
+<span class="lineNum">     511 </span><span class="lineCov">          2 :         delete[] matcdof;</span>
+<span class="lineNum">     512 </span><span class="lineCov">          2 :         delete[] vecout;</span>
+<span class="lineNum">     513 </span>            :         CPX normy;
+<span class="lineNum">     514 </span><span class="lineCov">         10 :         for (int ipro=0;ipro&lt;nprotra;ipro++) {</span>
+<span class="lineNum">     515 </span><span class="lineCov">          4 :             lambdatra[ipro]=lambdavec[protravec[ipro]];</span>
+<span class="lineNum">     516 </span><span class="lineCov">          4 :             c_zcopy(ndof,&amp;eigvecc[ndof*protravec[ipro]],1,&amp;Vtra[ndof*bandwidth*ipro+ndof*(bandwidth-1)],1);</span>
+<span class="lineNum">     517 </span><span class="lineCov">         20 :             for (int ibandw=2;ibandw&lt;=bandwidth;ibandw++) {</span>
+<span class="lineNum">     518 </span><span class="lineCov">         16 :                 c_zcopy(ndof,&amp;Vtra[ndof*bandwidth*ipro+ndof*(bandwidth+1-ibandw)],1,&amp;Vtra[ndof*bandwidth*ipro+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     519 </span><span class="lineCov">         16 :                 c_zscal(ndof,lambdavec[protravec[ipro]],&amp;Vtra[ndof*bandwidth*ipro+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     520 </span>            :             }
+<span class="lineNum">     521 </span><span class="lineCov">         12 :             normy=CPX(d_one/c_dznrm2(bandwidth*ndof,&amp;Vtra[ipro*bandwidth*ndof],1),d_zer);</span>
+<span class="lineNum">     522 </span><span class="lineCov">          4 :             c_zscal(bandwidth*ndof,normy,&amp;Vtra[ipro*bandwidth*ndof],1);</span>
+<span class="lineNum">     523 </span><span class="lineCov">          8 :             veltra[ipro]*=real(normy)*real(normy);</span>
+<span class="lineNum">     524 </span>            :         }
+<span class="lineNum">     525 </span><span class="lineCov">          2 :         for (int idec=0;idec&lt;ndectra;idec++) {</span>
+<span class="lineNum">     526 </span><span class="lineNoCov">          0 :             lambdatra[idec+nprotra]=lambdavec[dectravec[idec]];</span>
+<span class="lineNum">     527 </span><span class="lineNoCov">          0 :             c_zcopy(ndof,&amp;eigvecc[ndof*dectravec[idec]],1,&amp;Vtra[ndof*bandwidth*(idec+nprotra)+ndof*(bandwidth-1)],1);</span>
+<span class="lineNum">     528 </span><span class="lineNoCov">          0 :             for (int ibandw=2;ibandw&lt;=bandwidth;ibandw++) {</span>
+<span class="lineNum">     529 </span><span class="lineNoCov">          0 :                 c_zcopy(ndof,&amp;Vtra[ndof*bandwidth*(idec+nprotra)+ndof*(bandwidth+1-ibandw)],1,&amp;Vtra[ndof*bandwidth*(idec+nprotra)+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     530 </span><span class="lineNoCov">          0 :                 c_zscal(ndof,lambdavec[dectravec[idec]],&amp;Vtra[ndof*bandwidth*(idec+nprotra)+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     531 </span>            :             }
+<span class="lineNum">     532 </span><span class="lineNoCov">          0 :             normy=CPX(d_one/c_dznrm2(bandwidth*ndof,&amp;Vtra[(idec+nprotra)*bandwidth*ndof],1),d_zer);</span>
+<span class="lineNum">     533 </span><span class="lineNoCov">          0 :             c_zscal(bandwidth*ndof,normy,&amp;Vtra[(idec+nprotra)*bandwidth*ndof],1);</span>
+<span class="lineNum">     534 </span>            :         }
+<span class="lineNum">     535 </span><span class="lineCov">         10 :         for (int ipro=0;ipro&lt;nproref;ipro++) {</span>
+<span class="lineNum">     536 </span><span class="lineCov">          4 :             lambdaref[ipro]=lambdavec[prorefvec[ipro]];</span>
+<span class="lineNum">     537 </span><span class="lineCov">          4 :             c_zcopy(ndof,&amp;eigvecc[ndof*prorefvec[ipro]],1,&amp;Vref[ndof*bandwidth*ipro+ndof*(bandwidth-1)],1);</span>
+<span class="lineNum">     538 </span><span class="lineCov">         20 :             for (int ibandw=2;ibandw&lt;=bandwidth;ibandw++) {</span>
+<span class="lineNum">     539 </span><span class="lineCov">         16 :                 c_zcopy(ndof,&amp;Vref[ndof*bandwidth*ipro+ndof*(bandwidth+1-ibandw)],1,&amp;Vref[ndof*bandwidth*ipro+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     540 </span><span class="lineCov">         16 :                 c_zscal(ndof,lambdavec[prorefvec[ipro]],&amp;Vref[ndof*bandwidth*ipro+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     541 </span>            :             }
+<span class="lineNum">     542 </span><span class="lineCov">         12 :             normy=CPX(d_one/c_dznrm2(bandwidth*ndof,&amp;Vref[ipro*bandwidth*ndof],1),d_zer);</span>
+<span class="lineNum">     543 </span><span class="lineCov">          4 :             c_zscal(bandwidth*ndof,normy,&amp;Vref[ipro*bandwidth*ndof],1);</span>
+<span class="lineNum">     544 </span><span class="lineCov">          8 :             velref[ipro]*=real(normy)*real(normy);</span>
+<span class="lineNum">     545 </span>            :         }
+<span class="lineNum">     546 </span><span class="lineCov">         86 :         for (int idec=0;idec&lt;ndecref;idec++) {</span>
+<span class="lineNum">     547 </span><span class="lineCov">         42 :             lambdaref[idec+nproref]=lambdavec[decrefvec[idec]];</span>
+<span class="lineNum">     548 </span><span class="lineCov">         42 :             c_zcopy(ndof,&amp;eigvecc[ndof*decrefvec[idec]],1,&amp;Vref[ndof*bandwidth*(idec+nproref)+ndof*(bandwidth-1)],1);</span>
+<span class="lineNum">     549 </span><span class="lineCov">        210 :             for (int ibandw=2;ibandw&lt;=bandwidth;ibandw++) {</span>
+<span class="lineNum">     550 </span><span class="lineCov">        168 :                 c_zcopy(ndof,&amp;Vref[ndof*bandwidth*(idec+nproref)+ndof*(bandwidth+1-ibandw)],1,&amp;Vref[ndof*bandwidth*(idec+nproref)+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     551 </span><span class="lineCov">        168 :                 c_zscal(ndof,lambdavec[decrefvec[idec]],&amp;Vref[ndof*bandwidth*(idec+nproref)+ndof*(bandwidth-ibandw)],1);</span>
+<span class="lineNum">     552 </span>            :             }
+<span class="lineNum">     553 </span><span class="lineCov">        126 :             normy=CPX(d_one/c_dznrm2(bandwidth*ndof,&amp;Vref[(idec+nproref)*bandwidth*ndof],1),d_zer);</span>
+<span class="lineNum">     554 </span><span class="lineCov">         42 :             c_zscal(bandwidth*ndof,normy,&amp;Vref[(idec+nproref)*bandwidth*ndof],1);</span>
+<span class="lineNum">     555 </span>            :         }
+<span class="lineNum">     556 </span><span class="lineCov">          2 :         delete[] dectravec;</span>
+<span class="lineNum">     557 </span><span class="lineCov">          2 :         delete[] decrefvec;</span>
+<span class="lineNum">     558 </span><span class="lineCov">          2 :         delete[] protravec;</span>
+<span class="lineNum">     559 </span><span class="lineCov">          2 :         delete[] prorefvec;</span>
+<span class="lineNum">     560 </span><span class="lineCov">          2 :         delete[] lambdavec;</span>
+<span class="lineNum">     561 </span><span class="lineCov">          2 :         delete[] eigvecc;</span>
+<span class="lineNum">     562 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR EIGENVALUE VELOCITY AND NORM &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     563 </span>            :  /*
+<span class="lineNum">     564 </span>            : stringstream mysstream;
+<span class="lineNum">     565 </span>            : mysstream &lt;&lt; &quot;AllEigvals&quot; &lt;&lt; worldrank;
+<span class="lineNum">     566 </span>            : ofstream myfile(mysstream.str().c_str());
+<span class="lineNum">     567 </span>            : myfile.precision(15);
+<span class="lineNum">     568 </span>            : for (int iele=0;iele&lt;nproref+ndecref;iele++) {
+<span class="lineNum">     569 </span>            :     CPX k_eigval=CPX(0.0,1.0)*log(lambdaref[iele]);
+<span class="lineNum">     570 </span>            :     myfile &lt;&lt; real(k_eigval) &lt;&lt; &quot; &quot; &lt;&lt; imag(k_eigval) &lt;&lt; endl;
+<span class="lineNum">     571 </span>            : }
+<span class="lineNum">     572 </span>            : myfile.close();
+<span class="lineNum">     573 </span>            :  */
+<span class="lineNum">     574 </span><span class="lineCov">         30 :         for (int ibw=0;ibw&lt;nblocksband;ibw++) {</span>
+<span class="lineNum">     575 </span><span class="lineCov">         14 :             delete H[ibw];</span>
+<span class="lineNum">     576 </span>            :         }
+<span class="lineNum">     577 </span><span class="lineCov">          2 :         delete[] H;</span>
+<span class="lineNum">     578 </span><span class="lineCov">          2 :         H = NULL;</span>
+<span class="lineNum">     579 </span><span class="lineCov">          2 :         if (nprotra!=nproref) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     580 </span><span class="lineCov">          2 :         n_propagating=nprotra;</span>
+<span class="lineNum">     581 </span><span class="lineCov">          2 :         n_dec=ndecref;</span>
+<span class="lineNum">     582 </span><span class="lineCov">          2 :         int neigbas=nproref+ndecref;</span>
+<span class="lineNum">     583 </span><span class="lineCov">       9938 :         CPX *VT=new CPX[neigbas*ntriblock];</span>
+<span class="lineNum">     584 </span><span class="lineCov">       9938 :         CPX *matcpx=new CPX[ntriblock*neigbas];</span>
+<span class="lineNum">     585 </span><span class="lineCov">       1060 :         CPX *invgrs=new CPX[neigbas*neigbas];</span>
+<span class="lineNum">     586 </span><span class="lineCov">          2 :         sabtime=get_time(d_zer);</span>
+<span class="lineNum">     587 </span><span class="lineCov">          2 :         if (eps_limit&lt;1.0E-4) {</span>
+<span class="lineNum">     588 </span><span class="lineNoCov">          0 :             full_transpose(neigbas,ntriblock,Vref,VT);</span>
+<span class="lineNum">     589 </span><span class="lineNoCov">          0 :             H1t-&gt;trans_mat_vec_mult(VT,matcpx,neigbas,1);</span>
+<span class="lineNum">     590 </span>            :             c_zgemm('T','N',neigbas,neigbas,ntriblock,z_one,Vref,ntriblock,matcpx,ntriblock,z_zer,invgrs,neigbas);
+<span class="lineNum">     591 </span><span class="lineNoCov">          0 :             for (int ieigbas=0;ieigbas&lt;neigbas;ieigbas++)</span>
+<span class="lineNum">     592 </span><span class="lineNoCov">          0 :                 c_zscal(neigbas,pow(lambdaref[ieigbas],+inj_sign*bandwidth),&amp;invgrs[ieigbas*neigbas],1);</span>
+<span class="lineNum">     593 </span><span class="lineNoCov">          0 :             H0-&gt;trans_mat_vec_mult(VT,matcpx,neigbas,1);</span>
+<span class="lineNum">     594 </span>            :             c_zgemm('T','N',neigbas,neigbas,ntriblock,z_one,Vref,ntriblock,matcpx,ntriblock,z_one,invgrs,neigbas);
+<span class="lineNum">     595 </span>            :         } else {
+<span class="lineNum">     596 </span><span class="lineCov">          2 :             full_transpose(neigbas,ntriblock,Vref,VT);</span>
+<span class="lineNum">     597 </span><span class="lineCov">          2 :             H1-&gt;trans_mat_vec_mult(VT,matcpx,neigbas,1);</span>
+<span class="lineNum">     598 </span><span class="lineCov">          2 :             c_zgemm('T','N',neigbas,neigbas,ntriblock,-z_one,Vref,ntriblock,matcpx,ntriblock,z_zer,invgrs,neigbas);</span>
+<span class="lineNum">     599 </span><span class="lineCov">         94 :             for (int ieigbas=0;ieigbas&lt;neigbas;ieigbas++)</span>
+<span class="lineNum">     600 </span><span class="lineCov">         92 :                 c_zscal(neigbas,pow(lambdaref[ieigbas],-inj_sign*bandwidth),&amp;invgrs[ieigbas*neigbas],1);</span>
+<span class="lineNum">     601 </span>            :         }
+<span class="lineNum">     602 </span><span class="lineCov">          2 :         delete[] VT;</span>
+<span class="lineNum">     603 </span><span class="lineCov">          2 :         delete[] matcpx;</span>
+<span class="lineNum">     604 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR MATRIX MATRIX MULTIPLICATIONS FOR INVERSE OF G &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     605 </span><span class="lineCov">          2 :         sabtime=get_time(d_zer);</span>
+<span class="lineNum">     606 </span><span class="lineCov">          2 :         double *worknorm=new double[neigbas];</span>
+<span class="lineNum">     607 </span><span class="lineCov">          2 :         double anorm=c_zlange('1',neigbas,neigbas,invgrs,neigbas,worknorm);</span>
+<span class="lineNum">     608 </span><span class="lineCov">          4 :         delete[] worknorm;</span>
+<span class="lineNum">     609 </span><span class="lineCov">          2 :         int *pivarrayg=new int[neigbas];</span>
+<span class="lineNum">     610 </span><span class="lineCov">          2 :         c_zgetrf(neigbas,neigbas,invgrs,neigbas,pivarrayg,&amp;iinfo);</span>
+<span class="lineNum">     611 </span><span class="lineCov">          2 :         if (iinfo) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     612 </span><span class="lineCov">         94 :         CPX *cworkcond=new CPX[2*neigbas];</span>
+<span class="lineNum">     613 </span><span class="lineCov">          2 :         double *dworkcond=new double[2*neigbas];</span>
+<span class="lineNum">     614 </span><span class="lineCov">          4 :         c_zgecon('1',neigbas,invgrs,neigbas,anorm,&amp;rcond,cworkcond,dworkcond,&amp;iinfo);</span>
+<span class="lineNum">     615 </span><span class="lineCov">          2 :         if (iinfo) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     616 </span><span class="lineCov">          2 :         delete[] cworkcond;</span>
+<span class="lineNum">     617 </span><span class="lineCov">          2 :         delete[] dworkcond;</span>
+<span class="lineNum">     618 </span><span class="lineCov">      93314 :         sigma = new CPX[triblocksize];</span>
+<span class="lineNum">     619 </span><span class="lineCov">       9938 :         CPX* RCOR = new CPX[ntriblock*neigbas];</span>
+<span class="lineNum">     620 </span><span class="lineCov">          2 :         int inversion_small_multmult = 0;</span>
+<span class="lineNum">     621 </span>            :         if (inversion_small_multmult) {
+<span class="lineNum">     622 </span>            :             full_transpose(neigbas,ntriblock,Vref,RCOR);
+<span class="lineNum">     623 </span>            :             c_zgetrs('N',neigbas,ntriblock,invgrs,neigbas,pivarrayg,RCOR,neigbas,&amp;iinfo);
+<span class="lineNum">     624 </span>            :             if (iinfo) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     625 </span>            :             c_zgemm('N','N',ntriblock,ntriblock,neigbas,z_one,Vref,ntriblock,RCOR,neigbas,z_zer,sigma,ntriblock);
+<span class="lineNum">     626 </span>            : // i wouldnt need all the transpose if g00R, which is contained in sigma, was symmetric
+<span class="lineNum">     627 </span>            :             CPX *matctri  = new CPX[triblocksize];
+<span class="lineNum">     628 </span>            :             full_transpose(ntriblock,ntriblock,sigma,matctri);
+<span class="lineNum">     629 </span>            :             H1t-&gt;trans_mat_vec_mult(matctri,sigma,ntriblock,1);
+<span class="lineNum">     630 </span>            :             H1t-&gt;trans_mat_vec_mult(sigma,matctri,ntriblock,1);
+<span class="lineNum">     631 </span>            :             full_transpose(ntriblock,ntriblock,matctri,sigma);
+<span class="lineNum">     632 </span>            :             delete[] matctri;
+<span class="lineNum">     633 </span>            :         } else {
+<span class="lineNum">     634 </span><span class="lineCov">       9938 :             CPX* LCOR = new CPX[ntriblock*neigbas];</span>
+<span class="lineNum">     635 </span><span class="lineCov">          2 :             H1t-&gt;mat_vec_mult(Vref,LCOR,neigbas);</span>
+<span class="lineNum">     636 </span><span class="lineCov">          2 :             full_transpose(neigbas,ntriblock,LCOR,RCOR);</span>
+<span class="lineNum">     637 </span><span class="lineCov">          2 :             c_zgetrs('N',neigbas,ntriblock,invgrs,neigbas,pivarrayg,RCOR,neigbas,&amp;iinfo);</span>
+<span class="lineNum">     638 </span><span class="lineCov">          2 :             if (iinfo) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     639 </span><span class="lineCov">          4 :             c_zgemm('N','N',ntriblock,ntriblock,neigbas,z_one,LCOR,ntriblock,RCOR,neigbas,z_zer,sigma,ntriblock);</span>
+<span class="lineNum">     640 </span><span class="lineCov">          2 :             delete[] LCOR;</span>
+<span class="lineNum">     641 </span>            :         }
+<span class="lineNum">     642 </span><span class="lineCov">          2 :         delete[] pivarrayg;</span>
+<span class="lineNum">     643 </span><span class="lineCov">          2 :         delete[] RCOR;</span>
+<span class="lineNum">     644 </span><span class="lineCov">          2 :         delete[] invgrs;</span>
+<span class="lineNum">     645 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR INVERSION AND MATRIX MATRIX MULTIPLICATIONS FOR SIGMA &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     646 </span>            : 
+<span class="lineNum">     647 </span>            : // /*
+<span class="lineNum">     648 </span><span class="lineCov">          2 :         sabtime=get_time(d_zer);</span>
+<span class="lineNum">     649 </span><span class="lineCov">          2 :         int inversion_with_sparse_mult_symm=0;</span>
+<span class="lineNum">     650 </span><span class="lineCov">          2 :         int linear_system_with_dense_mult_symm=0;</span>
+<span class="lineNum">     651 </span><span class="lineCov">          2 :         int iter_max=1;</span>
+<span class="lineNum">     652 </span>            :         if (inversion_with_sparse_mult_symm) {
+<span class="lineNum">     653 </span>            :             CPX *matctri  = new CPX[triblocksize];
+<span class="lineNum">     654 </span>            :             CPX *presigma  = new CPX[triblocksize];
+<span class="lineNum">     655 </span>            :             for (int iter=0;iter&lt;iter_max;iter++){
+<span class="lineNum">     656 </span>            :                 H0-&gt;sparse_to_full(matctri,ntriblock,ntriblock);
+<span class="lineNum">     657 </span>            :                 c_zaxpy(triblocksize,-z_one,sigma,1,matctri,1);
+<span class="lineNum">     658 </span>            :                 int *pivarrays=new int[ntriblock];
+<span class="lineNum">     659 </span>            :                 c_zgetrf(ntriblock,ntriblock,matctri,ntriblock,pivarrays,&amp;iinfo);
+<span class="lineNum">     660 </span>            :                 if (iinfo) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     661 </span>            :                 CPX nworks;
+<span class="lineNum">     662 </span>            :                 c_zgetri(ntriblock,matctri,ntriblock,pivarrays,&amp;nworks,-1,&amp;iinfo);
+<span class="lineNum">     663 </span>            :                 int lworks=int(real(nworks));
+<span class="lineNum">     664 </span>            :                 CPX* works=new CPX[lworks];
+<span class="lineNum">     665 </span>            :                 c_zgetri(ntriblock,matctri,ntriblock,pivarrays,works,lworks,&amp;iinfo);
+<span class="lineNum">     666 </span>            :                 if (iinfo) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     667 </span>            :                 delete[] works;
+<span class="lineNum">     668 </span>            :                 delete[] pivarrays;
+<span class="lineNum">     669 </span>            :                 full_transpose(ntriblock,ntriblock,matctri,sigma);
+<span class="lineNum">     670 </span>            :                 H1t-&gt;trans_mat_vec_mult(sigma,presigma,ntriblock,1);
+<span class="lineNum">     671 </span>            :                 H1t-&gt;trans_mat_vec_mult(presigma,matctri,ntriblock,1);
+<span class="lineNum">     672 </span>            :                 full_transpose(ntriblock,ntriblock,matctri,sigma);
+<span class="lineNum">     673 </span>            :             }
+<span class="lineNum">     674 </span>            :             int do_extra_symm=0;
+<span class="lineNum">     675 </span>            :             if (do_extra_symm) {
+<span class="lineNum">     676 </span>            :                 c_zaxpy(ntriblock*ntriblock,z_one,matctri,1,sigma,1);
+<span class="lineNum">     677 </span>            :                 c_zscal(ntriblock*ntriblock,z_one*0.5,sigma,1);
+<span class="lineNum">     678 </span>            :             }
+<span class="lineNum">     679 </span>            :             delete[] matctri;
+<span class="lineNum">     680 </span>            :             delete[] presigma;
+<span class="lineNum">     681 </span>            :         } else if (linear_system_with_dense_mult_symm) {
+<span class="lineNum">     682 </span>            :             CPX *matctri  = new CPX[triblocksize];
+<span class="lineNum">     683 </span>            :             CPX *presigma  = new CPX[triblocksize];
+<span class="lineNum">     684 </span>            :             for (int iter=0;iter&lt;iter_max;iter++){
+<span class="lineNum">     685 </span>            :                 H0-&gt;sparse_to_full(matctri,ntriblock,ntriblock);
+<span class="lineNum">     686 </span>            :                 c_zaxpy(triblocksize,-z_one,sigma,1,matctri,1);
+<span class="lineNum">     687 </span>            :                 int *pivarrays=new int[ntriblock];
+<span class="lineNum">     688 </span>            :                 c_zgetrf(ntriblock,ntriblock,matctri,ntriblock,pivarrays,&amp;iinfo);
+<span class="lineNum">     689 </span>            :                 if (iinfo) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     690 </span>            :                 H1-&gt;sparse_to_full(sigma,ntriblock,ntriblock);
+<span class="lineNum">     691 </span>            :                 c_zgetrs('T',ntriblock,ntriblock,matctri,ntriblock,pivarrays,sigma,ntriblock,&amp;iinfo);
+<span class="lineNum">     692 </span>            :                 if (iinfo) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     693 </span>            :                 delete[] pivarrays;
+<span class="lineNum">     694 </span>            :                 full_transpose(ntriblock,ntriblock,sigma,presigma);
+<span class="lineNum">     695 </span>            :                 H1t-&gt;trans_mat_vec_mult(presigma,matctri,ntriblock,1);
+<span class="lineNum">     696 </span>            :                 full_transpose(ntriblock,ntriblock,matctri,sigma);
+<span class="lineNum">     697 </span>            :             }
+<span class="lineNum">     698 </span>            :             int do_extra_symm=0;
+<span class="lineNum">     699 </span>            :             if (do_extra_symm) {
+<span class="lineNum">     700 </span>            :                 c_zaxpy(ntriblock*ntriblock,z_one,matctri,1,sigma,1);
+<span class="lineNum">     701 </span>            :                 c_zscal(ntriblock*ntriblock,z_one*0.5,sigma,1);
+<span class="lineNum">     702 </span>            :             }
+<span class="lineNum">     703 </span>            :             delete[] matctri;
+<span class="lineNum">     704 </span>            :             delete[] presigma;
+<span class="lineNum">     705 </span>            :         }
+<span class="lineNum">     706 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR SYMMETRIZATION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     707 </span>            : // */
+<span class="lineNum">     708 </span>            : 
+<span class="lineNum">     709 </span>            : // ONLY CHANGES THE RESULT SLIGHTLY BUT IS IMPORTANT FOR PEXSI
+<span class="lineNum">     710 </span>            : // /*
+<span class="lineNum">     711 </span><span class="lineCov">          2 :         if (complexenergypoint) {</span>
+<span class="lineNum">     712 </span><span class="lineNoCov">          0 :             for (int i=0;i&lt;ntriblock;i++) for (int j=0;j&lt;i;j++) {</span>
+<span class="lineNum">     713 </span><span class="lineNoCov">          0 :                 sigma[i+ntriblock*j]+=sigma[j+ntriblock*i];</span>
+<span class="lineNum">     714 </span><span class="lineNoCov">          0 :                 sigma[i+ntriblock*j]*=0.5;</span>
+<span class="lineNum">     715 </span>            :             }
+<span class="lineNum">     716 </span><span class="lineNoCov">          0 :             for (int i=0;i&lt;ntriblock;i++) for (int j=0;j&lt;i;j++) {</span>
+<span class="lineNum">     717 </span><span class="lineNoCov">          0 :                 sigma[j+ntriblock*i]=sigma[i+ntriblock*j];</span>
+<span class="lineNum">     718 </span>            :             }
+<span class="lineNum">     719 </span>            :         }
+<span class="lineNum">     720 </span>            : // */
+<span class="lineNum">     721 </span>            : 
+<span class="lineNum">     722 </span><span class="lineCov">          2 :         if (compute_inj) {</span>
+<span class="lineNum">     723 </span><span class="lineCov">          2 :             sabtime=get_time(d_zer);</span>
+<span class="lineNum">     724 </span><span class="lineCov">          2 :             c_dscal(nprotra*ntriblock,-d_one,((double*)Vref)+1,2);</span>
+<span class="lineNum">     725 </span>            : //          swap(Vref,Vtra);
+<span class="lineNum">     726 </span>            : //          swap(lambdaref,lambdatra);
+<span class="lineNum">     727 </span>            : //          c_dscal(nprotra,-d_one,((double*)lambdaref)+1,2);
+<span class="lineNum">     728 </span><span class="lineCov">         10 :             for (int i=0;i&lt;nprotra;i++) {</span>
+<span class="lineNum">     729 </span>            :                 int degeneracy=1;
+<span class="lineNum">     730 </span><span class="lineCov">          8 :                 for (int j=0;j&lt;i;j++) {</span>
+<span class="lineNum">     731 </span><span class="lineCov">          6 :                     if (abs(lambdaref[i]-lambdaref[j])&lt;eps_eigval_degen &amp;&amp; abs(velref[i]-velref[j])&lt;eps_eigval_degen) {</span>
+<span class="lineNum">     732 </span><span class="lineNoCov">          0 :                         degeneracy++;</span>
+<span class="lineNum">     733 </span>            : /*
+<span class="lineNum">     734 </span>            :                         CPX prod=c_zdotc(ntriblock,&amp;Vref[i*ntriblock],1,&amp;Vref[j*ntriblock],1);
+<span class="lineNum">     735 </span>            :                         c_zaxpy(ntriblock,-prod,&amp;Vref[i*ntriblock],1,&amp;Vref[j*ntriblock],1);
+<span class="lineNum">     736 </span>            :                         CPX norm=CPX(d_one/c_dznrm2(ntriblock,&amp;Vref[j*ntriblock],1),d_zer);
+<span class="lineNum">     737 </span>            :                         c_zscal(ntriblock,norm,&amp;Vref[j*ntriblock],1);
+<span class="lineNum">     738 </span>            : */
+<span class="lineNum">     739 </span>            :                     }
+<span class="lineNum">     740 </span>            :                 }
+<span class="lineNum">     741 </span><span class="lineCov">          4 :                 if (degeneracy&gt;2) eigval_degeneracy=i;</span>
+<span class="lineNum">     742 </span>            :             }
+<span class="lineNum">     743 </span><span class="lineCov">        866 :             inj = new CPX[ntriblock*nprotra];</span>
+<span class="lineNum">     744 </span><span class="lineCov">          6 :             lambdapro = new CPX[nprotra];</span>
+<span class="lineNum">     745 </span><span class="lineCov">          6 :             for (int ipro=0;ipro&lt;nprotra;ipro++) {</span>
+<span class="lineNum">     746 </span><span class="lineCov">          4 :                 lambdapro[ipro]=pow(lambdaref[ipro],+inj_sign);</span>
+<span class="lineNum">     747 </span>            :             }
+<span class="lineNum">     748 </span><span class="lineCov">          2 :             H1t-&gt;mat_vec_mult(Vref,inj,nprotra);</span>
+<span class="lineNum">     749 </span><span class="lineCov">         10 :             for (int ipro=0;ipro&lt;nprotra;ipro++) {</span>
+<span class="lineNum">     750 </span><span class="lineCov">          8 :                 c_zscal(ntriblock,pow(lambdaref[ipro],+inj_sign*bandwidth),&amp;Vref[ipro*ntriblock],1);</span>
+<span class="lineNum">     751 </span>            :             }
+<span class="lineNum">     752 </span><span class="lineCov">          2 :             c_zgemm('N','N',ntriblock,nprotra,ntriblock,z_one,sigma,ntriblock,Vref,ntriblock,z_one,inj,ntriblock);</span>
+<span class="lineNum">     753 </span><span class="lineCov">         10 :             for (int ipro=0;ipro&lt;nprotra;ipro++) {</span>
+<span class="lineNum">     754 </span><span class="lineCov">         12 :                 c_zscal(ntriblock,CPX(d_one/sqrt(2*M_PI*velref[ipro]),d_zer),&amp;inj[ipro*ntriblock],1);</span>
+<span class="lineNum">     755 </span>            :             }
+<span class="lineNum">     756 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR MATRIX MATRIX MULTIPLICATIONS FOR INJECTION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     757 </span>            :         }
+<span class="lineNum">     758 </span><span class="lineCov">          2 :         delete[] Vtra;</span>
+<span class="lineNum">     759 </span><span class="lineCov">          2 :         delete[] Vref;</span>
+<span class="lineNum">     760 </span><span class="lineCov">          2 :         delete[] lambdatra;</span>
+<span class="lineNum">     761 </span><span class="lineCov">          2 :         delete[] lambdaref;</span>
+<span class="lineNum">     762 </span><span class="lineCov">          2 :         delete[] veltra;</span>
+<span class="lineNum">     763 </span><span class="lineCov">          2 :         delete[] velref;</span>
+<span class="lineNum">     764 </span><span class="lineCov">          2 :         delete H0;</span>
+<span class="lineNum">     765 </span><span class="lineCov">          2 :         H0 = NULL;</span>
+<span class="lineNum">     766 </span><span class="lineCov">          2 :         delete H1;</span>
+<span class="lineNum">     767 </span><span class="lineCov">          2 :         H1 = NULL;</span>
+<span class="lineNum">     768 </span><span class="lineCov">          2 :         delete H1t;</span>
+<span class="lineNum">     769 </span><span class="lineCov">          2 :         H1t = NULL;</span>
+<a name="770"><span class="lineNum">     770 </span>            :     }//end if !boundary_rank</a>
+<span class="lineNum">     771 </span>            :     return 0;
+<span class="lineNum">     772 </span><span class="lineCov">          4 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,830 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/c_scf.C</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - c_scf.C<span style="font-size: 80%;"> (source / <a href="c_scf.C.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">257</td>
+            <td class="headerCovTableEntry">452</td>
+            <td class="headerCovTableEntryLo">56.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">25.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;CSR.H&quot;
+<span class="lineNum">      13 </span>            : #ifdef HAVE_OMEN_POISSON
+<span class="lineNum">      14 </span>            : #include &quot;SemiSelfConsistent.H&quot;
+<span class="lineNum">      15 </span>            : #endif
+<span class="lineNum">      16 </span>            : #include &quot;EnergyVector.H&quot;
+<a name="17"><span class="lineNum">      17 </span>            : #include &lt;numeric&gt;</a>
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span><span class="lineNoCov">          0 : void write_cp2k_csr(cp2k_csr_interop_type&amp; cp2kCSRmat,const char* filename)</span>
+<span class="lineNum">      20 </span>            : {
+<span class="lineNum">      21 </span><span class="lineNoCov">          0 :     ofstream myfile;</span>
+<span class="lineNum">      22 </span><span class="lineNoCov">          0 :     myfile.open(filename);</span>
+<span class="lineNum">      23 </span><span class="lineNoCov">          0 :     myfile.precision(14);</span>
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :     for(int i=0;i&lt;cp2kCSRmat.nrows_local;i++){</span>
+<span class="lineNum">      25 </span><span class="lineNoCov">          0 :         for(int e=cp2kCSRmat.rowptr_local[i]-1;e&lt;cp2kCSRmat.rowptr_local[i+1]-1;e++){</span>
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 :             myfile&lt;&lt;i+1+cp2kCSRmat.first_row&lt;&lt;&quot; &quot;&lt;&lt;cp2kCSRmat.colind_local[e]&lt;&lt;&quot; &quot;&lt;&lt;cp2kCSRmat.nzvals_local[e]&lt;&lt;&quot;\n&quot;;</span>
+<span class="lineNum">      27 </span>            :         }
+<span class="lineNum">      28 </span>            :     }
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 :     myfile.close();                                                   </span>
+<a name="30"><span class="lineNum">      30 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 : void read_nzvals_bin(cp2k_csr_interop_type&amp; cp2kCSRmat,const char* filename,MPI_Comm cp2k_comm)</span>
+<span class="lineNum">      33 </span>            : {
+<span class="lineNum">      34 </span>            :     MPI_File file;
+<span class="lineNum">      35 </span>            :     MPI_Status status;
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 :     MPI_File_open(cp2k_comm,filename,MPI_MODE_RDONLY,MPI_INFO_NULL,&amp;file);</span>
+<span class="lineNum">      37 </span>            :     int rank,mpi_size;
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :     MPI_Comm_size(cp2k_comm,&amp;mpi_size);</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :     MPI_Comm_rank(cp2k_comm,&amp;rank);</span>
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span><span class="lineNoCov">          0 :     int *dist = new int[mpi_size];</span>
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :     int *disp = new int[mpi_size];</span>
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :     MPI_Allgather(&amp;cp2kCSRmat.nze_local,1,MPI_INT,dist,1,MPI_INT,cp2k_comm);</span>
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :     disp[0]=0;</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :     for (int i=0;i&lt;mpi_size-1;i++) {</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :         disp[i+1]=disp[i]+dist[i];</span>
+<span class="lineNum">      47 </span>            :     }
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :     MPI_Offset offset = disp[rank]*sizeof(double);</span>
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :     delete[] dist;</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :     delete[] disp;</span>
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :     MPI_File_seek(file,offset,MPI_SEEK_SET);</span>
+<span class="lineNum">      55 </span><span class="lineNoCov">          0 :     MPI_File_read(file,cp2kCSRmat.nzvals_local,cp2kCSRmat.nze_local,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :     MPI_File_close(&amp;file);</span>
+<a name="58"><span class="lineNum">      58 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 : void add_full_to_scaled_cp2k_csr(cp2k_csr_interop_type&amp; cp2kCSRmat,double* Pf,int start_i_to,int start_j_to,int length_i,int length_j,double a, double b)</span>
+<span class="lineNum">      61 </span>            : {
+<span class="lineNum">      62 </span><span class="lineNoCov">          0 :     for(int r=0;r&lt;cp2kCSRmat.nrows_local;r++){</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :         int i=r+cp2kCSRmat.first_row-start_i_to;</span>
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :         if(i&gt;=0 &amp;&amp; i&lt;length_i){</span>
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :             for(int e=cp2kCSRmat.rowptr_local[r]-1;e&lt;cp2kCSRmat.rowptr_local[r+1]-1;e++){</span>
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :                 int j=cp2kCSRmat.colind_local[e]-1-start_j_to;</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :                 if(j&gt;=0 &amp;&amp; j&lt;length_j){</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :                     cp2kCSRmat.nzvals_local[e]=a*Pf[i+j*length_i]+b*cp2kCSRmat.nzvals_local[e];</span>
+<span class="lineNum">      69 </span>            :                 }
+<span class="lineNum">      70 </span>            :             }
+<span class="lineNum">      71 </span>            :         }
+<span class="lineNum">      72 </span>            :     }
+<a name="73"><span class="lineNum">      73 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 : void add_from_to_scaled_cp2k_csr(cp2k_csr_interop_type&amp; cp2kCSRmat,double a, double b,int start_i_fr,int start_j_fr,int start_i_to,int start_j_to,int length_i,int length_j,MPI_Comm cp2k_comm)</span>
+<span class="lineNum">      76 </span>            : {
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :     TCSR&lt;double&gt; *Pmc = new TCSR&lt;double&gt;(cp2kCSRmat,start_i_fr,length_i,start_j_fr,length_j);</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :     TCSR&lt;double&gt; *Pm  = new TCSR&lt;double&gt;(Pmc,cp2k_comm);</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :     delete Pmc;</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :     double *Pf = new double[length_i*length_j];</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :     Pm-&gt;sparse_to_full(Pf,length_i,length_j);</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :     delete Pm;</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :     add_full_to_scaled_cp2k_csr(cp2kCSRmat,Pf,start_i_to,start_j_to,length_i,length_j,a,b);</span>
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 :     delete[] Pf;</span>
+<a name="85"><span class="lineNum">      85 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 : void write_scaled_cp2k_csr_bin(cp2k_csr_interop_type&amp; cp2kCSRmat,const char* filename,double factor,MPI_Comm cp2k_comm)</span>
+<span class="lineNum">      88 </span>            : {
+<span class="lineNum">      89 </span>            :     MPI_File file;
+<span class="lineNum">      90 </span>            :     MPI_Status status;
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :     MPI_File_open(cp2k_comm,filename,MPI_MODE_CREATE|MPI_MODE_WRONLY,MPI_INFO_NULL,&amp;file);</span>
+<span class="lineNum">      92 </span>            :     int rank,mpi_size;
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :     MPI_Comm_size(cp2k_comm,&amp;mpi_size);</span>
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :     MPI_Comm_rank(cp2k_comm,&amp;rank);</span>
+<span class="lineNum">      95 </span>            : 
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :     int *dist = new int[mpi_size];</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :     int *disp = new int[mpi_size];</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :     MPI_Allgather(&amp;cp2kCSRmat.nze_local,1,MPI_INT,dist,1,MPI_INT,cp2k_comm);</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :     disp[0]=0;</span>
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :     for (int i=0;i&lt;mpi_size-1;i++) {</span>
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :         disp[i+1]=disp[i]+dist[i];</span>
+<span class="lineNum">     102 </span>            :     }
+<span class="lineNum">     103 </span>            : 
+<span class="lineNum">     104 </span><span class="lineNoCov">          0 :     MPI_Offset offset = 0;</span>
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :     if (rank) offset=(4*disp[rank]+3)*sizeof(double);</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :     delete[] dist;</span>
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :     delete[] disp;</span>
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :     MPI_File_seek(file,offset,MPI_SEEK_SET);</span>
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :     if (!rank) {</span>
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :         double head_1=(double) cp2kCSRmat.nrows_total;</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :         double head_2=(double) cp2kCSRmat.nze_total;</span>
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 :         double head_3=(double) 1;</span>
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :         MPI_File_write(file,&amp;head_1,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :         MPI_File_write(file,&amp;head_2,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :         MPI_File_write(file,&amp;head_3,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     118 </span>            :     }
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :     for (int i=0;i&lt;cp2kCSRmat.nrows_local;i++) {</span>
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :         for (int e=cp2kCSRmat.rowptr_local[i]-1;e&lt;cp2kCSRmat.rowptr_local[i+1]-1;e++) {</span>
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :             double i_val=(double) i+cp2kCSRmat.first_row+1;</span>
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :             double j_val=(double) cp2kCSRmat.colind_local[e];</span>
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :             double r_val=factor*cp2kCSRmat.nzvals_local[e];</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :             double m_val=0.0;</span>
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :             MPI_File_write(file,&amp;i_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :             MPI_File_write(file,&amp;j_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     128 </span><span class="lineNoCov">          0 :             MPI_File_write(file,&amp;r_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :             MPI_File_write(file,&amp;m_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     130 </span>            :         }
+<span class="lineNum">     131 </span>            :     }
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :     MPI_File_close(&amp;file);</span>
+<a name="134"><span class="lineNum">     134 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 : void write_scaled_cp2k_csr_bin_remove_pbc(cp2k_csr_interop_type&amp; cp2kCSRmat,const char* filename,double factor,int bw,int ndof,MPI_Comm cp2k_comm)</span>
+<span class="lineNum">     137 </span>            : {
+<span class="lineNum">     138 </span>            :     MPI_File file;
+<span class="lineNum">     139 </span>            :     MPI_Status status;
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :     MPI_File_open(cp2k_comm,filename,MPI_MODE_CREATE|MPI_MODE_WRONLY,MPI_INFO_NULL,&amp;file);</span>
+<span class="lineNum">     141 </span>            :     int rank,mpi_size;
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :     MPI_Comm_size(cp2k_comm,&amp;mpi_size);</span>
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :     MPI_Comm_rank(cp2k_comm,&amp;rank);</span>
+<span class="lineNum">     144 </span>            : 
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 :     int *remove_element = new int[max(cp2kCSRmat.nze_local,1)]();</span>
+<span class="lineNum">     146 </span><span class="lineNoCov">          0 :     int n_removed_elements = 0;</span>
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :     for (int i=0;i&lt;max(0,min(cp2kCSRmat.nrows_local,bw*ndof-cp2kCSRmat.first_row));i++) {</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :         for (int e=cp2kCSRmat.rowptr_local[i]-1;e&lt;cp2kCSRmat.rowptr_local[i+1]-1;e++) {</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :             if ( (cp2kCSRmat.colind_local[e]-1)/ndof - (i+cp2kCSRmat.first_row)/ndof &gt; bw ) {</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :                 remove_element[e] = 1;</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :                 n_removed_elements++;</span>
+<span class="lineNum">     153 </span>            :             }
+<span class="lineNum">     154 </span>            :         }
+<span class="lineNum">     155 </span>            :     }
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :     for (int i=max(0,min(cp2kCSRmat.nrows_local,cp2kCSRmat.nrows_total-bw*ndof-cp2kCSRmat.first_row));i&lt;cp2kCSRmat.nrows_local;i++) {</span>
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :         for (int e=cp2kCSRmat.rowptr_local[i]-1;e&lt;cp2kCSRmat.rowptr_local[i+1]-1;e++) {</span>
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :             if ( (cp2kCSRmat.colind_local[e]-1)/ndof - (i+cp2kCSRmat.first_row)/ndof &lt; -bw ) {</span>
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :                 remove_element[e] = 1;</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :                 n_removed_elements++;</span>
+<span class="lineNum">     162 </span>            :             }
+<span class="lineNum">     163 </span>            :         }
+<span class="lineNum">     164 </span>            :     }
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 :     int remaining_elements = cp2kCSRmat.nze_local - n_removed_elements;</span>
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :     int *dist = new int[mpi_size];</span>
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :     int *disp = new int[mpi_size+1];</span>
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 :     MPI_Allgather(&amp;remaining_elements,1,MPI_INT,dist,1,MPI_INT,cp2k_comm);</span>
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :     disp[0]=0;</span>
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :     for (int i=0;i&lt;mpi_size;i++) {</span>
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :         disp[i+1]=disp[i]+dist[i];</span>
+<span class="lineNum">     174 </span>            :     }
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 :     delete[] dist;</span>
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :     MPI_Offset offset = 0;</span>
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :     if (rank) offset=(4*disp[rank]+3)*sizeof(double);</span>
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :     MPI_File_seek(file,offset,MPI_SEEK_SET);</span>
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :     if (!rank) {</span>
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :         double head_1=(double) cp2kCSRmat.nrows_total;</span>
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :         double head_2=(double) disp[mpi_size];</span>
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :         double head_3=(double) 1;</span>
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :         MPI_File_write(file,&amp;head_1,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :         MPI_File_write(file,&amp;head_2,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :         MPI_File_write(file,&amp;head_3,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     189 </span>            :     }
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :     delete[] disp;</span>
+<span class="lineNum">     192 </span>            : 
+<span class="lineNum">     193 </span><span class="lineNoCov">          0 :     for (int i=0;i&lt;cp2kCSRmat.nrows_local;i++) {</span>
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 :         for (int e=cp2kCSRmat.rowptr_local[i]-1;e&lt;cp2kCSRmat.rowptr_local[i+1]-1;e++) {</span>
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :             if (!remove_element[e]) {</span>
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :                 double i_val=(double) i+cp2kCSRmat.first_row+1;</span>
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :                 double j_val=(double) cp2kCSRmat.colind_local[e];</span>
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :                 double r_val=factor*cp2kCSRmat.nzvals_local[e];</span>
+<span class="lineNum">     199 </span><span class="lineNoCov">          0 :                 double m_val=0.0;</span>
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :                 MPI_File_write(file,&amp;i_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     201 </span><span class="lineNoCov">          0 :                 MPI_File_write(file,&amp;j_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :                 MPI_File_write(file,&amp;r_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :                 MPI_File_write(file,&amp;m_val,1,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     204 </span>            :             }
+<span class="lineNum">     205 </span>            :         }
+<span class="lineNum">     206 </span>            :     }
+<span class="lineNum">     207 </span>            : 
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :     delete[] remove_element;</span>
+<span class="lineNum">     209 </span><span class="lineNoCov">          0 :     MPI_File_close(&amp;file);</span>
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span>            : /*!  
+<span class="lineNum">     213 </span>            :  *   \brief Takes the overlap (S) and Kohn-Sham (KS) matrices as input and returns a density matrix (P).
+<span class="lineNum">     214 </span>            :  *          This function acts as the gate to the CP2K's world. 
+<span class="lineNum">     215 </span>            :  */
+<span class="lineNum">     216 </span><span class="lineCov">          2 : void c_scf_method(cp2k_transport_parameters cp2k_transport_params, cp2k_csr_interop_type S, cp2k_csr_interop_type KS, cp2k_csr_interop_type * P, cp2k_csr_interop_type * PImag)</span>
+<span class="lineNum">     217 </span>            : {
+<span class="lineNum">     218 </span>            : #ifdef HAVE_SPLITSOLVE
+<span class="lineNum">     219 </span>            :     char gpu_string[255];
+<span class="lineNum">     220 </span>            :     set_gpu(0,gpu_string);
+<span class="lineNum">     221 </span>            : #endif
+<span class="lineNum">     222 </span>            : 
+<span class="lineNum">     223 </span>            :     int rank,mpi_size;
+<span class="lineNum">     224 </span><span class="lineCov">          2 :     MPI_Comm_size(MPI_COMM_WORLD,&amp;mpi_size);</span>
+<span class="lineNum">     225 </span><span class="lineCov">          2 :     MPI_Comm_rank(MPI_COMM_WORLD,&amp;rank);</span>
+<span class="lineNum">     226 </span>            : 
+<span class="lineNum">     227 </span><span class="lineCov">          3 :     if (!rank) cout &lt;&lt; &quot;Starting Transport&quot; &lt;&lt; endl;</span>
+<span class="lineNum">     228 </span>            : 
+<span class="lineNum">     229 </span><span class="lineCov">          4 :     c_dscal(P-&gt;nze_local,0.5,P-&gt;nzvals_local,1);</span>
+<span class="lineNum">     230 </span>            : 
+<span class="lineNum">     231 </span>            : /*
+<span class="lineNum">     232 </span>            :     write_scaled_cp2k_csr_bin( S,&quot;S_4.bin&quot;,1.0,MPI_COMM_WORLD);
+<span class="lineNum">     233 </span>            :     write_scaled_cp2k_csr_bin(KS,&quot;H_4.bin&quot;,cp2k_transport_params.evoltfactor,MPI_COMM_WORLD);
+<span class="lineNum">     234 </span>            :     return;
+<span class="lineNum">     235 </span>            : */
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span><span class="lineCov">          2 :     double dens_mixing=cp2k_transport_params.dens_mixing;</span>
+<span class="lineNum">     238 </span><span class="lineCov">          2 :     double *P_save=NULL;</span>
+<span class="lineNum">     239 </span><span class="lineCov">          2 :     if (dens_mixing&lt;1.0 || dens_mixing&gt;0.0) {</span>
+<span class="lineNum">     240 </span><span class="lineCov">          2 :         P_save = new double[P-&gt;nze_local];</span>
+<span class="lineNum">     241 </span><span class="lineCov">          2 :         c_dcopy(P-&gt;nze_local,P-&gt;nzvals_local,1,P_save,1);</span>
+<span class="lineNum">     242 </span>            :     }
+<span class="lineNum">     243 </span>            : 
+<span class="lineNum">     244 </span><span class="lineCov">          2 :     int cndof_pbc=0;</span>
+<span class="lineNum">     245 </span><span class="lineCov">          2 :     int cndof_mid=0;</span>
+<span class="lineNum">     246 </span><span class="lineCov">          2 :     int cbw_pbc=0;</span>
+<span class="lineNum">     247 </span><span class="lineCov">          2 :     int cbw_mid=0;</span>
+<span class="lineNum">     248 </span><span class="lineCov">          2 :     int cstart_mid=0;</span>
+<span class="lineNum">     249 </span><span class="lineCov">          4 :     for (int system=0;system&lt;=int(static_cast&lt;cp2k_methods::cp2k_method_type&gt;(cp2k_transport_params.method)==cp2k_methods::TRANSPORT);system++) {</span>
+<span class="lineNum">     250 </span>            :         transport_parameters transport_params;
+<span class="lineNum">     251 </span><span class="lineCov">          2 :         transport_params.cp2k_scf_iter               = (1-2*system)*cp2k_transport_params.iscf;</span>
+<span class="lineNum">     252 </span><span class="lineCov">          2 :         transport_params.n_occ                       = cp2k_transport_params.n_occ;</span>
+<span class="lineNum">     253 </span><span class="lineCov">          2 :         transport_params.n_abscissae                 = cp2k_transport_params.num_pole;</span>
+<span class="lineNum">     254 </span><span class="lineCov">          2 :         transport_params.n_kpoint                    = cp2k_transport_params.n_kpoint;</span>
+<span class="lineNum">     255 </span><span class="lineCov">          2 :         transport_params.num_interval                = cp2k_transport_params.num_interval;</span>
+<span class="lineNum">     256 </span><span class="lineCov">          2 :         transport_params.tasks_per_point             = cp2k_transport_params.tasks_per_energy_point;</span>
+<span class="lineNum">     257 </span><span class="lineCov">          2 :         transport_params.tasks_per_point_cc          = cp2k_transport_params.tasks_per_pole;</span>
+<span class="lineNum">     258 </span><span class="lineCov">          2 :         transport_params.gpus_per_point              = cp2k_transport_params.gpus_per_point;</span>
+<span class="lineNum">     259 </span><span class="lineCov">          2 :         transport_params.colzero_threshold           = cp2k_transport_params.colzero_threshold;</span>
+<span class="lineNum">     260 </span><span class="lineCov">          2 :         transport_params.eps_limit                   = cp2k_transport_params.eps_limit;</span>
+<span class="lineNum">     261 </span><span class="lineCov">          2 :         transport_params.eps_limit_cc                = cp2k_transport_params.eps_limit_cc;</span>
+<span class="lineNum">     262 </span><span class="lineCov">          2 :         transport_params.eps_decay                   = cp2k_transport_params.eps_decay;</span>
+<span class="lineNum">     263 </span><span class="lineCov">          2 :         transport_params.eps_singularity_curvatures  = cp2k_transport_params.eps_singularity_curvatures;</span>
+<span class="lineNum">     264 </span><span class="lineCov">          2 :         transport_params.eps_mu                      = cp2k_transport_params.eps_mu;</span>
+<span class="lineNum">     265 </span><span class="lineCov">          2 :         transport_params.eps_eigval_degen            = cp2k_transport_params.eps_eigval_degen;</span>
+<span class="lineNum">     266 </span><span class="lineCov">          2 :         transport_params.energy_interval             = cp2k_transport_params.energy_interval;</span>
+<span class="lineNum">     267 </span><span class="lineCov">          2 :         transport_params.min_interval                = cp2k_transport_params.min_interval;</span>
+<span class="lineNum">     268 </span><span class="lineCov">          2 :         transport_params.svd_cutoff                  = cp2k_transport_params.svd_cutoff;</span>
+<span class="lineNum">     269 </span><span class="lineCov">          2 :         transport_params.n_points_beyn               = cp2k_transport_params.n_points_beyn;</span>
+<span class="lineNum">     270 </span><span class="lineCov">          2 :         transport_params.tasks_per_integration_point = cp2k_transport_params.tasks_per_integration_point;</span>
+<span class="lineNum">     271 </span><span class="lineCov">          2 :         transport_params.evoltfactor                 = cp2k_transport_params.evoltfactor;</span>
+<span class="lineNum">     272 </span><span class="lineCov">          2 :         transport_params.NCRC_beyn                   = cp2k_transport_params.ncrc_beyn;</span>
+<span class="lineNum">     273 </span><span class="lineCov">          2 :         transport_params.n_points_inv                = cp2k_transport_params.n_points_inv;</span>
+<span class="lineNum">     274 </span><span class="lineCov">          2 :         transport_params.pexsi_ordering              = cp2k_transport_params.ordering;</span>
+<span class="lineNum">     275 </span><span class="lineCov">          2 :         transport_params.pexsi_row_ordering          = cp2k_transport_params.row_ordering;</span>
+<span class="lineNum">     276 </span><span class="lineCov">          2 :         transport_params.pexsi_verbosity             = cp2k_transport_params.verbosity;</span>
+<span class="lineNum">     277 </span><span class="lineCov">          2 :         transport_params.pexsi_np_symb_fact          = cp2k_transport_params.pexsi_np_symb_fact;</span>
+<span class="lineNum">     278 </span><span class="lineCov">          2 :         transport_params.temperature                 = cp2k_transport_params.temperature*cp2k_transport_params.evoltfactor;</span>
+<span class="lineNum">     279 </span><span class="lineCov">          2 :         transport_params.boltzmann_ev                = cp2k_transport_params.boltzmann/cp2k_transport_params.e_charge;</span>
+<span class="lineNum">     280 </span><span class="lineCov">          2 :         transport_params.conduct_quant               = 2.0*cp2k_transport_params.e_charge*cp2k_transport_params.e_charge/(2.0*M_PI*cp2k_transport_params.h_bar);</span>
+<span class="lineNum">     281 </span><span class="lineCov">          2 :         transport_params.extra_scf                   = cp2k_transport_params.extra_scf;</span>
+<span class="lineNum">     282 </span><span class="lineCov">          2 :         transport_params.injection_method            = static_cast&lt;injection_methods::injection_method_type&gt;(cp2k_transport_params.injection_method);</span>
+<span class="lineNum">     283 </span><span class="lineCov">          2 :         transport_params.lin_solver_method           = static_cast&lt;lin_solver_methods::lin_solver_method_type&gt;(cp2k_transport_params.linear_solver);</span>
+<span class="lineNum">     284 </span><span class="lineCov">          2 :         transport_params.inv_solver_method           = static_cast&lt;inv_solver_methods::inv_solver_method_type&gt;(cp2k_transport_params.matrixinv_method);</span>
+<span class="lineNum">     285 </span><span class="lineCov">          2 :         transport_params.real_int_method             = static_cast&lt;real_int_methods::real_int_method_type&gt;(cp2k_transport_params.rlaxis_integration_method);</span>
+<span class="lineNum">     286 </span><span class="lineCov">          2 :         transport_params.cp2k_method                 = static_cast&lt;cp2k_methods::cp2k_method_type&gt;(cp2k_transport_params.method);</span>
+<span class="lineNum">     287 </span><span class="lineCov">          2 :         if (cp2k_transport_params.eps_fermi&lt;=(numeric_limits&lt;double&gt;::epsilon)()) {</span>
+<span class="lineNum">     288 </span><span class="lineCov">          2 :             transport_params.eps_fermi               = (numeric_limits&lt;double&gt;::epsilon)();</span>
+<span class="lineNum">     289 </span>            :         } else {
+<span class="lineNum">     290 </span><span class="lineNoCov">          0 :             transport_params.eps_fermi               = cp2k_transport_params.eps_fermi;</span>
+<span class="lineNum">     291 </span>            :         }
+<span class="lineNum">     292 </span><span class="lineCov">          2 :         if (cp2k_transport_params.n_rand_beyn&gt;1.0 || cp2k_transport_params.n_rand_beyn&lt;=0.0) {</span>
+<span class="lineNum">     293 </span><span class="lineNoCov">          0 :             transport_params.fac_neigbeyn            = 1.0;</span>
+<span class="lineNum">     294 </span>            :         } else {
+<span class="lineNum">     295 </span><span class="lineCov">          2 :             transport_params.fac_neigbeyn            = cp2k_transport_params.n_rand_beyn;</span>
+<span class="lineNum">     296 </span>            :         }
+<span class="lineNum">     297 </span><span class="lineCov">          2 :         if (cp2k_transport_params.n_rand_cc_beyn&gt;1.0 || cp2k_transport_params.n_rand_cc_beyn&lt;=0.0) {</span>
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :             transport_params.fac_neigbeyn_cc         = 1.0;</span>
+<span class="lineNum">     299 </span>            :         } else {
+<span class="lineNum">     300 </span><span class="lineCov">          2 :             transport_params.fac_neigbeyn_cc         = cp2k_transport_params.n_rand_cc_beyn;</span>
+<span class="lineNum">     301 </span>            :         }
+<span class="lineNum">     302 </span><span class="lineCov">          2 :         transport_params.negf_solver                 = false;</span>
+<span class="lineNum">     303 </span><span class="lineCov">          2 :         if (cp2k_transport_params.qt_formalism==41) {</span>
+<span class="lineNum">     304 </span><span class="lineNoCov">          0 :             transport_params.negf_solver             = true;</span>
+<span class="lineNum">     305 </span>            :         }
+<span class="lineNum">     306 </span><span class="lineCov">          2 :         transport_params.update_fermi                = true;</span>
+<span class="lineNum">     307 </span><span class="lineCov">          2 :         transport_params.get_fermi_neutral           = false;</span>
+<span class="lineNum">     308 </span><span class="lineCov">          2 :         if (cp2k_transport_params.transport_neutral==52) {</span>
+<span class="lineNum">     309 </span><span class="lineNoCov">          0 :             transport_params.get_fermi_neutral       = true;</span>
+<span class="lineNum">     310 </span>            :         }
+<span class="lineNum">     311 </span>            : 
+<span class="lineNum">     312 </span>            :         int cutout[2]={0,0};
+<span class="lineNum">     313 </span><span class="lineCov">          2 :         cutout[0]=cp2k_transport_params.cutout[0];</span>
+<span class="lineNum">     314 </span><span class="lineCov">          2 :         cutout[1]=cp2k_transport_params.cutout[1];</span>
+<span class="lineNum">     315 </span><span class="lineCov">          2 :         if (transport_params.cp2k_method==cp2k_methods::TRANSPORT) {</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :             transport_params.extra_scf = false;</span>
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 :             if (cutout[0]==0 &amp;&amp; cutout[1]==0) {</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 :                 cutout[system]=0;</span>
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :                 cutout[1-system]=cp2k_transport_params.n_atoms/2;</span>
+<span class="lineNum">     320 </span>            :             } else { // input parameters cutout 0 and 1 specify the size of the first or second system
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :                 cutout[1-system]=cp2k_transport_params.n_atoms-cutout[system];</span>
+<span class="lineNum">     322 </span><span class="lineNoCov">          0 :                 cutout[system]=0;</span>
+<span class="lineNum">     323 </span>            :             }
+<span class="lineNum">     324 </span>            :         }
+<span class="lineNum">     325 </span><span class="lineCov">          2 :         transport_params.obc                         = cp2k_transport_params.obc_equilibrium || cutout[0] || cutout[1];</span>
+<span class="lineNum">     326 </span>            : 
+<span class="lineNum">     327 </span><span class="lineCov">          6 :         std::vector&lt;contact_type&gt; contactvec(cp2k_transport_params.num_contacts);</span>
+<span class="lineNum">     328 </span><span class="lineCov">          2 :         int num_p=0;</span>
+<span class="lineNum">     329 </span><span class="lineCov">          2 :         int num_m=0;</span>
+<span class="lineNum">     330 </span><span class="lineCov">          2 :         int stride = cp2k_transport_params.stride_contacts;</span>
+<span class="lineNum">     331 </span><span class="lineCov">         12 :         for (uint i_c=0;i_c&lt;contactvec.size();i_c++) {</span>
+<span class="lineNum">     332 </span><span class="lineCov">          4 :             if (cp2k_transport_params.contacts_data[4+stride*i_c]) {</span>
+<span class="lineNum">     333 </span><span class="lineCov">          4 :                 if (cp2k_transport_params.contacts_data[3+stride*i_c]==+1) {</span>
+<span class="lineNum">     334 </span><span class="lineCov">          2 :                     num_p++;</span>
+<span class="lineNum">     335 </span>            :                 } else {
+<span class="lineNum">     336 </span><span class="lineCov">          2 :                     num_m++;</span>
+<span class="lineNum">     337 </span>            :                 }
+<span class="lineNum">     338 </span>            :             }
+<span class="lineNum">     339 </span>            :         }
+<span class="lineNum">     340 </span><span class="lineCov">          6 :         std::vector&lt;double&gt; muvec(num_p+num_m);</span>
+<span class="lineNum">     341 </span><span class="lineCov">          2 :         int i_p=0;</span>
+<span class="lineNum">     342 </span><span class="lineCov">          2 :         int i_m=0;</span>
+<span class="lineNum">     343 </span><span class="lineCov">          2 :         int i_n=0;</span>
+<span class="lineNum">     344 </span><span class="lineCov">         12 :         for (uint i_c=0;i_c&lt;contactvec.size();i_c++) {</span>
+<span class="lineNum">     345 </span>            :             int i_t;
+<span class="lineNum">     346 </span><span class="lineCov">          4 :             if (cp2k_transport_params.contacts_data[4+stride*i_c]) {</span>
+<span class="lineNum">     347 </span><span class="lineCov">          4 :                 if (cp2k_transport_params.contacts_data[3+stride*i_c]==+1) {</span>
+<span class="lineNum">     348 </span><span class="lineCov">          2 :                     i_t=i_p++;</span>
+<span class="lineNum">     349 </span>            :                 } else {
+<span class="lineNum">     350 </span><span class="lineCov">          2 :                     i_t=num_p+i_m++;</span>
+<span class="lineNum">     351 </span>            :                 }
+<span class="lineNum">     352 </span>            :             } else {
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 :                 i_t=muvec.size()+i_n++;</span>
+<span class="lineNum">     354 </span>            :             }
+<span class="lineNum">     355 </span><span class="lineCov">          8 :             contactvec[i_t].bandwidth = cp2k_transport_params.contacts_data[0+stride*i_c];</span>
+<span class="lineNum">     356 </span><span class="lineCov">          4 :             contactvec[i_t].inj_sign  = cp2k_transport_params.contacts_data[3+stride*i_c];</span>
+<span class="lineNum">     357 </span><span class="lineCov">          4 :             contactvec[i_t].natoms    = cp2k_transport_params.contacts_data[2+stride*i_c];</span>
+<span class="lineNum">     358 </span><span class="lineCov">          4 :             contactvec[i_t].atomstart = cp2k_transport_params.contacts_data[1+stride*i_c];</span>
+<span class="lineNum">     359 </span><span class="lineCov">          4 :             if (contactvec[i_t].atomstart&lt;0) {</span>
+<span class="lineNum">     360 </span><span class="lineCov">          4 :                 if (contactvec[i_t].inj_sign==+1) {</span>
+<span class="lineNum">     361 </span><span class="lineCov">          2 :                     contactvec[i_t].atomstart = cutout[0];</span>
+<span class="lineNum">     362 </span><span class="lineCov">          2 :                 } else if (contactvec[i_t].inj_sign==-1) {</span>
+<span class="lineNum">     363 </span><span class="lineCov">          2 :                     contactvec[i_t].atomstart = cp2k_transport_params.n_atoms-contactvec[i_t].natoms-cutout[1];</span>
+<span class="lineNum">     364 </span>            :                 }
+<span class="lineNum">     365 </span>            :             }
+<span class="lineNum">     366 </span>            :         }
+<span class="lineNum">     367 </span><span class="lineCov">          2 :         if (transport_params.cp2k_method==cp2k_methods::TRANSPORT) {</span>
+<span class="lineNum">     368 </span><span class="lineNoCov">          0 :             if (system) {</span>
+<span class="lineNum">     369 </span><span class="lineNoCov">          0 :                 swap(contactvec[0].natoms,contactvec[1].natoms);</span>
+<span class="lineNum">     370 </span><span class="lineNoCov">          0 :                 swap(contactvec[0].bandwidth,contactvec[1].bandwidth);</span>
+<span class="lineNum">     371 </span>            :             }
+<span class="lineNum">     372 </span><span class="lineNoCov">          0 :             contactvec[0].atomstart = cutout[0];</span>
+<span class="lineNum">     373 </span><span class="lineNoCov">          0 :             contactvec[1].atomstart = cp2k_transport_params.n_atoms-contactvec[1].natoms-cutout[1];</span>
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :             for (uint i=muvec.size();i&lt;contactvec.size();i++) {</span>
+<span class="lineNum">     375 </span><span class="lineNoCov">          0 :                 contactvec[i].atomstart+=cutout[0];</span>
+<span class="lineNum">     376 </span>            :             }
+<span class="lineNum">     377 </span>            :         }
+<span class="lineNum">     378 </span>            : 
+<span class="lineNum">     379 </span><span class="lineCov">          2 :         if (transport_params.cp2k_method==cp2k_methods::TRANSMISSION) {</span>
+<span class="lineNum">     380 </span><span class="lineCov">          2 :             if (!transport_params.extra_scf &amp;&amp; !transport_params.obc) {</span>
+<span class="lineNum">     381 </span><span class="lineNoCov">          0 :                 contactvec.resize(1);</span>
+<span class="lineNum">     382 </span><span class="lineNoCov">          0 :                 muvec.resize(1);</span>
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :                 contactvec[0].bandwidth = cp2k_transport_params.contacts_data[0];</span>
+<span class="lineNum">     384 </span><span class="lineNoCov">          0 :                 contactvec[0].inj_sign  = cp2k_transport_params.contacts_data[3];</span>
+<span class="lineNum">     385 </span><span class="lineNoCov">          0 :                 contactvec[0].natoms    = cp2k_transport_params.contacts_data[2];</span>
+<span class="lineNum">     386 </span><span class="lineNoCov">          0 :                 contactvec[0].atomstart = cp2k_transport_params.contacts_data[1];</span>
+<span class="lineNum">     387 </span><span class="lineNoCov">          0 :                 if (contactvec[0].atomstart&lt;0) {</span>
+<span class="lineNum">     388 </span><span class="lineNoCov">          0 :                     if (contactvec[0].inj_sign==+1) {</span>
+<span class="lineNum">     389 </span><span class="lineNoCov">          0 :                         contactvec[0].atomstart = cutout[0];</span>
+<span class="lineNum">     390 </span><span class="lineNoCov">          0 :                     } else if (contactvec[0].inj_sign==-1) {</span>
+<span class="lineNum">     391 </span><span class="lineNoCov">          0 :                         contactvec[0].atomstart = cp2k_transport_params.n_atoms-contactvec[0].natoms-cutout[1];</span>
+<span class="lineNum">     392 </span>            :                     }
+<span class="lineNum">     393 </span>            :                 }
+<span class="lineNum">     394 </span>            :             } else {
+<span class="lineNum">     395 </span><span class="lineCov">          2 :                 cutout[0] = contactvec[0].atomstart;</span>
+<span class="lineNum">     396 </span><span class="lineCov">          2 :                 cutout[1] = cp2k_transport_params.n_atoms-contactvec[1].atomstart-contactvec[1].natoms;</span>
+<span class="lineNum">     397 </span>            :             }
+<span class="lineNum">     398 </span>            :         }
+<span class="lineNum">     399 </span>            : 
+<span class="lineNum">     400 </span><span class="lineCov">          4 :         std::vector&lt;int&gt; atom_of_bf;</span>
+<span class="lineNum">     401 </span><span class="lineCov">        194 :         for (int a=0;a&lt;cp2k_transport_params.n_atoms;a++) {</span>
+<span class="lineNum">     402 </span><span class="lineCov">       4800 :             for (int i=0;i&lt;cp2k_transport_params.nsgf[a];i++) {</span>
+<span class="lineNum">     403 </span><span class="lineCov">       2304 :                 atom_of_bf.push_back(a);</span>
+<span class="lineNum">     404 </span>            :             }
+<span class="lineNum">     405 </span>            :         }
+<span class="lineNum">     406 </span><span class="lineCov">          2 :         atom_of_bf.push_back(cp2k_transport_params.n_atoms);</span>
+<span class="lineNum">     407 </span>            :  
+<span class="lineNum">     408 </span><span class="lineCov">          6 :         std::vector&lt;int&gt; natoms_start(mpi_size);</span>
+<span class="lineNum">     409 </span><span class="lineCov">          4 :         MPI_Allgather(&amp;atom_of_bf[S.first_row],1,MPI_INT,&amp;natoms_start[0],1,MPI_INT,MPI_COMM_WORLD);</span>
+<span class="lineNum">     410 </span><span class="lineCov">          2 :         natoms_start.push_back(cp2k_transport_params.n_atoms);</span>
+<span class="lineNum">     411 </span><span class="lineCov">          4 :         std::vector&lt;int&gt; natoms_local;</span>
+<span class="lineNum">     412 </span><span class="lineCov">          6 :         for (int i=0;i&lt;mpi_size;i++) {</span>
+<span class="lineNum">     413 </span><span class="lineCov">         16 :             natoms_local.push_back(natoms_start[i+1]-natoms_start[i]);</span>
+<span class="lineNum">     414 </span>            :         }
+<span class="lineNum">     415 </span>            :  
+<span class="lineNum">     416 </span><span class="lineCov">          8 :         std::vector&lt;std::vector&lt;int&gt;&gt; pairlist(natoms_local[rank]);</span>
+<span class="lineNum">     417 </span><span class="lineCov">          2 :         int i_bf=0;</span>
+<span class="lineNum">     418 </span><span class="lineCov">          2 :         int maxpair=0;</span>
+<span class="lineNum">     419 </span><span class="lineCov">        196 :         for (uint a=0;a&lt;pairlist.size();a++) {</span>
+<span class="lineNum">     420 </span><span class="lineCov">       3648 :             for (int i=0;i&lt;cp2k_transport_params.nsgf[natoms_start[rank]+a];i++) {</span>
+<span class="lineNum">     421 </span><span class="lineCov">     272512 :                 for (int e=S.rowptr_local[i_bf]-1;e&lt;S.rowptr_local[i_bf+1]-1;e++) {</span>
+<span class="lineNum">     422 </span><span class="lineCov">    1085440 :                     pairlist[a].push_back(atom_of_bf[S.colind_local[e]-1]+1);</span>
+<span class="lineNum">     423 </span>            :                 }
+<span class="lineNum">     424 </span><span class="lineCov">       1152 :                 i_bf++;</span>
+<span class="lineNum">     425 </span><span class="lineCov">      11520 :                 pairlist[a].erase(unique(pairlist[a].begin(),pairlist[a].end()),pairlist[a].end());</span>
+<span class="lineNum">     426 </span>            :             }
+<span class="lineNum">     427 </span><span class="lineCov">        384 :             sort(pairlist[a].begin(),pairlist[a].end());</span>
+<span class="lineNum">     428 </span><span class="lineCov">        960 :             pairlist[a].erase(unique(pairlist[a].begin(),pairlist[a].end()),pairlist[a].end());</span>
+<span class="lineNum">     429 </span><span class="lineCov">        384 :             maxpair=max(maxpair,int(pairlist[a].size()));</span>
+<span class="lineNum">     430 </span>            :         }
+<span class="lineNum">     431 </span><span class="lineCov">          2 :         if (i_bf!=S.nrows_local) throw std::exception();</span>
+<span class="lineNum">     432 </span><span class="lineCov">          2 :         MPI_Allreduce(MPI_IN_PLACE,&amp;maxpair,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);</span>
+<span class="lineNum">     433 </span><span class="lineCov">          6 :         atom_of_bf=std::vector&lt;int&gt;();</span>
+<span class="lineNum">     434 </span>            :  
+<span class="lineNum">     435 </span><span class="lineCov">          4 :         int *pairmatrix_local = new int[maxpair*pairlist.size()]();</span>
+<span class="lineNum">     436 </span><span class="lineCov">        292 :         for (uint a=0;a&lt;pairlist.size();a++) {</span>
+<span class="lineNum">     437 </span><span class="lineCov">      15136 :             for (uint i=0;i&lt;pairlist[a].size();i++) {</span>
+<span class="lineNum">     438 </span><span class="lineCov">       7424 :                 pairmatrix_local[a*maxpair+i]=pairlist[a][i];</span>
+<span class="lineNum">     439 </span>            :             }
+<span class="lineNum">     440 </span>            :         }
+<span class="lineNum">     441 </span><span class="lineCov">          4 :         pairlist=std::vector&lt;std::vector&lt;int&gt;&gt;();</span>
+<span class="lineNum">     442 </span><span class="lineCov">          6 :         for (int i=0;i&lt;mpi_size;i++) {</span>
+<span class="lineNum">     443 </span><span class="lineCov">          8 :             natoms_local[i]*=maxpair;</span>
+<span class="lineNum">     444 </span><span class="lineCov">          8 :             natoms_start[i]*=maxpair;</span>
+<span class="lineNum">     445 </span>            :         }
+<span class="lineNum">     446 </span><span class="lineCov">          2 :         int *pairmatrix_global=NULL;</span>
+<span class="lineNum">     447 </span><span class="lineCov">          2 :         if (!rank) {</span>
+<span class="lineNum">     448 </span><span class="lineCov">          1 :             pairmatrix_global = new int[maxpair*cp2k_transport_params.n_atoms];</span>
+<span class="lineNum">     449 </span>            :         }
+<span class="lineNum">     450 </span><span class="lineCov">          4 :         MPI_Gatherv(pairmatrix_local,natoms_local[rank],MPI_INT,pairmatrix_global,&amp;natoms_local[0],&amp;natoms_start[0],MPI_INT,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     451 </span><span class="lineCov">          2 :         delete[] pairmatrix_local;</span>
+<span class="lineNum">     452 </span>            :  
+<span class="lineNum">     453 </span><span class="lineCov">          4 :         std::vector&lt;int&gt; Bsizes;</span>
+<span class="lineNum">     454 </span><span class="lineCov">          2 :         int num_tridiag_blocks = 1;</span>
+<span class="lineNum">     455 </span><span class="lineCov">          2 :         if (!rank) {</span>
+<span class="lineNum">     456 </span><span class="lineCov">          4 :             std::vector&lt;bool&gt; adjmat(cp2k_transport_params.n_atoms*cp2k_transport_params.n_atoms);</span>
+<span class="lineNum">     457 </span><span class="lineCov">         97 :             for (int a=0;a&lt;cp2k_transport_params.n_atoms;a++) {</span>
+<span class="lineNum">     458 </span><span class="lineCov">       7776 :                 for (int i=0;i&lt;maxpair;i++) {</span>
+<span class="lineNum">     459 </span><span class="lineCov">       3840 :                     int b=pairmatrix_global[a*maxpair+i]-1;</span>
+<span class="lineNum">     460 </span><span class="lineCov">       3840 :                     if (b+1) {</span>
+<span class="lineNum">     461 </span><span class="lineCov">      11136 :                         adjmat[b*cp2k_transport_params.n_atoms+a]=true;</span>
+<span class="lineNum">     462 </span><span class="lineCov">      11136 :                         adjmat[a*cp2k_transport_params.n_atoms+b]=true;</span>
+<span class="lineNum">     463 </span>            :                     }
+<span class="lineNum">     464 </span>            :                 }
+<span class="lineNum">     465 </span>            :             }
+<span class="lineNum">     466 </span><span class="lineCov">          1 :             delete[] pairmatrix_global;</span>
+<span class="lineNum">     467 </span>            :             pairmatrix_global = NULL;
+<span class="lineNum">     468 </span>            :  
+<span class="lineNum">     469 </span><span class="lineCov">          8 :             for (uint i=0;i&lt;contactvec.size();i++) {</span>
+<span class="lineNum">     470 </span><span class="lineCov">          4 :                 if (contactvec[i].bandwidth&lt;=0) {</span>
+<span class="lineNum">     471 </span><span class="lineCov">          2 :                     contactvec[i].bandwidth=0;</span>
+<span class="lineNum">     472 </span><span class="lineCov">          2 :                     int block_exists = 1;</span>
+<span class="lineNum">     473 </span><span class="lineCov">         10 :                     while (block_exists) {</span>
+<span class="lineNum">     474 </span><span class="lineCov">          8 :                         block_exists = 0;</span>
+<span class="lineNum">     475 </span><span class="lineCov">         20 :                         for (int irow=contactvec[i].atomstart;irow&lt;contactvec[i].atomstart+contactvec[i].natoms;irow++) {</span>
+<span class="lineNum">     476 </span><span class="lineCov">         18 :                             int icol_start = contactvec[i].atomstart+contactvec[i].inj_sign*(contactvec[i].bandwidth+1)*contactvec[i].natoms;</span>
+<span class="lineNum">     477 </span><span class="lineCov">         18 :                             int icol_end = contactvec[i].atomstart+contactvec[i].natoms+contactvec[i].inj_sign*(contactvec[i].bandwidth+1)*contactvec[i].natoms;</span>
+<span class="lineNum">     478 </span><span class="lineCov">         90 :                             for (int icol=icol_start;icol&lt;icol_end;icol++) {</span>
+<span class="lineNum">     479 </span><span class="lineCov">        234 :                                 if (adjmat[icol*cp2k_transport_params.n_atoms+irow]) {</span>
+<span class="lineNum">     480 </span><span class="lineCov">          6 :                                     block_exists = 1;</span>
+<span class="lineNum">     481 </span><span class="lineCov">          6 :                                     contactvec[i].bandwidth++;</span>
+<span class="lineNum">     482 </span><span class="lineCov">          6 :                                     break;</span>
+<span class="lineNum">     483 </span>            :                                 }
+<span class="lineNum">     484 </span>            :                             }
+<span class="lineNum">     485 </span><span class="lineCov">         18 :                             if (block_exists) break;</span>
+<span class="lineNum">     486 </span>            :                         }
+<span class="lineNum">     487 </span>            :                     }
+<span class="lineNum">     488 </span>            :                 }
+<span class="lineNum">     489 </span><span class="lineCov">          2 :                 contactvec[i].sigma_natoms = contactvec[i].natoms*contactvec[i].bandwidth;</span>
+<span class="lineNum">     490 </span>            :  
+<span class="lineNum">     491 </span><span class="lineCov">          2 :                 int optimize_sigma_size=0;</span>
+<span class="lineNum">     492 </span>            :                 if (optimize_sigma_size) {
+<span class="lineNum">     493 </span>            :                     int tridiag_start = contactvec[i].atomstart;
+<span class="lineNum">     494 </span>            :                     if (contactvec[i].inj_sign==-1) tridiag_start = contactvec[i].atomstart-(contactvec[i].bandwidth-1)*contactvec[i].natoms;
+<span class="lineNum">     495 </span>            :                     int mincol = cp2k_transport_params.n_atoms;
+<span class="lineNum">     496 </span>            :                     int maxcol = 0;
+<span class="lineNum">     497 </span>            :                     for (int irow=tridiag_start;irow&lt;tridiag_start+contactvec[i].bandwidth*contactvec[i].natoms;irow++) {
+<span class="lineNum">     498 </span>            :                         int icol_start = tridiag_start+contactvec[i].inj_sign*contactvec[i].bandwidth*contactvec[i].natoms;
+<span class="lineNum">     499 </span>            :                         int icol_end = tridiag_start+contactvec[i].bandwidth*contactvec[i].natoms+contactvec[i].inj_sign*contactvec[i].bandwidth*contactvec[i].natoms;
+<span class="lineNum">     500 </span>            :                         for (int icol=icol_start;icol&lt;icol_end;icol++) {
+<span class="lineNum">     501 </span>            :                             if (adjmat[icol*cp2k_transport_params.n_atoms+irow]) {
+<span class="lineNum">     502 </span>            :                                 if (icol &lt; mincol) mincol = icol;
+<span class="lineNum">     503 </span>            :                                 if (icol &gt; maxcol) maxcol = icol;
+<span class="lineNum">     504 </span>            :                             }
+<span class="lineNum">     505 </span>            :                         }
+<span class="lineNum">     506 </span>            :                     }
+<span class="lineNum">     507 </span>            :                     contactvec[i].sigma_natoms = maxcol+1-(tridiag_start+contactvec[i].bandwidth*contactvec[i].natoms);
+<span class="lineNum">     508 </span>            :                     if (contactvec[i].inj_sign==-1) contactvec[i].sigma_natoms = tridiag_start-mincol;
+<span class="lineNum">     509 </span>            :                 }
+<span class="lineNum">     510 </span>            :             }
+<span class="lineNum">     511 </span>            : 
+<span class="lineNum">     512 </span><span class="lineCov">          1 :             if (!(transport_params.cp2k_method==cp2k_methods::TRANSMISSION &amp;&amp; !transport_params.extra_scf &amp;&amp; !transport_params.obc)) {</span>
+<span class="lineNum">     513 </span><span class="lineCov">          2 :                 std::vector&lt;int&gt; tridiag_blocks_start;</span>
+<span class="lineNum">     514 </span><span class="lineCov">          1 :                 tridiag_blocks_start.push_back(cutout[0]);</span>
+<span class="lineNum">     515 </span><span class="lineCov">          2 :                 tridiag_blocks_start.push_back(contactvec[0].atomstart+contactvec[0].sigma_natoms);</span>
+<span class="lineNum">     516 </span><span class="lineCov">          1 :                 int tridiag_end = contactvec[1].atomstart+contactvec[1].natoms-contactvec[1].sigma_natoms;</span>
+<span class="lineNum">     517 </span><span class="lineCov">          1 :                 int maxcol = 0;</span>
+<span class="lineNum">     518 </span><span class="lineCov">         14 :                 while (tridiag_blocks_start[num_tridiag_blocks] &lt; tridiag_end) {</span>
+<span class="lineNum">     519 </span><span class="lineCov">         80 :                     for (int irow=tridiag_blocks_start[num_tridiag_blocks-1];irow&lt;tridiag_blocks_start[num_tridiag_blocks];irow++) {</span>
+<span class="lineNum">     520 </span><span class="lineCov">         72 :                         int colend = cp2k_transport_params.n_atoms-cutout[1];</span>
+<span class="lineNum">     521 </span><span class="lineCov">         72 :                         if (irow&lt;contactvec[0].bandwidth*contactvec[0].natoms) {</span>
+<span class="lineNum">     522 </span><span class="lineCov">         18 :                             colend = contactvec[0].atomstart+2*contactvec[0].bandwidth*contactvec[0].natoms;</span>
+<span class="lineNum">     523 </span>            :                         }
+<span class="lineNum">     524 </span><span class="lineCov">       3348 :                         for (int icol=irow;icol&lt;colend;icol++) {</span>
+<span class="lineNum">     525 </span><span class="lineCov">       9828 :                             if (adjmat[icol*cp2k_transport_params.n_atoms+irow]) {</span>
+<span class="lineNum">     526 </span><span class="lineCov">       1428 :                                 if (icol &gt; maxcol) {</span>
+<span class="lineNum">     527 </span><span class="lineCov">         89 :                                     maxcol = icol;</span>
+<span class="lineNum">     528 </span>            :                                 }
+<span class="lineNum">     529 </span>            :                             }
+<span class="lineNum">     530 </span>            :                         }
+<span class="lineNum">     531 </span>            :                     }
+<span class="lineNum">     532 </span><span class="lineCov">          4 :                     num_tridiag_blocks++;</span>
+<span class="lineNum">     533 </span><span class="lineCov">          8 :                     tridiag_blocks_start.push_back(maxcol+1);</span>
+<span class="lineNum">     534 </span>            :                 }
+<span class="lineNum">     535 </span><span class="lineCov">          1 :                 tridiag_blocks_start[0] = 0;</span>
+<span class="lineNum">     536 </span><span class="lineCov">          2 :                 tridiag_blocks_start[num_tridiag_blocks] = cp2k_transport_params.n_atoms;</span>
+<span class="lineNum">     537 </span><span class="lineCov">          6 :                 for (int i=0;i&lt;num_tridiag_blocks;i++) {</span>
+<span class="lineNum">     538 </span><span class="lineCov">         20 :                     Bsizes.push_back(tridiag_blocks_start[i+1]-tridiag_blocks_start[i]);</span>
+<span class="lineNum">     539 </span>            :                 }
+<span class="lineNum">     540 </span>            :  
+<span class="lineNum">     541 </span><span class="lineCov">          1 :                 Bsizes[0]-=cutout[0];</span>
+<span class="lineNum">     542 </span><span class="lineCov">          2 :                 Bsizes[Bsizes.size()-1]-=cutout[1];</span>
+<span class="lineNum">     543 </span>            :             }
+<span class="lineNum">     544 </span>            :  
+<span class="lineNum">     545 </span>            :         }
+<span class="lineNum">     546 </span>            :  
+<span class="lineNum">     547 </span><span class="lineCov">         16 :         for (uint i=0;i&lt;contactvec.size();i++) {</span>
+<span class="lineNum">     548 </span><span class="lineCov">          8 :              if (!rank) cout &lt;&lt; &quot;Contact BW &quot; &lt;&lt; contactvec[i].bandwidth &lt;&lt; endl;</span>
+<span class="lineNum">     549 </span><span class="lineCov">          8 :              MPI_Bcast(&amp;contactvec[i].bandwidth,1,MPI_INT,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     550 </span><span class="lineCov">          8 :              MPI_Bcast(&amp;contactvec[i].sigma_natoms,1,MPI_INT,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     551 </span>            :         }
+<span class="lineNum">     552 </span>            :  
+<span class="lineNum">     553 </span><span class="lineCov">          2 :         MPI_Bcast(&amp;num_tridiag_blocks,1,MPI_INT,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     554 </span><span class="lineCov">          2 :         Bsizes.resize(num_tridiag_blocks);</span>
+<span class="lineNum">     555 </span><span class="lineCov">          2 :         MPI_Bcast(&amp;Bsizes[0],num_tridiag_blocks,MPI_INT,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     556 </span>            :  
+<span class="lineNum">     557 </span><span class="lineCov">         16 :         for (uint i=0;i&lt;contactvec.size();i++) {</span>
+<span class="lineNum">     558 </span><span class="lineCov">          8 :             int atom_start = contactvec[i].atomstart;</span>
+<span class="lineNum">     559 </span><span class="lineCov">          4 :             int atom_stop  = atom_start + contactvec[i].natoms;</span>
+<span class="lineNum">     560 </span><span class="lineCov">          4 :             contactvec[i].atomstart = atom_start-cutout[0];</span>
+<span class="lineNum">     561 </span><span class="lineCov">          8 :             contactvec[i].start     = std::accumulate(cp2k_transport_params.nsgf+cutout[0], cp2k_transport_params.nsgf+atom_start,0);</span>
+<span class="lineNum">     562 </span><span class="lineCov">          8 :             contactvec[i].start_bs  = std::accumulate(cp2k_transport_params.nsgf,           cp2k_transport_params.nsgf+atom_start,0);</span>
+<span class="lineNum">     563 </span><span class="lineCov">          8 :             contactvec[i].ndof      = std::accumulate(cp2k_transport_params.nsgf+atom_start,cp2k_transport_params.nsgf+atom_stop ,0);</span>
+<span class="lineNum">     564 </span><span class="lineCov">          8 :             contactvec[i].n_ele     = std::accumulate(cp2k_transport_params.zeff+atom_start,cp2k_transport_params.zeff+atom_stop ,0.0);</span>
+<span class="lineNum">     565 </span>            :         }
+<span class="lineNum">     566 </span>            :  
+<span class="lineNum">     567 </span><span class="lineCov">          4 :         transport_params.cutl = std::accumulate(cp2k_transport_params.nsgf,                                        cp2k_transport_params.nsgf+cutout[0]                    ,0);</span>
+<span class="lineNum">     568 </span><span class="lineCov">          4 :         transport_params.cutr = std::accumulate(cp2k_transport_params.nsgf+cp2k_transport_params.n_atoms-cutout[1],cp2k_transport_params.nsgf+cp2k_transport_params.n_atoms,0);</span>
+<span class="lineNum">     569 </span>            :  
+<span class="lineNum">     570 </span><span class="lineCov">          2 :         if (!transport_params.extra_scf &amp;&amp; transport_params.obc &amp;&amp; !system) {</span>
+<span class="lineNum">     571 </span><span class="lineNoCov">          0 :             cndof_pbc=contactvec[0].ndof;</span>
+<span class="lineNum">     572 </span><span class="lineNoCov">          0 :             cbw_pbc=contactvec[0].bandwidth;</span>
+<span class="lineNum">     573 </span>            :         }
+<span class="lineNum">     574 </span><span class="lineCov">          2 :         if (system) {</span>
+<span class="lineNum">     575 </span><span class="lineNoCov">          0 :             cndof_mid=contactvec[0].ndof;</span>
+<span class="lineNum">     576 </span><span class="lineNoCov">          0 :             cbw_mid=contactvec[0].bandwidth;</span>
+<span class="lineNum">     577 </span><span class="lineNoCov">          0 :             cstart_mid=transport_params.cutl;</span>
+<span class="lineNum">     578 </span>            :         }
+<span class="lineNum">     579 </span>            : 
+<span class="lineNum">     580 </span><span class="lineCov">          6 :         std::vector&lt;int&gt; orb_per_atom(1,0);</span>
+<span class="lineNum">     581 </span><span class="lineCov">        194 :         for (int i=0;i&lt;cp2k_transport_params.n_atoms-cutout[0]-cutout[1];i++) {</span>
+<span class="lineNum">     582 </span><span class="lineCov">        576 :             orb_per_atom.push_back(orb_per_atom[i]+cp2k_transport_params.nsgf[cutout[0]+i]);</span>
+<span class="lineNum">     583 </span>            :         }
+<span class="lineNum">     584 </span>            : 
+<span class="lineNum">     585 </span><span class="lineCov">          2 :         if (transport_params.cp2k_method==cp2k_methods::WRITE_OUT) {</span>
+<span class="lineNum">     586 </span><span class="lineNoCov">          0 :             write_scaled_cp2k_csr_bin_remove_pbc( S,&quot;S_4.bin&quot;,1.0,contactvec[0].bandwidth,contactvec[0].ndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     587 </span><span class="lineNoCov">          0 :             write_scaled_cp2k_csr_bin_remove_pbc(KS,&quot;H_4.bin&quot;,cp2k_transport_params.evoltfactor,contactvec[0].bandwidth,contactvec[0].ndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     588 </span><span class="lineNoCov">          0 :             return;</span>
+<span class="lineNum">     589 </span>            :         }
+<span class="lineNum">     590 </span><span class="lineCov">          2 :         if (transport_params.cp2k_method==cp2k_methods::LOCAL_SCF) {</span>
+<span class="lineNum">     591 </span>            : #ifdef HAVE_OMEN_POISSON
+<span class="lineNum">     592 </span>            :             transport_params.update_fermi=false;
+<span class="lineNum">     593 </span>            :             if (semiselfconsistent(S,KS,P,PImag,muvec,contactvec,Bsizes,orb_per_atom,dens_mixing,transport_params)) throw std::exception();
+<span class="lineNum">     594 </span>            : #endif
+<span class="lineNum">     595 </span>            :         } else {
+<span class="lineNum">     596 </span><span class="lineCov">          2 :             if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     597 </span><span class="lineNoCov">          0 :                 Energyvector energyvector;</span>
+<span class="lineNum">     598 </span><span class="lineNoCov">          0 :                 if (energyvector.Execute(S,KS,P,PImag,muvec,contactvec,Bsizes,orb_per_atom,NULL,transport_params)) throw std::exception();</span>
+<span class="lineNum">     599 </span><span class="lineNoCov">          0 :                 transport_params.update_fermi=false;</span>
+<span class="lineNum">     600 </span><span class="lineNoCov">          0 :                 transport_params.get_fermi_neutral=false;</span>
+<span class="lineNum">     601 </span>            :             }
+<span class="lineNum">     602 </span><span class="lineCov">          4 :             Energyvector energyvector;</span>
+<span class="lineNum">     603 </span><span class="lineCov">          8 :             if (energyvector.Execute(S,KS,P,PImag,muvec,contactvec,Bsizes,orb_per_atom,NULL,transport_params)) throw std::exception();</span>
+<span class="lineNum">     604 </span>            :         }
+<span class="lineNum">     605 </span>            : 
+<span class="lineNum">     606 </span>            :     }
+<span class="lineNum">     607 </span>            : 
+<span class="lineNum">     608 </span><span class="lineCov">          2 :     int overwrite_first_last_diag_block=0;</span>
+<span class="lineNum">     609 </span><span class="lineCov">          2 :     if (cndof_pbc) {</span>
+<span class="lineNum">     610 </span><span class="lineNoCov">          0 :         int cndof=cndof_pbc;</span>
+<span class="lineNum">     611 </span><span class="lineNoCov">          0 :         int size_tot=S.nrows_total;</span>
+<span class="lineNum">     612 </span><span class="lineNoCov">          0 :         int offset=0;</span>
+<span class="lineNum">     613 </span><span class="lineNoCov">          0 :         for (int i=0;i&lt;cbw_pbc;i++) {</span>
+<span class="lineNum">     614 </span><span class="lineNoCov">          0 :             for (int ii=0;ii&lt;=i;ii++) {</span>
+<span class="lineNum">     615 </span><span class="lineNoCov">          0 :                 add_from_to_scaled_cp2k_csr(*P,0.5,0.0,\</span>
+<span class="lineNum">     616 </span>            :                         (i+1+offset)*cndof,\
+<span class="lineNum">     617 </span>            :                         offset*cndof,\
+<span class="lineNum">     618 </span>            :                         ii*cndof,\
+<span class="lineNum">     619 </span><span class="lineNoCov">          0 :                         size_tot+(ii-(i+1))*cndof,\</span>
+<span class="lineNum">     620 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     621 </span><span class="lineNoCov">          0 :                 add_from_to_scaled_cp2k_csr(*P,0.5,1.0,\</span>
+<span class="lineNum">     622 </span>            :                         size_tot-(offset+1)*cndof,\
+<span class="lineNum">     623 </span><span class="lineNoCov">          0 :                         size_tot-(i+2+offset)*cndof,\</span>
+<span class="lineNum">     624 </span>            :                         ii*cndof,\
+<span class="lineNum">     625 </span>            :                         size_tot+(ii-(i+1))*cndof,\
+<span class="lineNum">     626 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     627 </span>            :                 add_from_to_scaled_cp2k_csr(*P,0.5,0.0,\
+<span class="lineNum">     628 </span>            :                         offset*cndof,\
+<span class="lineNum">     629 </span>            :                         (i+1+offset)*cndof,\
+<span class="lineNum">     630 </span>            :                         size_tot+(ii-(i+1))*cndof,\
+<span class="lineNum">     631 </span>            :                         ii*cndof,\
+<span class="lineNum">     632 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     633 </span>            :                 add_from_to_scaled_cp2k_csr(*P,0.5,1.0,\
+<span class="lineNum">     634 </span>            :                         size_tot-(i+2+offset)*cndof,\
+<span class="lineNum">     635 </span>            :                         size_tot-(offset+1)*cndof,\
+<span class="lineNum">     636 </span>            :                         size_tot+(ii-(i+1))*cndof,\
+<span class="lineNum">     637 </span>            :                         ii*cndof,\
+<span class="lineNum">     638 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     639 </span>            :             }
+<span class="lineNum">     640 </span>            :         }
+<span class="lineNum">     641 </span>            :         if (overwrite_first_last_diag_block) {
+<span class="lineNum">     642 </span>            :             add_from_to_scaled_cp2k_csr(*P,1.0,0.0,\
+<span class="lineNum">     643 </span>            :                     size_tot-(offset+2)*cndof,\
+<span class="lineNum">     644 </span>            :                     size_tot-(offset+2)*cndof,\
+<span class="lineNum">     645 </span>            :                     size_tot-(offset+1)*cndof,\
+<span class="lineNum">     646 </span>            :                     size_tot-(offset+1)*cndof,\
+<span class="lineNum">     647 </span>            :                     cndof,cndof,MPI_COMM_WORLD);
+<span class="lineNum">     648 </span>            :             add_from_to_scaled_cp2k_csr(*P,1.0,0.0,\
+<span class="lineNum">     649 </span>            :                     (offset+1)*cndof,\
+<span class="lineNum">     650 </span>            :                     (offset+1)*cndof,\
+<span class="lineNum">     651 </span>            :                     offset*cndof,\
+<span class="lineNum">     652 </span>            :                     offset*cndof,\
+<span class="lineNum">     653 </span>            :                     cndof,cndof,MPI_COMM_WORLD);
+<span class="lineNum">     654 </span>            :         }
+<span class="lineNum">     655 </span>            :     }
+<span class="lineNum">     656 </span><span class="lineCov">          2 :     int default_cutout=cp2k_transport_params.cutout[0]==0 &amp;&amp; cp2k_transport_params.cutout[1]==0;</span>
+<span class="lineNum">     657 </span><span class="lineCov">          2 :     int no_overlapping_systems=cp2k_transport_params.cutout[0]+cp2k_transport_params.cutout[1]==cp2k_transport_params.n_atoms;</span>
+<span class="lineNum">     658 </span><span class="lineCov">          2 :     if (cndof_mid &amp;&amp; (default_cutout || no_overlapping_systems)) {</span>
+<span class="lineNum">     659 </span>            :         int cndof=cndof_mid;
+<span class="lineNum">     660 </span>            :         int mid=cstart_mid;
+<span class="lineNum">     661 </span><span class="lineNoCov">          0 :         for (int i=0;i&lt;cbw_mid;i++) {</span>
+<span class="lineNum">     662 </span><span class="lineNoCov">          0 :             for (int ii=0;ii&lt;=i;ii++) {</span>
+<span class="lineNum">     663 </span><span class="lineNoCov">          0 :                 add_from_to_scaled_cp2k_csr(*P,0.5,0.0,\</span>
+<span class="lineNum">     664 </span><span class="lineNoCov">          0 :                         mid+(-i-2)*cndof,\</span>
+<span class="lineNum">     665 </span>            :                         mid+(-1)*cndof,\
+<span class="lineNum">     666 </span><span class="lineNoCov">          0 :                         mid+(-i-1+ii)*cndof,\</span>
+<span class="lineNum">     667 </span><span class="lineNoCov">          0 :                         mid+(0+ii)*cndof,\</span>
+<span class="lineNum">     668 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     669 </span><span class="lineNoCov">          0 :                 add_from_to_scaled_cp2k_csr(*P,0.5,1.0,\</span>
+<span class="lineNum">     670 </span>            :                         mid+0*cndof,\
+<span class="lineNum">     671 </span><span class="lineNoCov">          0 :                         mid+(i+1)*cndof,\</span>
+<span class="lineNum">     672 </span>            :                         mid+(-i-1+ii)*cndof,\
+<span class="lineNum">     673 </span>            :                         mid+(0+ii)*cndof,\
+<span class="lineNum">     674 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     675 </span>            :                 add_from_to_scaled_cp2k_csr(*P,0.5,0.0,\
+<span class="lineNum">     676 </span>            :                         mid+(-1)*cndof,\
+<span class="lineNum">     677 </span>            :                         mid+(-i-2)*cndof,\
+<span class="lineNum">     678 </span>            :                         mid+(0+ii)*cndof,\
+<span class="lineNum">     679 </span>            :                         mid+(-i-1+ii)*cndof,\
+<span class="lineNum">     680 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     681 </span>            :                 add_from_to_scaled_cp2k_csr(*P,0.5,1.0,\
+<span class="lineNum">     682 </span>            :                         mid+(i+1)*cndof,\
+<span class="lineNum">     683 </span>            :                         mid+0*cndof,\
+<span class="lineNum">     684 </span>            :                         mid+(0+ii)*cndof,\
+<span class="lineNum">     685 </span>            :                         mid+(-i-1+ii)*cndof,\
+<span class="lineNum">     686 </span><span class="lineNoCov">          0 :                         cndof,cndof,MPI_COMM_WORLD);</span>
+<span class="lineNum">     687 </span>            :             }
+<span class="lineNum">     688 </span>            :         }
+<span class="lineNum">     689 </span>            :         if (overwrite_first_last_diag_block) {
+<span class="lineNum">     690 </span>            :             add_from_to_scaled_cp2k_csr(*P,1.0,0.0,\
+<span class="lineNum">     691 </span>            :                     mid-2*cndof,\
+<span class="lineNum">     692 </span>            :                     mid-2*cndof,\
+<span class="lineNum">     693 </span>            :                     mid-1*cndof,\
+<span class="lineNum">     694 </span>            :                     mid-1*cndof,\
+<span class="lineNum">     695 </span>            :                     cndof,cndof,MPI_COMM_WORLD);
+<span class="lineNum">     696 </span>            :             add_from_to_scaled_cp2k_csr(*P,1.0,0.0,\
+<span class="lineNum">     697 </span>            :                     mid+1*cndof,\
+<span class="lineNum">     698 </span>            :                     mid+1*cndof,\
+<span class="lineNum">     699 </span>            :                     mid+0*cndof,\
+<span class="lineNum">     700 </span>            :                     mid+0*cndof,\
+<span class="lineNum">     701 </span>            :                     cndof,cndof,MPI_COMM_WORLD);
+<span class="lineNum">     702 </span>            :         }
+<span class="lineNum">     703 </span>            :     }
+<span class="lineNum">     704 </span>            : 
+<span class="lineNum">     705 </span><span class="lineCov">          4 :     std::vector&lt;int&gt; atom_of_bf;</span>
+<span class="lineNum">     706 </span><span class="lineCov">        194 :     for (int a=0;a&lt;cp2k_transport_params.n_atoms;a++) {</span>
+<span class="lineNum">     707 </span><span class="lineCov">       4800 :         for (int i=0;i&lt;cp2k_transport_params.nsgf[a];i++) {</span>
+<span class="lineNum">     708 </span><span class="lineCov">       2304 :             atom_of_bf.push_back(a);</span>
+<span class="lineNum">     709 </span>            :         }
+<span class="lineNum">     710 </span>            :     }
+<span class="lineNum">     711 </span><span class="lineCov">          2 :     atom_of_bf.push_back(cp2k_transport_params.n_atoms);</span>
+<span class="lineNum">     712 </span>            : 
+<span class="lineNum">     713 </span><span class="lineCov">          6 :     std::vector&lt;double&gt; mulli(cp2k_transport_params.n_atoms,0.0);</span>
+<span class="lineNum">     714 </span><span class="lineCov">       1154 :     for (int i=0;i&lt;S.nrows_local;i++) {</span>
+<span class="lineNum">     715 </span><span class="lineCov">     272512 :         for (int e=S.rowptr_local[i]-1;e&lt;S.rowptr_local[i+1]-1;e++) {</span>
+<span class="lineNum">     716 </span><span class="lineCov">     814080 :             mulli[atom_of_bf[i+S.first_row]]+=2.0*S.nzvals_local[e]*P-&gt;nzvals_local[e];</span>
+<span class="lineNum">     717 </span>            :         }
+<span class="lineNum">     718 </span>            :     }
+<span class="lineNum">     719 </span><span class="lineCov">          2 :     MPI_Allreduce(MPI_IN_PLACE,&amp;mulli[0],cp2k_transport_params.n_atoms,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     720 </span><span class="lineCov">          2 :     if (!rank) {</span>
+<span class="lineNum">     721 </span><span class="lineCov">          2 :         stringstream mysstream;</span>
+<span class="lineNum">     722 </span><span class="lineCov">          2 :         mysstream &lt;&lt; &quot;Mulliken_&quot; &lt;&lt; cp2k_transport_params.iscf;</span>
+<span class="lineNum">     723 </span><span class="lineCov">          4 :         ofstream myfile(mysstream.str().c_str());</span>
+<span class="lineNum">     724 </span><span class="lineCov">          2 :         myfile.precision(8);</span>
+<span class="lineNum">     725 </span><span class="lineCov">        193 :         for (int i=0;i&lt;cp2k_transport_params.n_atoms;i++) myfile&lt;&lt;mulli[i]&lt;&lt;&quot;\n&quot;;</span>
+<span class="lineNum">     726 </span><span class="lineCov">          1 :         myfile.close();</span>
+<span class="lineNum">     727 </span>            :     }
+<span class="lineNum">     728 </span><span class="lineCov">          9 :     if (!rank) cout &lt;&lt; &quot;CHARGE &quot; &lt;&lt; cp2k_transport_params.iscf &lt;&lt; &quot; IS &quot; &lt;&lt; std::accumulate(cp2k_transport_params.zeff,cp2k_transport_params.zeff+cp2k_transport_params.n_atoms,-std::accumulate(mulli.begin(),mulli.end(),0.0)) &lt;&lt; endl;</span>
+<span class="lineNum">     729 </span>            : 
+<span class="lineNum">     730 </span><span class="lineCov">          4 :     mulli.assign(cp2k_transport_params.n_atoms,0.0);</span>
+<span class="lineNum">     731 </span><span class="lineCov">       1154 :     for (int i=0;i&lt;S.nrows_local;i++) {</span>
+<span class="lineNum">     732 </span><span class="lineCov">     272512 :         for (int e=S.rowptr_local[i]-1;e&lt;S.rowptr_local[i+1]-1;e++) {</span>
+<span class="lineNum">     733 </span><span class="lineCov">     814080 :             mulli[atom_of_bf[i+S.first_row]]+=2.0*S.nzvals_local[e]*KS.nzvals_local[e];</span>
+<span class="lineNum">     734 </span>            :         }
+<span class="lineNum">     735 </span>            :     }
+<span class="lineNum">     736 </span><span class="lineCov">          2 :     MPI_Allreduce(MPI_IN_PLACE,&amp;mulli[0],cp2k_transport_params.n_atoms,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     737 </span><span class="lineCov">          2 :     if (!rank) {</span>
+<span class="lineNum">     738 </span><span class="lineCov">          2 :         stringstream mysstream;</span>
+<span class="lineNum">     739 </span><span class="lineCov">          2 :         mysstream &lt;&lt; &quot;Mullipot_&quot; &lt;&lt; cp2k_transport_params.iscf;</span>
+<span class="lineNum">     740 </span><span class="lineCov">          4 :         ofstream myfile(mysstream.str().c_str());</span>
+<span class="lineNum">     741 </span><span class="lineCov">          2 :         myfile.precision(8);</span>
+<span class="lineNum">     742 </span><span class="lineCov">        193 :         for (int i=0;i&lt;cp2k_transport_params.n_atoms;i++) myfile&lt;&lt;mulli[i]&lt;&lt;&quot;\n&quot;;</span>
+<span class="lineNum">     743 </span><span class="lineCov">          1 :         myfile.close();</span>
+<span class="lineNum">     744 </span>            :     }
+<span class="lineNum">     745 </span>            : 
+<span class="lineNum">     746 </span><span class="lineCov">          2 :     if (dens_mixing&lt;1.0 || dens_mixing&gt;0.0) {</span>
+<span class="lineNum">     747 </span><span class="lineCov">          4 :         c_dscal(P-&gt;nze_local,dens_mixing,P-&gt;nzvals_local,1);</span>
+<span class="lineNum">     748 </span><span class="lineCov">          4 :         c_daxpy(P-&gt;nze_local,1.0-dens_mixing,P_save,1,P-&gt;nzvals_local,1);</span>
+<span class="lineNum">     749 </span><span class="lineCov">          2 :         delete[] P_save;</span>
+<span class="lineNum">     750 </span>            :     }
+<a name="751"><span class="lineNum">     751 </span>            : </a>
+<span class="lineNum">     752 </span><span class="lineCov">          4 :     if (!rank) cout &lt;&lt; &quot;Transport iteration &quot; &lt;&lt; cp2k_transport_params.iscf &lt;&lt; &quot; finished&quot; &lt;&lt; endl;</span>
+<span class="lineNum">     753 </span><span class="lineCov">          4 : }</span>
+<span class="lineNum">     754 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

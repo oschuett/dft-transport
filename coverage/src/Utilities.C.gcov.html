@@ -1,0 +1,744 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/Utilities.C</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - Utilities.C<span style="font-size: 80%;"> (source / <a href="Utilities.C.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntry">271</td>
+            <td class="headerCovTableEntryLo">3.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">31</td>
+            <td class="headerCovTableEntryLo">9.7 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;Utilities.H&quot;
+<a name="13"><span class="lineNum">      13 </span>            : #include &quot;Blas.H&quot;</a>
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span><span class="lineNoCov">          0 : bool sortx(const XYZPOS&amp; a, const XYZPOS&amp; b)</span>
+<span class="lineNum">      16 </span>            : {
+<span class="lineNum">      17 </span><span class="lineNoCov">          0 :     return a.x &lt; b.x;</span>
+<span class="lineNum">      18 </span>            : }
+<span class="lineNum">      19 </span>            : 
+<a name="20"><span class="lineNum">      20 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span><span class="lineNoCov">          0 : bool sorty(const XYZPOS&amp; a, const XYZPOS&amp; b)</span>
+<span class="lineNum">      23 </span>            : {
+<span class="lineNum">      24 </span><span class="lineNoCov">          0 :     return a.y &lt; b.y;</span>
+<span class="lineNum">      25 </span>            : }
+<span class="lineNum">      26 </span>            : 
+<a name="27"><span class="lineNum">      27 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 : bool sortz(const XYZPOS&amp; a, const XYZPOS&amp; b)</span>
+<span class="lineNum">      30 </span>            : {
+<span class="lineNum">      31 </span><span class="lineNoCov">          0 :     return a.z &lt; b.z;</span>
+<span class="lineNum">      32 </span>            : }
+<span class="lineNum">      33 </span>            : 
+<a name="34"><span class="lineNum">      34 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span><span class="lineNoCov">          0 : bool sortn(const CONNEC&amp; a, const CONNEC&amp; b)</span>
+<span class="lineNum">      37 </span>            : {
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :     return a.neigh &lt; b.neigh;</span>
+<span class="lineNum">      39 </span>            : }
+<span class="lineNum">      40 </span>            : 
+<a name="41"><span class="lineNum">      41 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 : bool sorti(const IJPOS&amp; a, const IJPOS&amp; b)</span>
+<span class="lineNum">      44 </span>            : {
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :     return a.i &lt; b.i;</span>
+<span class="lineNum">      46 </span>            : }
+<span class="lineNum">      47 </span>            : 
+<a name="48"><span class="lineNum">      48 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span><span class="lineNoCov">          0 : bool sortj(const IJPOS&amp; a, const IJPOS&amp; b)</span>
+<span class="lineNum">      51 </span>            : {
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :     return a.j &lt; b.j;</span>
+<span class="lineNum">      53 </span>            : }
+<span class="lineNum">      54 </span>            : 
+<a name="55"><span class="lineNum">      55 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 : bool my_isnan(double *vec, int N)</span>
+<span class="lineNum">      58 </span>            : {
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            :     int i;
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :     bool cond = 0;</span>
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :     for(i=0;i&lt;N;i++){</span>
+<span class="lineNum">      64 </span>            :         if(std::isnan(vec[i])){
+<span class="lineNum">      65 </span>            :             cond = 1;
+<span class="lineNum">      66 </span>            :             break;
+<span class="lineNum">      67 </span>            :         }
+<span class="lineNum">      68 </span>            :     }
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :     return cond;</span>
+<span class="lineNum">      71 </span>            : }
+<span class="lineNum">      72 </span>            : 
+<a name="73"><span class="lineNum">      73 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 : void dreshape(int N, int inc, double *v, int *index)</span>
+<span class="lineNum">      76 </span>            : {
+<span class="lineNum">      77 </span>            :     int i;
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :     double *v_copy = new double[N*inc];</span>
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :     c_dcopy(N*inc,v,1,v_copy,1);</span>
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :     for(i=0;i&lt;N;i++){</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :         c_dcopy(inc,&amp;v_copy[inc*index[i]],1,&amp;v[inc*i],1);</span>
+<span class="lineNum">      84 </span>            :     }
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :     delete [] v_copy;</span>
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">      88 </span>            : 
+<a name="89"><span class="lineNum">      89 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 : void icopy(int N, int* x, int* x_copy)</span>
+<span class="lineNum">      92 </span>            : {
+<span class="lineNum">      93 </span>            :     int i;
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :     for(i=0;i&lt;N;i++){</span>
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :         x_copy[i]=x[i];</span>
+<span class="lineNum">      97 </span>            :     }
+<span class="lineNum">      98 </span>            :     
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     100 </span>            : 
+<a name="101"><span class="lineNum">     101 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 : int Round(double x)</span>
+<span class="lineNum">     104 </span>            : {
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :     if(x&lt;0){</span>
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :         return (int)(x-0.5);</span>
+<span class="lineNum">     107 </span>            :     }else{
+<span class="lineNum">     108 </span><span class="lineNoCov">          0 :         return (int)(x+0.5);</span>
+<span class="lineNum">     109 </span>            :     }
+<span class="lineNum">     110 </span>            : }
+<span class="lineNum">     111 </span>            : 
+<a name="112"><span class="lineNum">     112 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span><span class="lineNoCov">          0 : void init_CSR(CSR **M, int size_i, int N, int nnz)</span>
+<span class="lineNum">     115 </span>            : {
+<span class="lineNum">     116 </span>            :     
+<span class="lineNum">     117 </span><span class="lineNoCov">          0 :     for(int i=0;i&lt;size_i;i++){</span>
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :         M[i] = new CSR(N,nnz);</span>
+<span class="lineNum">     119 </span>            :     }
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     121 </span>            : 
+<a name="122"><span class="lineNum">     122 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 : void del_CSR(CSR **M, int size_i)</span>
+<span class="lineNum">     125 </span>            : {
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :     for(int i=0;i&lt;size_i;i++){</span>
+<span class="lineNum">     127 </span><span class="lineNoCov">          0 :         delete M[i];</span>
+<span class="lineNum">     128 </span>            :     }
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span><span class="lineNoCov">          0 :     delete M;</span>
+<span class="lineNum">     131 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     132 </span>            : 
+<a name="133"><span class="lineNum">     133 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 : double min_vec(double *vec,int N,int inc)</span>
+<span class="lineNum">     136 </span>            : {
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :     double min_val = 1.0e10;</span>
+<span class="lineNum">     138 </span>            :     
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :     for(int i=0;i&lt;N;i++){</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :         if(vec[i*inc]&lt;min_val){</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :             min_val = vec[i*inc];</span>
+<span class="lineNum">     142 </span>            :         }
+<span class="lineNum">     143 </span>            :     }
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :     return min_val;</span>
+<span class="lineNum">     145 </span>            : }
+<span class="lineNum">     146 </span>            : 
+<a name="147"><span class="lineNum">     147 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 : double max_sign_abs_vec(double *vec,int N,int inc)</span>
+<span class="lineNum">     150 </span>            : {
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :     double max_val = 0.0;</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :     double result  = 0.0;</span>
+<span class="lineNum">     153 </span>            :     
+<span class="lineNum">     154 </span><span class="lineNoCov">          0 :     for(int i=0;i&lt;N;i++){</span>
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 :         if(fabs(vec[i*inc])&gt;max_val){</span>
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :             max_val = abs(vec[i*inc]);</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :             result  = vec[i*inc];</span>
+<span class="lineNum">     158 </span>            :         }
+<span class="lineNum">     159 </span>            :     }
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :     return result;</span>
+<span class="lineNum">     161 </span>            : }
+<span class="lineNum">     162 </span>            : 
+<a name="163"><span class="lineNum">     163 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 : void change_sign(double *vec,int N,int inc,int sign)</span>
+<span class="lineNum">     166 </span>            : {
+<span class="lineNum">     167 </span>            :     
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :     for(int i=0;i&lt;N;i++){</span>
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :         vec[i*inc]=sign*vec[i*inc];</span>
+<span class="lineNum">     170 </span>            :     }
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     172 </span>            : 
+<a name="173"><span class="lineNum">     173 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 : void sort_vec(double *vec,int N)</span>
+<span class="lineNum">     176 </span>            : {
+<span class="lineNum">     177 </span>            :     int ii,jj,pos;
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :     int* idx_order   = new int[N];</span>
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :     double* vec_new  = new double[N];</span>
+<span class="lineNum">     180 </span>            :     
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     182 </span>            :       pos = 0;
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :       for(jj = 0; jj &lt; N; jj++) {</span>
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :          if(ii != jj) {</span>
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :              if((vec[ii]&gt;vec[jj])</span>
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :                 || (vec[ii] == vec[jj] &amp;&amp; ii &gt; jj)) {</span>
+<span class="lineNum">     187 </span><span class="lineNoCov">          0 :                  pos++;</span>
+<span class="lineNum">     188 </span>            :              }
+<span class="lineNum">     189 </span>            :          }
+<span class="lineNum">     190 </span>            :       }
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :       idx_order[ii] = pos;</span>
+<span class="lineNum">     192 </span>            :     }
+<span class="lineNum">     193 </span>            :     
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :         vec_new[idx_order[ii]] = vec[ii];</span>
+<span class="lineNum">     196 </span>            :     }
+<span class="lineNum">     197 </span>            :     
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :     c_dcopy(N,vec_new,1,vec,1);</span>
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :     delete[] idx_order;</span>
+<span class="lineNum">     201 </span><span class="lineNoCov">          0 :     delete[] vec_new;</span>
+<span class="lineNum">     202 </span>            : 
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     204 </span>            : 
+<a name="205"><span class="lineNum">     205 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     206 </span>            : 
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 : void sort_vec(double *vec,int *idx_order,int N)</span>
+<span class="lineNum">     208 </span>            : {
+<span class="lineNum">     209 </span>            :     int ii,jj,pos;
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :     double* vec_new = new double[N];</span>
+<span class="lineNum">     211 </span>            :     
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     213 </span>            :       pos = 0;
+<span class="lineNum">     214 </span><span class="lineNoCov">          0 :       for(jj = 0; jj &lt; N; jj++) {</span>
+<span class="lineNum">     215 </span><span class="lineNoCov">          0 :          if(ii != jj) {</span>
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :              if((vec[ii]&gt;vec[jj])</span>
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :                 || (vec[ii] == vec[jj] &amp;&amp; ii &gt; jj)) {</span>
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 :                  pos++;</span>
+<span class="lineNum">     219 </span>            :              }
+<span class="lineNum">     220 </span>            :          }
+<span class="lineNum">     221 </span>            :       }
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 :       idx_order[ii] = pos;</span>
+<span class="lineNum">     223 </span>            :     }
+<span class="lineNum">     224 </span>            :     
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :         vec_new[idx_order[ii]] = vec[ii];</span>
+<span class="lineNum">     227 </span>            :     }
+<span class="lineNum">     228 </span>            :     
+<span class="lineNum">     229 </span><span class="lineNoCov">          0 :     c_dcopy(N,vec_new,1,vec,1);</span>
+<span class="lineNum">     230 </span>            : 
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :     delete[] vec_new;</span>
+<span class="lineNum">     232 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     233 </span>            : 
+<a name="234"><span class="lineNum">     234 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     235 </span>            : 
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 : void sort_abs_imag(CPX *vec,int *index,int N)</span>
+<span class="lineNum">     237 </span>            : {
+<span class="lineNum">     238 </span>            : 
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :     int* idx_order   = new int[N];</span>
+<span class="lineNum">     240 </span>            :     int  pos,ii,jj;
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :     CPX* vec_new     = new CPX[N];</span>
+<span class="lineNum">     242 </span>            :     
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     244 </span>            :       pos = 0;
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :       for(jj = 0; jj &lt; N; jj++) {</span>
+<span class="lineNum">     246 </span><span class="lineNoCov">          0 :          if(ii != jj) {</span>
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :              if((abs(imag(vec[index[ii]]))&gt;abs(imag(vec[index[jj]])))</span>
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :                 || (abs(imag(vec[index[ii]])) == abs(imag(vec[index[jj]])) &amp;&amp; ii &gt; jj)) {</span>
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :                  pos++;</span>
+<span class="lineNum">     250 </span>            :              }
+<span class="lineNum">     251 </span>            :          }
+<span class="lineNum">     252 </span>            :       }
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :       idx_order[ii] = pos;</span>
+<span class="lineNum">     254 </span>            :     }
+<span class="lineNum">     255 </span>            :     
+<span class="lineNum">     256 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     257 </span><span class="lineNoCov">          0 :         vec_new[idx_order[ii]] = vec[index[ii]];</span>
+<span class="lineNum">     258 </span>            :     }
+<span class="lineNum">     259 </span>            :     
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 :     c_zcopy(N,vec_new,1,vec,1);</span>
+<span class="lineNum">     261 </span>            : 
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :     delete[] idx_order;</span>
+<span class="lineNum">     263 </span><span class="lineNoCov">          0 :     delete[] vec_new;</span>
+<span class="lineNum">     264 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     265 </span>            : 
+<a name="266"><span class="lineNum">     266 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     267 </span>            : 
+<span class="lineNum">     268 </span><span class="lineNoCov">          0 : void sort_abs_vec(CPX *vec,int *idx_order,int N)</span>
+<span class="lineNum">     269 </span>            : {
+<span class="lineNum">     270 </span>            : 
+<span class="lineNum">     271 </span>            :     int  pos,ii,jj;
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :     CPX* vec_new = new CPX[N];</span>
+<span class="lineNum">     273 </span>            :     
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     275 </span>            :       pos = 0;
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :       for(jj = 0; jj &lt; N; jj++) {</span>
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :          if(ii != jj) {</span>
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :              if((abs(vec[ii])&gt;abs(vec[jj]))</span>
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :                 || (abs(vec[ii]) == abs(vec[jj]) &amp;&amp; ii &gt; jj)) {</span>
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :                  pos++;</span>
+<span class="lineNum">     281 </span>            :              }
+<span class="lineNum">     282 </span>            :          }
+<span class="lineNum">     283 </span>            :       }
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :       idx_order[ii] = pos;</span>
+<span class="lineNum">     285 </span>            :     }
+<span class="lineNum">     286 </span>            :     
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :     for(ii = 0; ii &lt; N; ii++) {</span>
+<span class="lineNum">     288 </span><span class="lineNoCov">          0 :         vec_new[idx_order[ii]] = vec[ii];</span>
+<span class="lineNum">     289 </span>            :     }
+<span class="lineNum">     290 </span>            :     
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :     c_zcopy(N,vec_new,1,vec,1);</span>
+<span class="lineNum">     292 </span>            : 
+<span class="lineNum">     293 </span><span class="lineNoCov">          0 :     delete[] vec_new;</span>
+<span class="lineNum">     294 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     295 </span>            : 
+<a name="296"><span class="lineNum">     296 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 : void check_mpi(int size,int rank,int CPU_per_vg_point,int CPU_per_vd_point,int CPU_per_kz_point,\</span>
+<span class="lineNum">     299 </span>            :                int Nky,int Nkz,int CPU_ppoint)
+<span class="lineNum">     300 </span>            : {   
+<span class="lineNum">     301 </span>            : 
+<span class="lineNum">     302 </span>            :     int kz_mpi_size;
+<span class="lineNum">     303 </span>            : 
+<span class="lineNum">     304 </span><span class="lineNoCov">          0 :     if(CPU_per_vg_point==-1) CPU_per_vg_point = size;</span>
+<span class="lineNum">     305 </span><span class="lineNoCov">          0 :     if(CPU_per_vd_point==-1) CPU_per_vd_point = CPU_per_vg_point;</span>
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 :     if(CPU_per_kz_point==-1) CPU_per_kz_point = CPU_per_vd_point;</span>
+<span class="lineNum">     307 </span>            : 
+<span class="lineNum">     308 </span><span class="lineNoCov">          0 :     if(size%CPU_per_vg_point){</span>
+<span class="lineNum">     309 </span><span class="lineNoCov">          0 :         if(!rank){</span>
+<span class="lineNum">     310 </span><span class="lineNoCov">          0 :             printf(&quot;The number of CPUs per vg point must be a divider of the total number of CPUs\n&quot;);</span>
+<span class="lineNum">     311 </span>            :         }
+<span class="lineNum">     312 </span><span class="lineNoCov">          0 :         MPI_Barrier(MPI_COMM_WORLD);</span>
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :         exit(0);</span>
+<span class="lineNum">     314 </span>            :     }
+<span class="lineNum">     315 </span>            : 
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :     if(CPU_per_vg_point%CPU_per_vd_point){</span>
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 :         if(!rank){</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 :             printf(&quot;The number of CPUs per vd point must be a divider of the number of CPUs per vg point\n&quot;);</span>
+<span class="lineNum">     319 </span>            :         }
+<span class="lineNum">     320 </span><span class="lineNoCov">          0 :         MPI_Barrier(MPI_COMM_WORLD);</span>
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :         exit(0);</span>
+<span class="lineNum">     322 </span>            :     }
+<span class="lineNum">     323 </span>            : 
+<span class="lineNum">     324 </span><span class="lineNoCov">          0 :     if(CPU_per_vd_point%CPU_per_kz_point){</span>
+<span class="lineNum">     325 </span><span class="lineNoCov">          0 :         if(!rank){</span>
+<span class="lineNum">     326 </span><span class="lineNoCov">          0 :             printf(&quot;The number of CPUs per kz point must be a divider of the number of CPUs per vd point\n&quot;);</span>
+<span class="lineNum">     327 </span>            :         }
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :         MPI_Barrier(MPI_COMM_WORLD);</span>
+<span class="lineNum">     329 </span><span class="lineNoCov">          0 :         exit(0);</span>
+<span class="lineNum">     330 </span>            :     }
+<span class="lineNum">     331 </span>            : 
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :     kz_mpi_size = CPU_per_vd_point/CPU_per_kz_point;</span>
+<span class="lineNum">     333 </span>            : 
+<span class="lineNum">     334 </span><span class="lineNoCov">          0 :     if((Nkz*Nky)%kz_mpi_size){</span>
+<span class="lineNum">     335 </span><span class="lineNoCov">          0 :         if(!rank){</span>
+<span class="lineNum">     336 </span><span class="lineNoCov">          0 :             printf(&quot;The number of kz points that are simultaneously treated must be a divider of Nky*Nkz\n&quot;);</span>
+<span class="lineNum">     337 </span>            :         }
+<span class="lineNum">     338 </span><span class="lineNoCov">          0 :         MPI_Barrier(MPI_COMM_WORLD);</span>
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :         exit(0);</span>
+<span class="lineNum">     340 </span>            :     }
+<span class="lineNum">     341 </span>            : 
+<span class="lineNum">     342 </span><span class="lineNoCov">          0 :     if(CPU_per_kz_point%CPU_ppoint){</span>
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :         if(!rank){</span>
+<span class="lineNum">     344 </span><span class="lineNoCov">          0 :             printf(&quot;The number of CPUs per energy point must be a divider of the number of CPUs per kz point\n&quot;);</span>
+<span class="lineNum">     345 </span>            :         }
+<span class="lineNum">     346 </span><span class="lineNoCov">          0 :         MPI_Barrier(MPI_COMM_WORLD);</span>
+<span class="lineNum">     347 </span><span class="lineNoCov">          0 :         exit(0);</span>
+<span class="lineNum">     348 </span>            :     }
+<span class="lineNum">     349 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     350 </span>            : 
+<a name="351"><span class="lineNum">     351 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     352 </span>            : 
+<span class="lineNum">     353 </span><span class="lineCov">         71 : double get_time(double t0)</span>
+<span class="lineNum">     354 </span>            : {
+<span class="lineNum">     355 </span>            :     timeval tim;
+<span class="lineNum">     356 </span><span class="lineCov">         71 :     gettimeofday(&amp;tim, NULL);</span>
+<span class="lineNum">     357 </span>            :     
+<span class="lineNum">     358 </span><span class="lineCov">         71 :     return (double)(tim.tv_sec+(tim.tv_usec/1000000.0))-t0;</span>
+<span class="lineNum">     359 </span>            : }
+<span class="lineNum">     360 </span>            : 
+<a name="361"><span class="lineNum">     361 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     362 </span>            : 
+<span class="lineNum">     363 </span><span class="lineCov">      20736 : double randn()</span>
+<span class="lineNum">     364 </span>            : {
+<span class="lineNum">     365 </span>            :     double r1,r2;
+<span class="lineNum">     366 </span>            : 
+<span class="lineNum">     367 </span><span class="lineCov">      20736 :     r1 = (double)rand()/RAND_MAX;</span>
+<span class="lineNum">     368 </span><span class="lineCov">      20736 :     r2 = (double)rand()/RAND_MAX;</span>
+<span class="lineNum">     369 </span>            : 
+<span class="lineNum">     370 </span><span class="lineCov">      20736 :     return sqrt(-2.0*log(r1))*cos(2*PI*r2);</span>
+<span class="lineNum">     371 </span>            : }
+<span class="lineNum">     372 </span>            : 
+<a name="373"><span class="lineNum">     373 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     374 </span>            : 
+<span class="lineNum">     375 </span><span class="lineNoCov">          0 : int get_number_of_blocks(int NLayer,int layer_per_slab,int robust_numerics,int *neighbor_layer)</span>
+<span class="lineNum">     376 </span>            : {
+<span class="lineNum">     377 </span>            : 
+<span class="lineNum">     378 </span>            :     int IL,inc;
+<span class="lineNum">     379 </span>            : 
+<span class="lineNum">     380 </span><span class="lineNoCov">          0 :     inc = 1;</span>
+<span class="lineNum">     381 </span><span class="lineNoCov">          0 :     for(IL=0;IL&lt;NLayer;IL++){</span>
+<span class="lineNum">     382 </span><span class="lineNoCov">          0 :         if(neighbor_layer[IL]&gt;inc){</span>
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :             inc = neighbor_layer[IL];</span>
+<span class="lineNum">     384 </span>            :         }
+<span class="lineNum">     385 </span>            :     }
+<span class="lineNum">     386 </span>            :     
+<span class="lineNum">     387 </span><span class="lineNoCov">          0 :     if((NLayer%inc)||robust_numerics){</span>
+<span class="lineNum">     388 </span><span class="lineNoCov">          0 :         inc = layer_per_slab;</span>
+<span class="lineNum">     389 </span>            :     }
+<span class="lineNum">     390 </span>            :     
+<span class="lineNum">     391 </span><span class="lineNoCov">          0 :     return NLayer/inc;</span>
+<span class="lineNum">     392 </span>            : 
+<span class="lineNum">     393 </span>            : }
+<span class="lineNum">     394 </span>            : 
+<a name="395"><span class="lineNum">     395 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     396 </span>            : 
+<span class="lineNum">     397 </span><span class="lineNoCov">          0 : void domain_decomposition(int NLayer,int mpi_size,int NCS,int factor,int *IL_start,int *IL_stop,\</span>
+<span class="lineNum">     398 </span>            :                           int spec_decomp,int CPU_per_solver,int CPU_per_bc,int interleave)
+<span class="lineNum">     399 </span>            : {
+<span class="lineNum">     400 </span>            :     int IP,IC,NL_CPU,NL_local,max_rank,proc_size;
+<span class="lineNum">     401 </span>            :     int left_rank,right_rank;
+<span class="lineNum">     402 </span>            :     int cpu_color;
+<span class="lineNum">     403 </span><span class="lineNoCov">          0 :     int shift = 0;</span>
+<span class="lineNum">     404 </span><span class="lineNoCov">          0 :     int ind_i = 0;</span>
+<span class="lineNum">     405 </span><span class="lineNoCov">          0 :     int ind_f = 0;</span>
+<span class="lineNum">     406 </span>            : 
+<span class="lineNum">     407 </span><span class="lineNoCov">          0 :     if(CPU_per_solver&gt;=CPU_per_bc){</span>
+<span class="lineNum">     408 </span>            : 
+<span class="lineNum">     409 </span><span class="lineNoCov">          0 :         if(interleave){</span>
+<span class="lineNum">     410 </span><span class="lineNoCov">          0 :             shift = CPU_per_bc;</span>
+<span class="lineNum">     411 </span><span class="lineNoCov">          0 :             ind_i = 1;</span>
+<span class="lineNum">     412 </span><span class="lineNoCov">          0 :             if(CPU_per_bc==2){</span>
+<span class="lineNum">     413 </span><span class="lineNoCov">          0 :                 ind_f = 1;</span>
+<span class="lineNum">     414 </span>            :             }
+<span class="lineNum">     415 </span>            :         }
+<span class="lineNum">     416 </span>            : 
+<span class="lineNum">     417 </span><span class="lineNoCov">          0 :         proc_size = mpi_size/NCS-shift;</span>
+<span class="lineNum">     418 </span><span class="lineNoCov">          0 :         NL_CPU    = ceil((double)NLayer/proc_size);</span>
+<span class="lineNum">     419 </span><span class="lineNoCov">          0 :         max_rank  = NLayer-(NL_CPU-1)*proc_size;</span>
+<span class="lineNum">     420 </span>            : 
+<span class="lineNum">     421 </span><span class="lineNoCov">          0 :         NL_local    = NL_CPU;</span>
+<span class="lineNum">     422 </span><span class="lineNoCov">          0 :         for(IP=0;IP&lt;proc_size;IP++){</span>
+<span class="lineNum">     423 </span><span class="lineNoCov">          0 :             if(IP&gt;=max_rank) NL_local = NL_CPU-1;</span>
+<span class="lineNum">     424 </span><span class="lineNoCov">          0 :             for(IC=0;IC&lt;NCS;IC++){</span>
+<span class="lineNum">     425 </span><span class="lineNoCov">          0 :                 IL_start[IP*NCS+IC+ind_i] = IP*(NL_CPU-1)+min(IP,max_rank);</span>
+<span class="lineNum">     426 </span><span class="lineNoCov">          0 :                 IL_stop[IP*NCS+IC+ind_i]  = IL_start[IP*NCS+IC+ind_i]+NL_local;</span>
+<span class="lineNum">     427 </span>            :             }
+<span class="lineNum">     428 </span>            :         }
+<span class="lineNum">     429 </span>            : 
+<span class="lineNum">     430 </span><span class="lineNoCov">          0 :         if(interleave){</span>
+<span class="lineNum">     431 </span>            : 
+<span class="lineNum">     432 </span><span class="lineNoCov">          0 :             IL_start[0]          = 0;</span>
+<span class="lineNum">     433 </span><span class="lineNoCov">          0 :             IL_stop[0]           = 1;</span>
+<span class="lineNum">     434 </span>            : 
+<span class="lineNum">     435 </span><span class="lineNoCov">          0 :             if(CPU_per_bc==2){</span>
+<span class="lineNum">     436 </span><span class="lineNoCov">          0 :                 IL_start[mpi_size-1] = NLayer-1;</span>
+<span class="lineNum">     437 </span><span class="lineNoCov">          0 :                 IL_stop[mpi_size-1]  = NLayer;</span>
+<span class="lineNum">     438 </span>            :             }
+<span class="lineNum">     439 </span>            :         }
+<span class="lineNum">     440 </span>            : 
+<span class="lineNum">     441 </span><span class="lineNoCov">          0 :         if(!spec_decomp){</span>
+<span class="lineNum">     442 </span><span class="lineNoCov">          0 :             for(IP=1+ind_i;IP&lt;mpi_size-ind_f;IP++){</span>
+<span class="lineNum">     443 </span><span class="lineNoCov">          0 :                 if(IL_start[IP]%2){</span>
+<span class="lineNum">     444 </span><span class="lineNoCov">          0 :                     IL_start[IP]  = IL_start[IP]-1;</span>
+<span class="lineNum">     445 </span><span class="lineNoCov">          0 :                     IL_stop[IP-1] = IL_stop[IP-1]-1;</span>
+<span class="lineNum">     446 </span>            :                 }
+<span class="lineNum">     447 </span><span class="lineNoCov">          0 :                 if(IL_start[IP]%4){</span>
+<span class="lineNum">     448 </span><span class="lineNoCov">          0 :                     IL_start[IP]  = IL_start[IP]+2;</span>
+<span class="lineNum">     449 </span><span class="lineNoCov">          0 :                     IL_stop[IP-1] = IL_stop[IP-1]+2;</span>
+<span class="lineNum">     450 </span>            :                 }
+<span class="lineNum">     451 </span>            :             }
+<span class="lineNum">     452 </span>            :             /*
+<span class="lineNum">     453 </span>            :             if(mpi_size&gt;=4){
+<span class="lineNum">     454 </span>            :                 IL_stop[0]           = IL_stop[0]-4;
+<span class="lineNum">     455 </span>            :                 IL_start[1]          = IL_start[1]-4;
+<span class="lineNum">     456 </span>            :                 IL_stop[mpi_size-2]  = IL_stop[mpi_size-2]+4;
+<span class="lineNum">     457 </span>            :                 IL_start[mpi_size-1] = IL_start[mpi_size-1]+4;
+<span class="lineNum">     458 </span>            :             }
+<span class="lineNum">     459 </span>            :             */
+<span class="lineNum">     460 </span>            :         }
+<span class="lineNum">     461 </span>            : 
+<span class="lineNum">     462 </span><span class="lineNoCov">          0 :         for(IP=0;IP&lt;mpi_size;IP++){</span>
+<span class="lineNum">     463 </span><span class="lineNoCov">          0 :             IL_start[IP] = IL_start[IP]*factor;</span>
+<span class="lineNum">     464 </span><span class="lineNoCov">          0 :             IL_stop[IP]  = IL_stop[IP]*factor;</span>
+<span class="lineNum">     465 </span>            :         }
+<span class="lineNum">     466 </span>            : 
+<span class="lineNum">     467 </span>            :     }else{
+<span class="lineNum">     468 </span>            : 
+<span class="lineNum">     469 </span><span class="lineNoCov">          0 :         if(!interleave){</span>
+<span class="lineNum">     470 </span>            : 
+<span class="lineNum">     471 </span><span class="lineNoCov">          0 :             proc_size  = CPU_per_solver;</span>
+<span class="lineNum">     472 </span><span class="lineNoCov">          0 :             NL_CPU     = ceil((double)NLayer/proc_size);</span>
+<span class="lineNum">     473 </span><span class="lineNoCov">          0 :             left_rank  = ceil(CPU_per_solver/2.0);</span>
+<span class="lineNum">     474 </span><span class="lineNoCov">          0 :             right_rank = mpi_size-floor(CPU_per_solver/2.0);</span>
+<span class="lineNum">     475 </span>            : 
+<span class="lineNum">     476 </span><span class="lineNoCov">          0 :             NL_local   = NL_CPU;</span>
+<span class="lineNum">     477 </span><span class="lineNoCov">          0 :             shift      = 0;</span>
+<span class="lineNum">     478 </span><span class="lineNoCov">          0 :             for(IP=0;IP&lt;mpi_size;IP++){</span>
+<span class="lineNum">     479 </span>            : 
+<span class="lineNum">     480 </span><span class="lineNoCov">          0 :                 if((IP&lt;left_rank)||(IP&gt;=right_rank)){</span>
+<span class="lineNum">     481 </span><span class="lineNoCov">          0 :                     IL_start[IP] = shift*NL_CPU;</span>
+<span class="lineNum">     482 </span><span class="lineNoCov">          0 :                     IL_stop[IP]  = IL_start[IP]+NL_local;</span>
+<span class="lineNum">     483 </span><span class="lineNoCov">          0 :                     shift++;</span>
+<span class="lineNum">     484 </span>            :                 }else{
+<span class="lineNum">     485 </span><span class="lineNoCov">          0 :                     IL_start[IP] = shift*NL_CPU;</span>
+<span class="lineNum">     486 </span><span class="lineNoCov">          0 :                     IL_stop[IP]  = IL_start[IP];</span>
+<span class="lineNum">     487 </span>            :                 }
+<span class="lineNum">     488 </span>            :             }
+<span class="lineNum">     489 </span>            : 
+<span class="lineNum">     490 </span><span class="lineNoCov">          0 :             IL_stop[mpi_size-1]  = NLayer;</span>
+<span class="lineNum">     491 </span>            : 
+<span class="lineNum">     492 </span><span class="lineNoCov">          0 :             for(IP=0;IP&lt;mpi_size;IP++){</span>
+<span class="lineNum">     493 </span><span class="lineNoCov">          0 :                 IL_start[IP] = IL_start[IP]*factor;</span>
+<span class="lineNum">     494 </span><span class="lineNoCov">          0 :                 IL_stop[IP]  = IL_stop[IP]*factor;</span>
+<span class="lineNum">     495 </span>            :             }
+<span class="lineNum">     496 </span>            : 
+<span class="lineNum">     497 </span>            :         }else{
+<span class="lineNum">     498 </span>            : 
+<span class="lineNum">     499 </span><span class="lineNoCov">          0 :             NL_CPU = ceil((double)NLayer/CPU_per_solver);</span>
+<span class="lineNum">     500 </span><span class="lineNoCov">          0 :             shift  = 0;</span>
+<span class="lineNum">     501 </span>            : 
+<span class="lineNum">     502 </span><span class="lineNoCov">          0 :             for(IP=0;IP&lt;mpi_size;IP++){</span>
+<span class="lineNum">     503 </span>            : 
+<span class="lineNum">     504 </span><span class="lineNoCov">          0 :                 cpu_color = get_cpu_color(IP,1,mpi_size,CPU_per_solver);</span>
+<span class="lineNum">     505 </span>            : 
+<span class="lineNum">     506 </span><span class="lineNoCov">          0 :                 if(!cpu_color){</span>
+<span class="lineNum">     507 </span>            : 
+<span class="lineNum">     508 </span><span class="lineNoCov">          0 :                     IL_start[IP] = shift*NL_CPU;</span>
+<span class="lineNum">     509 </span><span class="lineNoCov">          0 :                     IL_stop[IP]  = min((shift+1)*NL_CPU,NLayer);</span>
+<span class="lineNum">     510 </span><span class="lineNoCov">          0 :                     shift++;</span>
+<span class="lineNum">     511 </span>            : 
+<span class="lineNum">     512 </span>            :                 }else{
+<span class="lineNum">     513 </span>            : 
+<span class="lineNum">     514 </span><span class="lineNoCov">          0 :                     IL_start[IP] = 1;</span>
+<span class="lineNum">     515 </span><span class="lineNoCov">          0 :                     IL_stop[IP]  = 1;</span>
+<span class="lineNum">     516 </span>            : 
+<span class="lineNum">     517 </span>            :                 }
+<span class="lineNum">     518 </span>            :             }
+<span class="lineNum">     519 </span>            : 
+<span class="lineNum">     520 </span><span class="lineNoCov">          0 :             IL_start[0]          = 0;</span>
+<span class="lineNum">     521 </span><span class="lineNoCov">          0 :             IL_stop[0]           = 2;</span>
+<span class="lineNum">     522 </span>            : 
+<span class="lineNum">     523 </span><span class="lineNoCov">          0 :             IL_start[mpi_size-1] = NLayer-2;</span>
+<span class="lineNum">     524 </span><span class="lineNoCov">          0 :             IL_stop[mpi_size-1]  = NLayer;</span>
+<span class="lineNum">     525 </span>            :         }
+<span class="lineNum">     526 </span>            :     }
+<span class="lineNum">     527 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     528 </span>            : 
+<a name="529"><span class="lineNum">     529 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     530 </span>            : 
+<span class="lineNum">     531 </span><span class="lineNoCov">          0 : int get_cpu_color(int en_sub_group_rank,int interleave,int CPU_ppoint,int CPU_per_solver)</span>
+<span class="lineNum">     532 </span>            : {
+<span class="lineNum">     533 </span>            : 
+<span class="lineNum">     534 </span>            :     int IC;
+<span class="lineNum">     535 </span>            :     int cpu_color;
+<span class="lineNum">     536 </span>            :     int factor;
+<span class="lineNum">     537 </span>            : 
+<span class="lineNum">     538 </span><span class="lineNoCov">          0 :     cpu_color = (en_sub_group_rank&lt;ceil(CPU_ppoint/2.0))+\</span>
+<span class="lineNum">     539 </span><span class="lineNoCov">          0 :       2*(en_sub_group_rank&gt;=ceil(CPU_ppoint/2.0));</span>
+<span class="lineNum">     540 </span>            :     
+<span class="lineNum">     541 </span><span class="lineNoCov">          0 :     if(interleave){</span>
+<span class="lineNum">     542 </span>            : 
+<span class="lineNum">     543 </span><span class="lineNoCov">          0 :         factor = ceil((double)CPU_ppoint/CPU_per_solver);</span>
+<span class="lineNum">     544 </span>            : 
+<span class="lineNum">     545 </span><span class="lineNoCov">          0 :         for(IC=factor;IC&lt;CPU_ppoint;IC=IC+2*factor){</span>
+<span class="lineNum">     546 </span><span class="lineNoCov">          0 :             if((en_sub_group_rank==(IC-1))||(en_sub_group_rank==IC)){</span>
+<span class="lineNum">     547 </span><span class="lineNoCov">          0 :                 cpu_color = 0;</span>
+<span class="lineNum">     548 </span>            :             }
+<span class="lineNum">     549 </span>            :         }
+<span class="lineNum">     550 </span>            :     }
+<span class="lineNum">     551 </span>            : 
+<span class="lineNum">     552 </span><span class="lineNoCov">          0 :     return cpu_color;</span>
+<span class="lineNum">     553 </span>            : }
+<span class="lineNum">     554 </span>            : 
+<a name="555"><span class="lineNum">     555 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     556 </span>            : 
+<span class="lineNum">     557 </span><span class="lineNoCov">          0 : int get_msize(int start,int stop,int tb,int* n_of_el)</span>
+<span class="lineNum">     558 </span>            : { 
+<span class="lineNum">     559 </span>            :     /*
+<span class="lineNum">     560 </span>            :     msize = 0;
+<span class="lineNum">     561 </span>            :     for(IM=start;IM&lt;=stop;IM++){
+<span class="lineNum">     562 </span>            :         msize = msize+factor*n_of_el[IM];
+<span class="lineNum">     563 </span>            :     }
+<span class="lineNum">     564 </span>            :     */
+<span class="lineNum">     565 </span>            : 
+<span class="lineNum">     566 </span><span class="lineNoCov">          0 :     return (tb/10)*(n_of_el[stop+1]-n_of_el[start]);</span>
+<span class="lineNum">     567 </span>            : }
+<a name="568"><span class="lineNum">     568 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     569 </span>            : 
+<span class="lineNum">     570 </span><span class="lineNoCov">          0 : int get_max_orb(int* n_of_el,int NA)</span>
+<span class="lineNum">     571 </span>            : { 
+<span class="lineNum">     572 </span>            :     int IA,max_orb;
+<span class="lineNum">     573 </span>            : 
+<span class="lineNum">     574 </span><span class="lineNoCov">          0 :     max_orb = 0;</span>
+<span class="lineNum">     575 </span>            : 
+<span class="lineNum">     576 </span><span class="lineNoCov">          0 :     for(IA=0;IA&lt;NA;IA++){</span>
+<span class="lineNum">     577 </span>            : 
+<span class="lineNum">     578 </span><span class="lineNoCov">          0 :         if((n_of_el[IA+1]-n_of_el[IA])&gt;max_orb){</span>
+<span class="lineNum">     579 </span><span class="lineNoCov">          0 :             max_orb = (n_of_el[IA+1]-n_of_el[IA]);</span>
+<span class="lineNum">     580 </span>            :         }
+<span class="lineNum">     581 </span>            : 
+<span class="lineNum">     582 </span>            :     }
+<span class="lineNum">     583 </span>            : 
+<span class="lineNum">     584 </span><span class="lineNoCov">          0 :     return max_orb;</span>
+<span class="lineNum">     585 </span>            : }
+<a name="586"><span class="lineNum">     586 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     587 </span>            : 
+<span class="lineNum">     588 </span><span class="lineNoCov">          0 : int sum_vec(int N,int *vec,int *active)</span>
+<span class="lineNum">     589 </span>            : {
+<span class="lineNum">     590 </span>            :     int i,sum;
+<span class="lineNum">     591 </span>            : 
+<span class="lineNum">     592 </span><span class="lineNoCov">          0 :     sum = 0;</span>
+<span class="lineNum">     593 </span><span class="lineNoCov">          0 :     for(i=0;i&lt;N;i++){</span>
+<span class="lineNum">     594 </span><span class="lineNoCov">          0 :         if(!active[i]){</span>
+<span class="lineNum">     595 </span><span class="lineNoCov">          0 :             sum = sum+vec[i];</span>
+<span class="lineNum">     596 </span>            :         }
+<span class="lineNum">     597 </span>            :     }
+<span class="lineNum">     598 </span>            : 
+<span class="lineNum">     599 </span><span class="lineNoCov">          0 :     return sum;</span>
+<span class="lineNum">     600 </span>            : }
+<span class="lineNum">     601 </span>            : 
+<a name="602"><span class="lineNum">     602 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     603 </span>            : 
+<span class="lineNum">     604 </span><span class="lineNoCov">          0 : int min_active_vec(int N,int *vec,int *active)</span>
+<span class="lineNum">     605 </span>            : {
+<span class="lineNum">     606 </span>            :     int i,min_vec,index;
+<span class="lineNum">     607 </span>            : 
+<span class="lineNum">     608 </span><span class="lineNoCov">          0 :     min_vec = INF;</span>
+<span class="lineNum">     609 </span><span class="lineNoCov">          0 :     for(i=0;i&lt;N;i++){</span>
+<span class="lineNum">     610 </span><span class="lineNoCov">          0 :         if((!active[i])&amp;&amp;(vec[i]&lt;min_vec)){</span>
+<span class="lineNum">     611 </span><span class="lineNoCov">          0 :             min_vec = vec[i];</span>
+<span class="lineNum">     612 </span><span class="lineNoCov">          0 :             index   = i;</span>
+<span class="lineNum">     613 </span>            :         }
+<span class="lineNum">     614 </span>            :     }
+<span class="lineNum">     615 </span>            :     
+<span class="lineNum">     616 </span><span class="lineNoCov">          0 :     return index;</span>
+<span class="lineNum">     617 </span>            : }
+<span class="lineNum">     618 </span>            : 
+<a name="619"><span class="lineNum">     619 </span>            : /************************************************************************************************/</a>
+<span class="lineNum">     620 </span>            : 
+<span class="lineNum">     621 </span><span class="lineNoCov">          0 : int max_active_vec(int N,int *vec,int *active)</span>
+<span class="lineNum">     622 </span>            : {
+<span class="lineNum">     623 </span>            :     int i,max_vec,index;
+<span class="lineNum">     624 </span>            : 
+<span class="lineNum">     625 </span><span class="lineNoCov">          0 :     max_vec = -INF;</span>
+<span class="lineNum">     626 </span><span class="lineNoCov">          0 :     for(i=0;i&lt;N;i++){</span>
+<span class="lineNum">     627 </span><span class="lineNoCov">          0 :         if((!active[i])&amp;&amp;(vec[i]&gt;max_vec)){</span>
+<span class="lineNum">     628 </span><span class="lineNoCov">          0 :             max_vec = vec[i];</span>
+<span class="lineNum">     629 </span><span class="lineNoCov">          0 :             index   = i;</span>
+<span class="lineNum">     630 </span>            :         }
+<span class="lineNum">     631 </span>            :     }
+<a name="632"><span class="lineNum">     632 </span>            :     </a>
+<span class="lineNum">     633 </span><span class="lineNoCov">          0 :     return index;</span>
+<span class="lineNum">     634 </span><span class="lineCov">          4 : }</span>
+<span class="lineNum">     635 </span>            : 
+<span class="lineNum">     636 </span>            : /************************************************************************************************/
+<span class="lineNum">     637 </span>            : /*
+<span class="lineNum">     638 </span>            : void cuda_initialize()
+<span class="lineNum">     639 </span>            : {
+<span class="lineNum">     640 </span>            : #ifdef CUDA
+<span class="lineNum">     641 </span>            :     CUdevice  dev;                                                      
+<span class="lineNum">     642 </span>            :     CUcontext context;
+<span class="lineNum">     643 </span>            :                                                         
+<span class="lineNum">     644 </span>            :     if( CUDA_SUCCESS != cuInit( 0 ) ) {                                 
+<span class="lineNum">     645 </span>            :         fprintf(stderr, &quot;CUDA: Not initialized\n&quot; ); exit(-1);                
+<span class="lineNum">     646 </span>            :     }                                                                   
+<span class="lineNum">     647 </span>            :     if( CUDA_SUCCESS != cuDeviceGet( &amp;dev, 0 ) ) {                  
+<span class="lineNum">     648 </span>            :         fprintf(stderr, &quot;CUDA: Cannot get the device\n&quot;); exit(-1);   
+<span class="lineNum">     649 </span>            :     }                                                                   
+<span class="lineNum">     650 </span>            :     if( CUDA_SUCCESS != cuCtxCreate( &amp;context, 0, dev ) ) {         
+<span class="lineNum">     651 </span>            :         fprintf(stderr, &quot;CUDA: Cannot create the context\n&quot;); exit(-1);       
+<span class="lineNum">     652 </span>            :     }                                                                   
+<span class="lineNum">     653 </span>            :     if( CUBLAS_STATUS_SUCCESS != cublasInit( ) ) {                      
+<span class="lineNum">     654 </span>            :         fprintf(stderr, &quot;CUBLAS: Not initialized\n&quot;); exit(-1);               
+<span class="lineNum">     655 </span>            :     }
+<span class="lineNum">     656 </span>            : #endif
+<span class="lineNum">     657 </span>            : }
+<span class="lineNum">     658 </span>            : */
+<span class="lineNum">     659 </span>            : /************************************************************************************************/
+<span class="lineNum">     660 </span>            :  /*
+<span class="lineNum">     661 </span>            : void cuda_finalize()
+<span class="lineNum">     662 </span>            : {
+<span class="lineNum">     663 </span>            : #ifdef CUDA
+<span class="lineNum">     664 </span>            :     cublasShutdown();
+<span class="lineNum">     665 </span>            : #endif
+<span class="lineNum">     666 </span>            : }
+<span class="lineNum">     667 </span>            :  */
+<span class="lineNum">     668 </span>            : /************************************************************************************************/
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

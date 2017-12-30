@@ -1,0 +1,244 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/Full.H</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - Full.H<span style="font-size: 80%;"> (source / <a href="Full.H.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">59</td>
+            <td class="headerCovTableEntry">61</td>
+            <td class="headerCovTableEntryHi">96.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryMed">85.7 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #ifndef _FULL
+<span class="lineNum">      13 </span>            : #define _FULL
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : #include &quot;CSR.H&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Types.H&quot;
+<span class="lineNum">      17 </span>            : #include &quot;LinearSolver.H&quot;
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            : /*! \class Full
+<span class="lineNum">      20 </span>            :  *  
+<span class="lineNum">      21 </span>            :  *  \brief Interface for dense distributed solver
+<span class="lineNum">      22 </span>            :  *  
+<span class="lineNum">      23 </span>            :  */
+<span class="lineNum">      24 </span>            : template &lt;class T&gt;
+<span class="lineNum">      25 </span>            : class Full : public LinearSolver&lt;T&gt;{
+<span class="lineNum">      26 </span>            :         
+<span class="lineNum">      27 </span>            : public:
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            :     Full(TCSR&lt;T&gt;*,MPI_Comm);
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            :     virtual ~Full();
+<span class="lineNum">      32 </span>            :     virtual void prepare();
+<span class="lineNum">      33 </span>            :     virtual void prepare(int*,int*,int,int,int*,int);
+<span class="lineNum">      34 </span>            :     virtual void prepare_corner(CPX*,CPX*,int*,int*,int*,int,int,int*,int);
+<span class="lineNum">      35 </span>            :     virtual void solve_equation(T* res, T* rhs, int no_rhs);    
+<span class="lineNum">      36 </span>            :                                 
+<span class="lineNum">      37 </span>            : private:
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            :     int size_tot;
+<span class="lineNum">      40 </span>            :     int size_csr_loc;
+<span class="lineNum">      41 </span>            :     int icontxt;
+<span class="lineNum">      42 </span>            :     int icontxt_csr;
+<span class="lineNum">      43 </span>            :     int nbl;
+<span class="lineNum">      44 </span>            :     int NB_csr;
+<span class="lineNum">      45 </span>            :     int descAloc[9];
+<span class="lineNum">      46 </span>            :     int *ipiv;
+<span class="lineNum">      47 </span>            :     CPX *Aloc;
+<span class="lineNum">      48 </span>            : };
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            : /************************************************************************************************/
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            : template &lt;&gt;
+<span class="lineNum">      53 </span><span class="lineCov">          2 : Full&lt;CPX&gt;::Full(TCSR&lt;CPX&gt;* mat,MPI_Comm solver_comm)</span>
+<span class="lineNum">      54 </span>            : {
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            :     int mpi_size;
+<span class="lineNum">      57 </span><span class="lineCov">          1 :     MPI_Comm_size(solver_comm,&amp;mpi_size);</span>
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineCov">          1 :     icontxt = MPI_Comm_c2f(solver_comm);</span>
+<span class="lineNum">      60 </span><span class="lineCov">          1 :     icontxt_csr = MPI_Comm_c2f(solver_comm);</span>
+<span class="lineNum">      61 </span><span class="lineCov">          1 :     size_tot = mat-&gt;size_tot;</span>
+<span class="lineNum">      62 </span><span class="lineCov">          1 :     size_csr_loc = mat-&gt;size;</span>
+<span class="lineNum">      63 </span><span class="lineCov">          1 :     NB_csr = int(ceil(double(size_tot)/double(mpi_size)));</span>
+<span class="lineNum">      64 </span><span class="lineCov">    1327105 :     CPX* Acsr = new CPX[size_csr_loc*size_tot];</span>
+<span class="lineNum">      65 </span><span class="lineCov">          1 :     mat-&gt;sparse_to_full(Acsr,size_csr_loc,size_tot);</span>
+<span class="lineNum">      66 </span><span class="lineCov">          1 :     char gridr[1] = {'R'};</span>
+<span class="lineNum">      67 </span><span class="lineCov">          2 :     Cblacs_gridinit(&amp;icontxt_csr,gridr,mpi_size,1);</span>
+<span class="lineNum">      68 </span>            :     int descAcsr[9];
+<span class="lineNum">      69 </span>            :     int iinfo;
+<span class="lineNum">      70 </span><span class="lineCov">          2 :     c_descinit(descAcsr,size_tot,size_tot,NB_csr,size_tot,0,0,icontxt_csr,size_csr_loc,&amp;iinfo);</span>
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span><span class="lineCov">          1 :     int nprowcol[2]={0,0};</span>
+<span class="lineNum">      73 </span><span class="lineCov">          1 :     MPI_Dims_create(mpi_size,2,nprowcol);</span>
+<span class="lineNum">      74 </span><span class="lineCov">          1 :     int nprow = nprowcol[0];</span>
+<span class="lineNum">      75 </span><span class="lineCov">          1 :     int npcol = nprowcol[1];</span>
+<span class="lineNum">      76 </span>            :     int myrow, mycol;
+<span class="lineNum">      77 </span><span class="lineCov">          2 :     Cblacs_gridinit(&amp;icontxt,gridr,nprow,npcol);</span>
+<span class="lineNum">      78 </span><span class="lineCov">          2 :     Cblacs_gridinfo(icontxt,&amp;nprow,&amp;npcol,&amp;myrow,&amp;mycol);</span>
+<span class="lineNum">      79 </span><span class="lineCov">          1 :     int nbl_in               = 64;</span>
+<span class="lineNum">      80 </span><span class="lineCov">          1 :     int row_per_processor    = size_tot/nprow;</span>
+<span class="lineNum">      81 </span><span class="lineCov">          1 :     int block_per_rprocessor = int(ceil(double(row_per_processor)/nbl_in));</span>
+<span class="lineNum">      82 </span><span class="lineCov">          1 :     int mb                   = row_per_processor/block_per_rprocessor;</span>
+<span class="lineNum">      83 </span><span class="lineCov">          1 :     int col_per_processor    = size_tot/npcol;</span>
+<span class="lineNum">      84 </span><span class="lineCov">          1 :     int block_per_cprocessor = int(ceil(double(col_per_processor)/nbl_in));</span>
+<span class="lineNum">      85 </span><span class="lineCov">          1 :     int nb                   = col_per_processor/block_per_cprocessor;</span>
+<span class="lineNum">      86 </span><span class="lineCov">          1 :     nbl                      = (mb+nb)/2;//SOME ROUTINES REQUIRE MB==NB</span>
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span>            :     int rloc,cloc;
+<span class="lineNum">      89 </span><span class="lineCov">          3 :     rloc = max(1,c_numroc(size_tot,nbl,myrow,0,nprow));</span>
+<span class="lineNum">      90 </span><span class="lineCov">          2 :     cloc = c_numroc(size_tot,nbl,mycol,0,npcol);</span>
+<span class="lineNum">      91 </span><span class="lineCov">          2 :     c_descinit(descAloc,size_tot,size_tot,nbl,nbl,0,0,icontxt,rloc,&amp;iinfo);</span>
+<span class="lineNum">      92 </span><span class="lineCov">    1327105 :     Aloc = new CPX[rloc*cloc];</span>
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span><span class="lineCov">          2 :     c_pzgemr2d(size_tot,size_tot,Acsr,1,1,descAcsr,Aloc,1,1,descAloc,icontxt);</span>
+<span class="lineNum">      95 </span>            : 
+<span class="lineNum">      96 </span><span class="lineCov">          1 :     delete[] Acsr;</span>
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span><span class="lineCov">          1 :     ipiv = new int[rloc+descAloc[4]];</span>
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span><span class="lineCov">          1 : }</span>
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            : /************************************************************************************************/
+<a name="103"><span class="lineNum">     103 </span>            : </a>
+<span class="lineNum">     104 </span>            : template &lt;&gt;
+<span class="lineNum">     105 </span><span class="lineCov">          3 : Full&lt;CPX&gt;::~Full()</span>
+<span class="lineNum">     106 </span>            : {
+<span class="lineNum">     107 </span><span class="lineCov">          2 :     Cblacs_gridexit(icontxt);</span>
+<span class="lineNum">     108 </span><span class="lineCov">          2 :     Cblacs_gridexit(icontxt_csr);</span>
+<span class="lineNum">     109 </span><span class="lineCov">          1 :     delete[] Aloc;</span>
+<span class="lineNum">     110 </span><span class="lineCov">          1 :     delete[] ipiv;</span>
+<span class="lineNum">     111 </span><span class="lineCov">          2 : }</span>
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            : /************************************************************************************************/
+<a name="114"><span class="lineNum">     114 </span>            : </a>
+<span class="lineNum">     115 </span>            : template &lt;&gt;
+<span class="lineNum">     116 </span><span class="lineCov">          1 : void Full&lt;CPX&gt;::prepare()</span>
+<span class="lineNum">     117 </span>            : {
+<span class="lineNum">     118 </span>            :     int iinfo;
+<span class="lineNum">     119 </span><span class="lineCov">          2 :     c_pzgetrf(size_tot,size_tot,Aloc,1,1,descAloc,ipiv,&amp;iinfo);</span>
+<span class="lineNum">     120 </span><span class="lineCov">          1 : }</span>
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            : /************************************************************************************************/
+<a name="123"><span class="lineNum">     123 </span>            : </a>
+<span class="lineNum">     124 </span>            : template &lt;class T&gt;
+<span class="lineNum">     125 </span><span class="lineCov">          1 : void Full&lt;T&gt;::prepare(int *Bmin,int *Bmax,int NBlock,int Bsize,int *orb_per_at,int tb)</span>
+<span class="lineNum">     126 </span>            : {   
+<span class="lineNum">     127 </span><span class="lineCov">          1 :     prepare();</span>
+<span class="lineNum">     128 </span><span class="lineCov">          1 : }</span>
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            : /************************************************************************************************/
+<a name="131"><span class="lineNum">     131 </span>            : </a>
+<span class="lineNum">     132 </span>            : template &lt;class T&gt;
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 : void Full&lt;T&gt;::prepare_corner(CPX *ML_ref,CPX *MR_ref,int *NBC,int *Bmin,int *Bmax,int NBlock,\</span>
+<span class="lineNum">     134 </span>            :                               int Bsize,int *orb_per_at,int tb)
+<span class="lineNum">     135 </span>            : {
+<span class="lineNum">     136 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span>            : /************************************************************************************************/
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            : template &lt;&gt;
+<span class="lineNum">     141 </span><span class="lineCov">          1 : void Full&lt;CPX&gt;::solve_equation(CPX *res, CPX *arg_rhs, int no_rhs)</span>
+<span class="lineNum">     142 </span>            : {
+<span class="lineNum">     143 </span><span class="lineCov">          1 :     if (no_rhs) {</span>
+<span class="lineNum">     144 </span>            :         int iinfo;
+<span class="lineNum">     145 </span>            :         int descRHScsr[9];
+<span class="lineNum">     146 </span><span class="lineCov">          2 :         c_descinit(descRHScsr,size_tot,no_rhs,NB_csr,no_rhs,0,0,icontxt_csr,size_csr_loc,&amp;iinfo);</span>
+<span class="lineNum">     147 </span>            :         int nprow, npcol, myrow, mycol;
+<span class="lineNum">     148 </span><span class="lineCov">          2 :         Cblacs_gridinfo(icontxt,&amp;nprow,&amp;npcol,&amp;myrow,&amp;mycol);</span>
+<span class="lineNum">     149 </span>            :         int rloc,cloc;
+<span class="lineNum">     150 </span><span class="lineCov">          3 :         rloc = max(1,c_numroc(size_tot,nbl,myrow,0,nprow));</span>
+<span class="lineNum">     151 </span><span class="lineCov">          2 :         cloc = c_numroc(no_rhs,nbl,mycol,0,npcol);</span>
+<span class="lineNum">     152 </span>            :         int descRHSloc[9];
+<span class="lineNum">     153 </span><span class="lineCov">          2 :         c_descinit(descRHSloc,size_tot,no_rhs,nbl,nbl,0,0,icontxt,rloc,&amp;iinfo);</span>
+<span class="lineNum">     154 </span><span class="lineCov">       4609 :         CPX *RHSloc = new CPX[rloc*cloc];</span>
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span><span class="lineCov">          2 :         c_pzgemr2d(size_tot,no_rhs,arg_rhs,1,1,descRHScsr,RHSloc,1,1,descRHSloc,icontxt);</span>
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span><span class="lineCov">          2 :         c_pzgetrs('N',size_tot,no_rhs,Aloc,1,1,descAloc,ipiv,RHSloc,1,1,descRHSloc,&amp;iinfo);</span>
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span><span class="lineCov">          2 :         c_pzgemr2d(size_tot,no_rhs,RHSloc,1,1,descRHSloc,res,1,1,descRHScsr,icontxt);</span>
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span><span class="lineCov">          1 :         delete[] RHSloc;</span>
+<span class="lineNum">     163 </span>            :     }
+<span class="lineNum">     164 </span><span class="lineCov">          1 : }</span>
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span>            : /************************************************************************************************/
+<span class="lineNum">     167 </span>            : 
+<span class="lineNum">     168 </span>            : #endif
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

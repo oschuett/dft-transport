@@ -1,0 +1,407 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/SuperLU.H</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - SuperLU.H<span style="font-size: 80%;"> (source / <a href="SuperLU.H.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">66</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #ifndef _SUPERLU
+<span class="lineNum">      13 </span>            : #define _SUPERLU
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : #include &quot;superlu_zdefs.h&quot;
+<span class="lineNum">      16 </span>            : #include &quot;CSR.H&quot;
+<span class="lineNum">      17 </span>            : #include &quot;Types.H&quot;
+<span class="lineNum">      18 </span>            : #include &quot;LinearSolver.H&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : template &lt;class T&gt;
+<span class="lineNum">      21 </span>            : class SuperLU : public LinearSolver&lt;T&gt;{
+<span class="lineNum">      22 </span>            :         
+<span class="lineNum">      23 </span>            : public:
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            :     SuperLU(TCSR&lt;T&gt;*,MPI_Comm);
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            :     virtual ~SuperLU();
+<span class="lineNum">      28 </span>            :     virtual void prepare();
+<span class="lineNum">      29 </span>            :     virtual void prepare(int*,int*,int,int,int*,int);
+<span class="lineNum">      30 </span>            :     virtual void prepare_corner(CPX*,CPX*,int*,int*,int*,int,int,int*,int);
+<span class="lineNum">      31 </span>            :     virtual void solve_equation(T* res, T* rhs, int no_rhs);    
+<span class="lineNum">      32 </span>            :                                 
+<span class="lineNum">      33 </span>            : private:
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            :     int mpi_size,mpi_rank,fortran_index;
+<span class="lineNum">      36 </span>            :     int m_loc,n;
+<span class="lineNum">      37 </span>            :     MPI_Comm slu_comm;
+<span class="lineNum">      38 </span>            :     SuperMatrix A;
+<span class="lineNum">      39 </span>            :     superlu_dist_options_t options;
+<span class="lineNum">      40 </span>            :     gridinfo_t grid;
+<span class="lineNum">      41 </span>            :     SuperLUStat_t stat;
+<span class="lineNum">      42 </span>            :     ScalePermstruct_t ScalePermstruct;
+<span class="lineNum">      43 </span>            :     LUstruct_t LUstruct;
+<span class="lineNum">      44 </span>            :     SOLVEstruct_t SOLVEstruct;
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            :     void create_local_matrix(TCSR&lt;T&gt;*,SuperMatrix*);
+<span class="lineNum">      47 </span>            : };
+<span class="lineNum">      48 </span>            : 
+<span class="lineNum">      49 </span>            : /************************************************************************************************/
+<a name="50"><span class="lineNum">      50 </span>            : </a>
+<span class="lineNum">      51 </span>            : template &lt;class T&gt;
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 : SuperLU&lt;T&gt;::SuperLU(TCSR&lt;T&gt;* mat,MPI_Comm solver_comm)</span>
+<span class="lineNum">      53 </span>            : {
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :     slu_comm                  = solver_comm;</span>
+<span class="lineNum">      55 </span>            :     
+<span class="lineNum">      56 </span><span class="lineNoCov">          0 :     MPI_Comm_size(slu_comm,&amp;mpi_size);</span>
+<span class="lineNum">      57 </span><span class="lineNoCov">          0 :     MPI_Comm_rank(slu_comm,&amp;mpi_rank);</span>
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 :     set_default_options_dist(&amp;options);</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :     options.IterRefine        = NOREFINE;</span>
+<span class="lineNum">      61 </span><span class="lineNoCov">          0 :     options.PrintStat         = NO;</span>
+<span class="lineNum">      62 </span>            :     
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :     fortran_index             = mat-&gt;findx;</span>
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :     n                         = mat-&gt;size_tot;</span>
+<span class="lineNum">      65 </span>            :     
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :     superlu_gridinit(slu_comm,mpi_size,1,&amp;grid);</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :     create_local_matrix(mat,&amp;A);</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : /************************************************************************************************/
+<a name="71"><span class="lineNum">      71 </span>            : </a>
+<span class="lineNum">      72 </span>            : template &lt;&gt;
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 : SuperLU&lt;CPX&gt;::~SuperLU()</span>
+<span class="lineNum">      74 </span>            : {
+<span class="lineNum">      75 </span>            :     
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :     PStatFree(&amp;stat);</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :     Destroy_CompRowLoc_Matrix_dist(&amp;A);</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :     ScalePermstructFree(&amp;ScalePermstruct);</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :     Destroy_LU(n,&amp;grid, &amp;LUstruct);</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :     LUstructFree(&amp;LUstruct);</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :     zSolveFinalize(&amp;options, &amp;SOLVEstruct);</span>
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            :     //superlu_gridexit(&amp;grid);
+<span class="lineNum">      84 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            : /************************************************************************************************/
+<span class="lineNum">      87 </span>            : /*
+<span class="lineNum">      88 </span>            : template &lt;&gt;
+<span class="lineNum">      89 </span>            : SuperLU&lt;double&gt;::~SuperLU()
+<span class="lineNum">      90 </span>            : {
+<span class="lineNum">      91 </span>            :     
+<span class="lineNum">      92 </span>            :     PStatFree(&amp;stat);
+<span class="lineNum">      93 </span>            :     Destroy_CompRowLoc_Matrix_dist(&amp;A);
+<span class="lineNum">      94 </span>            :     ScalePermstructFree(&amp;ScalePermstruct);
+<span class="lineNum">      95 </span>            :     Destroy_LU(n,&amp;grid, &amp;LUstruct);
+<span class="lineNum">      96 </span>            :     LUstructFree(&amp;LUstruct);
+<span class="lineNum">      97 </span>            :     dSolveFinalize(&amp;options, &amp;SOLVEstruct);
+<span class="lineNum">      98 </span>            : 
+<span class="lineNum">      99 </span>            :     //superlu_gridexit(&amp;grid);
+<span class="lineNum">     100 </span>            : }
+<span class="lineNum">     101 </span>            : */
+<span class="lineNum">     102 </span>            : /************************************************************************************************/
+<a name="103"><span class="lineNum">     103 </span>            : </a>
+<span class="lineNum">     104 </span>            : template &lt;&gt;
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 : void SuperLU&lt;CPX&gt;::prepare()</span>
+<span class="lineNum">     106 </span>            : {
+<span class="lineNum">     107 </span>            :     int info;
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span><span class="lineNoCov">          0 :     ScalePermstructInit(A.nrow,A.ncol,&amp;ScalePermstruct);</span>
+<span class="lineNum">     110 </span>            : //    LUstructInit(A.nrow,A.ncol,&amp;LUstruct);
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :     LUstructInit(A.ncol,&amp;LUstruct);</span>
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :     PStatInit(&amp;stat);</span>
+<span class="lineNum">     114 </span>            :     
+<span class="lineNum">     115 </span><span class="lineNoCov">          0 :     pzgssvx(&amp;options,&amp;A,&amp;ScalePermstruct,NULL,m_loc,0,&amp;grid,&amp;LUstruct,&amp;SOLVEstruct,\</span>
+<span class="lineNum">     116 </span><span class="lineNoCov">          0 :             NULL,&amp;stat,&amp;info);</span>
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :     options.Fact = FACTORED;</span>
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            : /************************************************************************************************/
+<span class="lineNum">     122 </span>            : /*
+<span class="lineNum">     123 </span>            : template &lt;&gt;
+<span class="lineNum">     124 </span>            : void SuperLU&lt;double&gt;::prepare()
+<span class="lineNum">     125 </span>            : {
+<span class="lineNum">     126 </span>            :     int info;
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span>            :     ScalePermstructInit(A.nrow,A.ncol,&amp;ScalePermstruct);
+<span class="lineNum">     129 </span>            :     LUstructInit(A.nrow,A.ncol,&amp;LUstruct);
+<span class="lineNum">     130 </span>            : 
+<span class="lineNum">     131 </span>            :     PStatInit(&amp;stat);
+<span class="lineNum">     132 </span>            :     
+<span class="lineNum">     133 </span>            :     pdgssvx(&amp;options,&amp;A,&amp;ScalePermstruct,NULL,m_loc,0,&amp;grid,&amp;LUstruct,&amp;SOLVEstruct,\
+<span class="lineNum">     134 </span>            :             NULL,&amp;stat,&amp;info);
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            :     options.Fact = FACTORED;
+<span class="lineNum">     137 </span>            : }
+<span class="lineNum">     138 </span>            : */
+<span class="lineNum">     139 </span>            : /************************************************************************************************/
+<a name="140"><span class="lineNum">     140 </span>            : </a>
+<span class="lineNum">     141 </span>            : template &lt;class T&gt;
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 : void SuperLU&lt;T&gt;::prepare(int *Bmin,int *Bmax,int NBlock,int Bsize,int *orb_per_at,int tb)</span>
+<span class="lineNum">     143 </span>            : {
+<span class="lineNum">     144 </span><span class="lineNoCov">          0 :     prepare();</span>
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span>            : /************************************************************************************************/
+<a name="148"><span class="lineNum">     148 </span>            : </a>
+<span class="lineNum">     149 </span>            : template &lt;class T&gt;
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 : void SuperLU&lt;T&gt;::prepare_corner(CPX *ML_ref,CPX *MR_ref,int *NBC,int *Bmin,int *Bmax,int NBlock,\</span>
+<span class="lineNum">     151 </span>            :                                 int Bsize,int *orb_per_at,int tb)
+<span class="lineNum">     152 </span>            : {
+<span class="lineNum">     153 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            : /************************************************************************************************/
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span>            : template &lt;&gt;
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 : void SuperLU&lt;CPX&gt;::solve_equation(CPX *res, CPX *arg_rhs, int no_rhs)</span>
+<span class="lineNum">     159 </span>            : {
+<span class="lineNum">     160 </span>            :     int IRHS,IM,info;
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :     doublecomplex *rhs_local = new doublecomplex[no_rhs*2*m_loc];</span>
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :     double *berr             = doubleMalloc_dist(no_rhs);</span>
+<span class="lineNum">     163 </span>            :     
+<span class="lineNum">     164 </span><span class="lineNoCov">          0 :     for(IRHS=0;IRHS&lt;no_rhs;IRHS++){</span>
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :         for(IM=0;IM&lt;m_loc;IM++){</span>
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 :             rhs_local[IRHS*m_loc+IM].r = real(arg_rhs[IRHS*m_loc+IM]);</span>
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :             rhs_local[IRHS*m_loc+IM].i = imag(arg_rhs[IRHS*m_loc+IM]);</span>
+<span class="lineNum">     168 </span>            :         }
+<span class="lineNum">     169 </span>            :     }
+<span class="lineNum">     170 </span>            :     
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :     pzgssvx(&amp;options,&amp;A,&amp;ScalePermstruct,rhs_local,m_loc,no_rhs,&amp;grid,&amp;LUstruct,&amp;SOLVEstruct,\</span>
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :             berr,&amp;stat,&amp;info);</span>
+<span class="lineNum">     173 </span>            :     
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :     PStatPrint(&amp;options,&amp;stat,&amp;grid);</span>
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :     for(IRHS=0;IRHS&lt;no_rhs;IRHS++){</span>
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :         for(IM=0;IM&lt;m_loc;IM++){</span>
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :             res[IRHS*m_loc+IM] = CPX(rhs_local[IRHS*m_loc+IM].r,\</span>
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :                                      rhs_local[IRHS*m_loc+IM].i);</span>
+<span class="lineNum">     180 </span>            :         }
+<span class="lineNum">     181 </span>            :     }
+<span class="lineNum">     182 </span>            : 
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :     delete[] rhs_local;</span>
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :     delete[] berr;</span>
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span>            : /************************************************************************************************/
+<span class="lineNum">     188 </span>            : /*
+<span class="lineNum">     189 </span>            : template &lt;&gt;
+<span class="lineNum">     190 </span>            : void SuperLU&lt;double&gt;::solve_equation(double *res, double *arg_rhs, int no_rhs)
+<span class="lineNum">     191 </span>            : {
+<span class="lineNum">     192 </span>            :     MPI_Status status;
+<span class="lineNum">     193 </span>            :     int IRHS,IM,info;
+<span class="lineNum">     194 </span>            :     double *rhs_local        = new double[no_rhs*2*m_loc];
+<span class="lineNum">     195 </span>            :     double *berr             = doubleMalloc_dist(no_rhs);
+<span class="lineNum">     196 </span>            :     
+<span class="lineNum">     197 </span>            :     for(IRHS=0;IRHS&lt;no_rhs;IRHS++){
+<span class="lineNum">     198 </span>            :         for(IM=0;IM&lt;m_loc;IM++){
+<span class="lineNum">     199 </span>            :             rhs_local[IRHS*m_loc+IM] = arg_rhs[IRHS*n+mpi_rank*m_loc_fst+IM];
+<span class="lineNum">     200 </span>            :         }
+<span class="lineNum">     201 </span>            :     }
+<span class="lineNum">     202 </span>            :     
+<span class="lineNum">     203 </span>            :     pdgssvx(&amp;options,&amp;A,&amp;ScalePermstruct,rhs_local,m_loc,no_rhs,&amp;grid,&amp;LUstruct,&amp;SOLVEstruct,\
+<span class="lineNum">     204 </span>            :             berr,&amp;stat,&amp;info);
+<span class="lineNum">     205 </span>            : 
+<span class="lineNum">     206 </span>            :     PStatPrint(&amp;options,&amp;stat,&amp;grid);
+<span class="lineNum">     207 </span>            :     
+<span class="lineNum">     208 </span>            :     for(IM=0;IM&lt;no_element;IM++){
+<span class="lineNum">     209 </span>            :         for(IRHS=0;IRHS&lt;no_rhs;IRHS++){
+<span class="lineNum">     210 </span>            :             res[IRHS*m_loc+IM] = rhs_local[IRHS*m_loc+IM];
+<span class="lineNum">     211 </span>            :         }
+<span class="lineNum">     212 </span>            :     }
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            :     delete[] rhs_local;
+<span class="lineNum">     215 </span>            :     delete[] berr;
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            : }
+<span class="lineNum">     218 </span>            : */
+<span class="lineNum">     219 </span>            : /************************************************************************************************/
+<span class="lineNum">     220 </span>            : 
+<span class="lineNum">     221 </span>            : template &lt;&gt;
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 : void SuperLU&lt;CPX&gt;::create_local_matrix(TCSR&lt;CPX&gt; *matrix,SuperMatrix *SMat)</span>
+<span class="lineNum">     223 </span>            : {
+<span class="lineNum">     224 </span>            :     int_t nnz_loc,fst_row,IZ,IR;
+<span class="lineNum">     225 </span>            :     doublecomplex *nnz_val_loc;
+<span class="lineNum">     226 </span>            :     int_t *rowptr,*colind;
+<span class="lineNum">     227 </span>            :     
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :     m_loc       = matrix-&gt;size;</span>
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span><span class="lineNoCov">          0 :     nnz_loc     = matrix-&gt;n_nonzeros;</span>
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :     fst_row     = matrix-&gt;first_row;</span>
+<span class="lineNum">     232 </span><span class="lineNoCov">          0 :     rowptr      = (int_t*)intMalloc_dist(m_loc+1);</span>
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :     colind      = (int_t*)intMalloc_dist(nnz_loc);</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :     nnz_val_loc = (doublecomplex*)doublecomplexMalloc_dist(nnz_loc);</span>
+<span class="lineNum">     235 </span>            :     
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :     for(IR=0;IR&lt;=m_loc;IR++){</span>
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :         rowptr[IR]        = matrix-&gt;edge_i[IR]-matrix-&gt;findx;</span>
+<span class="lineNum">     238 </span>            :     }
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :     for(IZ=0;IZ&lt;nnz_loc;IZ++){</span>
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :         colind[IZ]        = matrix-&gt;index_j[IZ]-matrix-&gt;findx;</span>
+<span class="lineNum">     242 </span><span class="lineNoCov">          0 :         nnz_val_loc[IZ].r = real(matrix-&gt;nnz[IZ]);</span>
+<span class="lineNum">     243 </span><span class="lineNoCov">          0 :         nnz_val_loc[IZ].i = imag(matrix-&gt;nnz[IZ]);</span>
+<span class="lineNum">     244 </span>            :     }
+<span class="lineNum">     245 </span>            :     
+<span class="lineNum">     246 </span><span class="lineNoCov">          0 :     zCreate_CompRowLoc_Matrix_dist(SMat,n,n,nnz_loc,m_loc,fst_row,nnz_val_loc,colind,rowptr,\</span>
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :                                    SLU_NR_loc,SLU_Z,SLU_GE);</span>
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     249 </span>            : 
+<span class="lineNum">     250 </span>            : /************************************************************************************************/
+<span class="lineNum">     251 </span>            : /*
+<span class="lineNum">     252 </span>            : template &lt;&gt;
+<span class="lineNum">     253 </span>            : void SuperLU&lt;CPX&gt;::create_local_matrix(TCSR&lt;CPX&gt; *matrix,SuperMatrix *SMat)
+<span class="lineNum">     254 </span>            : {
+<span class="lineNum">     255 </span>            :     int_t nnz_loc,fst_row,ind_loc,IZ,IR;
+<span class="lineNum">     256 </span>            :     doublecomplex *nnz_val_loc;
+<span class="lineNum">     257 </span>            :     int_t *rowptr,*colind;
+<span class="lineNum">     258 </span>            :     
+<span class="lineNum">     259 </span>            :     m_loc     = matrix-&gt;size/mpi_size; 
+<span class="lineNum">     260 </span>            :     m_loc_fst = m_loc;
+<span class="lineNum">     261 </span>            :     
+<span class="lineNum">     262 </span>            :     if ((m_loc * mpi_size) != matrix-&gt;size) {
+<span class="lineNum">     263 </span>            :         m_loc     = m_loc+1;
+<span class="lineNum">     264 </span>            :         m_loc_fst = m_loc;
+<span class="lineNum">     265 </span>            :         if (mpi_rank == (mpi_size - 1))
+<span class="lineNum">     266 </span>            :             m_loc = matrix-&gt;size - m_loc_fst * (mpi_size - 1);
+<span class="lineNum">     267 </span>            :     }
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span>            :     nnz_loc     = matrix-&gt;edge_i[mpi_rank*m_loc_fst+m_loc]-matrix-&gt;edge_i[mpi_rank*m_loc_fst];
+<span class="lineNum">     270 </span>            :     fst_row     = mpi_rank* m_loc_fst;
+<span class="lineNum">     271 </span>            :     ind_loc     = matrix-&gt;edge_i[mpi_rank*m_loc_fst]-matrix-&gt;findx;
+<span class="lineNum">     272 </span>            :     rowptr      = (int_t*)intMalloc_dist(m_loc+1);
+<span class="lineNum">     273 </span>            :     colind      = (int_t*)intMalloc_dist(nnz_loc);
+<span class="lineNum">     274 </span>            :     nnz_val_loc = (doublecomplex*)doublecomplexMalloc_dist(nnz_loc);
+<span class="lineNum">     275 </span>            :     
+<span class="lineNum">     276 </span>            :     for(IR=fst_row;IR&lt;=fst_row+m_loc;IR++){
+<span class="lineNum">     277 </span>            :         rowptr[IR-fst_row]        = matrix-&gt;edge_i[IR]-matrix-&gt;edge_i[fst_row];
+<span class="lineNum">     278 </span>            :     }
+<span class="lineNum">     279 </span>            : 
+<span class="lineNum">     280 </span>            :     for(IZ=ind_loc;IZ&lt;ind_loc+nnz_loc;IZ++){
+<span class="lineNum">     281 </span>            :         colind[IZ-ind_loc]        = matrix-&gt;index_j[IZ]-matrix-&gt;findx;
+<span class="lineNum">     282 </span>            :         nnz_val_loc[IZ-ind_loc].r = real(matrix-&gt;nnz[IZ]);
+<span class="lineNum">     283 </span>            :         nnz_val_loc[IZ-ind_loc].i = imag(matrix-&gt;nnz[IZ]);
+<span class="lineNum">     284 </span>            :     }
+<span class="lineNum">     285 </span>            :     
+<span class="lineNum">     286 </span>            :     zCreate_CompRowLoc_Matrix_dist(SMat,n,n,nnz_loc,m_loc,fst_row,nnz_val_loc,colind,rowptr,\
+<span class="lineNum">     287 </span>            :                                    SLU_NR_loc,SLU_Z,SLU_GE);
+<span class="lineNum">     288 </span>            : }
+<span class="lineNum">     289 </span>            : */
+<span class="lineNum">     290 </span>            : /************************************************************************************************/
+<span class="lineNum">     291 </span>            : /*
+<span class="lineNum">     292 </span>            : template &lt;&gt;
+<span class="lineNum">     293 </span>            : void SuperLU&lt;double&gt;::create_local_matrix(TCSR&lt;double&gt; *matrix,SuperMatrix *SMat)
+<span class="lineNum">     294 </span>            : {
+<span class="lineNum">     295 </span>            :     int_t nnz_loc,fst_row,ind_loc,IZ,IR;
+<span class="lineNum">     296 </span>            :     double *nnz_val_loc;
+<span class="lineNum">     297 </span>            :     int_t *rowptr,*colind;
+<span class="lineNum">     298 </span>            :     
+<span class="lineNum">     299 </span>            :     m_loc     = matrix-&gt;size/mpi_size; 
+<span class="lineNum">     300 </span>            :     m_loc_fst = m_loc;
+<span class="lineNum">     301 </span>            :     
+<span class="lineNum">     302 </span>            :     if ((m_loc * mpi_size) != matrix-&gt;size) {
+<span class="lineNum">     303 </span>            :         m_loc     = m_loc+1;
+<span class="lineNum">     304 </span>            :         m_loc_fst = m_loc;
+<span class="lineNum">     305 </span>            :         if (mpi_rank == (mpi_size - 1))
+<span class="lineNum">     306 </span>            :             m_loc = matrix-&gt;size - m_loc_fst * (mpi_size - 1);
+<span class="lineNum">     307 </span>            :     }
+<span class="lineNum">     308 </span>            : 
+<span class="lineNum">     309 </span>            :     nnz_loc     = matrix-&gt;edge_i[mpi_rank*m_loc_fst+m_loc]-matrix-&gt;edge_i[mpi_rank*m_loc_fst];
+<span class="lineNum">     310 </span>            :     fst_row     = mpi_rank* m_loc_fst;
+<span class="lineNum">     311 </span>            :     ind_loc     = matrix-&gt;edge_i[mpi_rank*m_loc_fst]-matrix-&gt;findx;
+<span class="lineNum">     312 </span>            :     rowptr      = (int_t*)intMalloc_dist(m_loc+1);
+<span class="lineNum">     313 </span>            :     colind      = (int_t*)intMalloc_dist(nnz_loc);
+<span class="lineNum">     314 </span>            :     nnz_val_loc = (double*)doubleMalloc_dist(nnz_loc);
+<span class="lineNum">     315 </span>            :     
+<span class="lineNum">     316 </span>            :     for(IR=fst_row;IR&lt;=fst_row+m_loc;IR++){
+<span class="lineNum">     317 </span>            :         rowptr[IR-fst_row]        = matrix-&gt;edge_i[IR]-matrix-&gt;edge_i[fst_row];
+<span class="lineNum">     318 </span>            :     }
+<span class="lineNum">     319 </span>            : 
+<span class="lineNum">     320 </span>            :     for(IZ=ind_loc;IZ&lt;ind_loc+nnz_loc;IZ++){
+<span class="lineNum">     321 </span>            :         colind[IZ-ind_loc]        = matrix-&gt;index_j[IZ]-matrix-&gt;findx;
+<span class="lineNum">     322 </span>            :         nnz_val_loc[IZ-ind_loc]   = matrix-&gt;nnz[IZ];
+<span class="lineNum">     323 </span>            :     }
+<span class="lineNum">     324 </span>            :     
+<span class="lineNum">     325 </span>            :     dCreate_CompRowLoc_Matrix_dist(SMat,n,n,nnz_loc,m_loc,fst_row,nnz_val_loc,colind,rowptr,\
+<span class="lineNum">     326 </span>            :                                    SLU_NR_loc,SLU_D,SLU_GE);
+<span class="lineNum">     327 </span>            : }
+<span class="lineNum">     328 </span>            : */
+<span class="lineNum">     329 </span>            : /************************************************************************************************/
+<span class="lineNum">     330 </span>            : 
+<span class="lineNum">     331 </span>            : #endif
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

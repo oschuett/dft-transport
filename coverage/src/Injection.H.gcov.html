@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/Injection.H</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - Injection.H<span style="font-size: 80%;"> (source / <a href="Injection.H.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #ifndef __INJECTION
+<span class="lineNum">      13 </span>            : #define __INJECTION
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : #include &lt;mpi.h&gt;
+<span class="lineNum">      16 </span>            : #include &lt;iostream&gt;
+<span class="lineNum">      17 </span>            : #include &lt;algorithm&gt;
+<span class="lineNum">      18 </span>            : #include &lt;fstream&gt;
+<span class="lineNum">      19 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">      20 </span>            : #include &lt;stdio.h&gt;
+<span class="lineNum">      21 </span>            : #include &lt;math.h&gt;
+<span class="lineNum">      22 </span>            : #include &lt;time.h&gt;
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : #include &quot;Types.H&quot;
+<span class="lineNum">      25 </span>            : #include &quot;Utilities.H&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Blas.H&quot;
+<span class="lineNum">      27 </span>            : #include &quot;ScaLapack.H&quot;
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : template&lt;class T&gt;
+<span class="lineNum">      30 </span>            : class Injection{
+<span class="lineNum">      31 </span>            : public:
+<span class="lineNum">      32 </span>            :     
+<span class="lineNum">      33 </span><span class="lineCov">          2 :     Injection(){};</span>
+<span class="lineNum">      34 </span>            :     Injection(int,double){};
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            :     virtual ~Injection(){};
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            :     virtual void initialize(int,int,int) = 0;
+<span class="lineNum">      39 </span>            :     virtual void calc_kphase(TCSR&lt;T&gt;*,TCSR&lt;T&gt;*,TCSR&lt;CPX&gt;*,int,int,CPX*,CPX*,double*,\
+<span class="lineNum">      40 </span>            :                              int*,int*,int*,int*,int,int,int,MPI_Comm,int*) = 0;
+<span class="lineNum">      41 </span>            :     virtual void calc_kphase_sym(TCSR&lt;T&gt;*,TCSR&lt;T&gt;*,TCSR&lt;CPX&gt;*,int,int,CPX*,CPX*,CPX*,\
+<span class="lineNum">      42 </span>            :                                  CPX*,double*,double*,int*,int*,int*,int*,int*,int*,\
+<span class="lineNum">      43 </span>            :                                  int*,int*,int,int,MPI_Comm,int*) = 0;
+<span class="lineNum">      44 </span>            :     virtual void calc_kphase(TCSR&lt;T&gt;*,T*,TCSR&lt;CPX&gt;*,int,int,CPX*,CPX*,double*,\
+<span class="lineNum">      45 </span>            :                              int*,int*,int*,int*,int,int,int,MPI_Comm,int*) = 0;
+<span class="lineNum">      46 </span>            :     virtual void calc_kphase_sym(TCSR&lt;T&gt;*,T*,TCSR&lt;CPX&gt;*,int,int,CPX*,CPX*,CPX*,\
+<span class="lineNum">      47 </span>            :                                  CPX*,double*,double*,int*,int*,int*,int*,int*,int*,\
+<span class="lineNum">      48 </span>            :                                  int*,int*,int,int,MPI_Comm,int*) = 0;
+<span class="lineNum">      49 </span>            : };
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : #endif
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

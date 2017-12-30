@@ -1,0 +1,782 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/Density.C</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - Density.C<span style="font-size: 80%;"> (source / <a href="Density.C.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">169</td>
+            <td class="headerCovTableEntry">484</td>
+            <td class="headerCovTableEntryLo">34.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &lt;mpi.h&gt;
+<span class="lineNum">      13 </span>            : #include &lt;math.h&gt;
+<span class="lineNum">      14 </span>            : #ifdef HAVE_SUPERLU
+<span class="lineNum">      15 </span>            : #include &quot;SuperLU.H&quot;
+<span class="lineNum">      16 </span>            : #endif
+<span class="lineNum">      17 </span>            : #include &lt;time.h&gt;
+<span class="lineNum">      18 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">      19 </span>            : #include &lt;stdio.h&gt;
+<span class="lineNum">      20 </span>            : #include &lt;limits&gt;
+<span class="lineNum">      21 </span>            : #include &lt;algorithm&gt;
+<span class="lineNum">      22 </span>            : #include &quot;ScaLapack.H&quot;
+<span class="lineNum">      23 </span>            : #include &quot;tmprGF.H&quot;
+<span class="lineNum">      24 </span>            : #include &quot;FullInvert.H&quot;
+<span class="lineNum">      25 </span>            : #include &quot;LinearSolver.H&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Full.H&quot;
+<span class="lineNum">      27 </span>            : #include &quot;Banded.H&quot;
+<span class="lineNum">      28 </span>            : #ifdef HAVE_MUMPS
+<span class="lineNum">      29 </span>            : #include &quot;MUMPS.H&quot;
+<span class="lineNum">      30 </span>            : #endif
+<span class="lineNum">      31 </span>            : #include &quot;Connection.H&quot;
+<span class="lineNum">      32 </span>            : #ifdef HAVE_SPLITSOLVE
+<span class="lineNum">      33 </span>            : #include &quot;SplitSolve.H&quot;
+<span class="lineNum">      34 </span>            : #endif
+<span class="lineNum">      35 </span>            : #ifdef HAVE_PEXSI
+<span class="lineNum">      36 </span>            : #include &quot;c_pexsi_interface.h&quot;
+<span class="lineNum">      37 </span>            : #endif
+<span class="lineNum">      38 </span>            : #ifdef HAVE_PARDISO_SELINV
+<span class="lineNum">      39 </span>            : #include &quot;Pardiso.H&quot;
+<span class="lineNum">      40 </span>            : #endif
+<span class="lineNum">      41 </span>            : #include &quot;GetSigma.H&quot;
+<span class="lineNum">      42 </span>            : #include &quot;Density.H&quot;
+<span class="lineNum">      43 </span>            : #include &lt;iostream&gt;
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span>            : /*! \brief Function that calls the inversion or linear solvers, adds up the LDOS computed from the solution to the P matrix, and computes the atom-resolved DOS and transmission for each energy point
+<span class="lineNum">      46 </span>            : */
+<span class="lineNum">      47 </span><span class="lineCov">          1 : int density(TCSR&lt;double&gt; *KohnSham,TCSR&lt;double&gt; *Overlap,TCSR&lt;double&gt; *Ps,TCSR&lt;double&gt; *PsImag,CPX energy,CPX weight,CPX dweight,transport_methods::transport_method_type method,std::vector&lt;double&gt; muvec,std::vector&lt;contact_type&gt; contactvec,std::vector&lt;result_type&gt; &amp;resultvec,std::vector&lt;int&gt; Bsizes,std::vector&lt;int&gt; orb_per_at,transport_parameters transport_params,MPI_Comm matrix_comm)</span>
+<span class="lineNum">      48 </span>            : {
+<span class="lineNum">      49 </span><span class="lineCov">          1 :     double d_one = 1.0;</span>
+<span class="lineNum">      50 </span><span class="lineCov">          1 :     double d_zer = 0.0;</span>
+<span class="lineNum">      51 </span><span class="lineCov">          1 :     CPX z_one=CPX(d_one,d_zer);</span>
+<span class="lineNum">      52 </span><span class="lineCov">          1 :     CPX z_zer=CPX(d_zer,d_zer);</span>
+<span class="lineNum">      53 </span>            :     int matrix_procs,matrix_rank;
+<span class="lineNum">      54 </span><span class="lineCov">          1 :     MPI_Comm_size(matrix_comm,&amp;matrix_procs);</span>
+<span class="lineNum">      55 </span><span class="lineCov">          1 :     MPI_Comm_rank(matrix_comm,&amp;matrix_rank);</span>
+<span class="lineNum">      56 </span>            : double sabtime;
+<span class="lineNum">      57 </span><span class="lineCov">          1 : int worldrank; MPI_Comm_rank(MPI_COMM_WORLD,&amp;worldrank);</span>
+<span class="lineNum">      58 </span><span class="lineCov">          2 :     int n_mu=muvec.size();</span>
+<span class="lineNum">      59 </span><span class="lineCov">          1 :     int GPUS_per_point=transport_params.gpus_per_point;</span>
+<span class="lineNum">      60 </span><span class="lineCov">          1 :     bool run_splitsolve = transport_params.lin_solver_method==lin_solver_methods::SPLITSOLVE &amp;&amp; method==transport_methods::WF;</span>
+<span class="lineNum">      61 </span><span class="lineCov">          1 : int bandwidth=contactvec[0].bandwidth;</span>
+<span class="lineNum">      62 </span><span class="lineCov">          1 : int ndof=contactvec[0].ndof;</span>
+<span class="lineNum">      63 </span><span class="lineCov">          1 : int ncells=Overlap-&gt;size_tot/ndof;</span>
+<span class="lineNum">      64 </span><span class="lineCov">          1 : int ntriblock=bandwidth*ndof;</span>
+<span class="lineNum">      65 </span><span class="lineCov">          1 : int tra_block=0;</span>
+<span class="lineNum">      66 </span><span class="lineCov">          1 :     TCSR&lt;CPX&gt; *HamSig = NULL;</span>
+<span class="lineNum">      67 </span><span class="lineCov">          1 :     double *M_host = NULL;</span>
+<span class="lineNum">      68 </span><span class="lineCov">          1 :     int Bsize = 0;</span>
+<span class="lineNum">      69 </span><span class="lineCov">          2 :     std::vector&lt;int&gt; Bmin;</span>
+<span class="lineNum">      70 </span><span class="lineCov">          2 :     std::vector&lt;int&gt; Bmax;</span>
+<span class="lineNum">      71 </span><span class="lineCov">          3 :     std::vector&lt;BoundarySelfEnergy&gt; selfenergies(n_mu);</span>
+<span class="lineNum">      72 </span><span class="lineCov">          1 :     int boundary_id=matrix_rank*n_mu/matrix_procs;</span>
+<span class="lineNum">      73 </span><span class="lineCov">          1 :     if (run_splitsolve) boundary_id=(get_cpu_color(matrix_rank,1,matrix_procs,GPUS_per_point)+n_mu)%(n_mu+1);</span>
+<span class="lineNum">      74 </span>            :     MPI_Comm boundary_comm;
+<span class="lineNum">      75 </span><span class="lineCov">          1 :     int key=matrix_rank;</span>
+<span class="lineNum">      76 </span><span class="lineCov">          2 :     if (boundary_id&lt;n_mu) key*=contactvec[boundary_id].inj_sign;</span>
+<span class="lineNum">      77 </span><span class="lineCov">          1 :     MPI_Comm_split(matrix_comm,boundary_id,key,&amp;boundary_comm);</span>
+<span class="lineNum">      78 </span><span class="lineCov">          1 :     if (method!=transport_methods::EQ) {</span>
+<span class="lineNum">      79 </span><span class="lineCov">          1 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">      80 </span><span class="lineCov">          1 :         TCSR&lt;CPX&gt; *SumHamC = new TCSR&lt;CPX&gt;(Overlap-&gt;size,Overlap-&gt;n_nonzeros,Overlap-&gt;findx);</span>
+<span class="lineNum">      81 </span><span class="lineCov">          1 :         SumHamC-&gt;copy_contain(Overlap,d_one);</span>
+<span class="lineNum">      82 </span><span class="lineCov">          3 :         c_zscal(SumHamC-&gt;n_nonzeros,-energy,SumHamC-&gt;nnz,1);</span>
+<span class="lineNum">      83 </span><span class="lineCov">          2 :         c_daxpy(SumHamC-&gt;n_nonzeros,d_one,KohnSham-&gt;nnz,1,(double*)SumHamC-&gt;nnz,2);</span>
+<span class="lineNum">      84 </span><span class="lineCov">          3 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR SumHamC &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">      85 </span><span class="lineCov">          1 :         if (!transport_params.cutl &amp;&amp; !transport_params.cutr) {</span>
+<span class="lineNum">      86 </span><span class="lineCov">          1 :             SumHamC-&gt;removepbc(bandwidth,ndof);</span>
+<span class="lineNum">      87 </span>            :         }
+<span class="lineNum">      88 </span>            : // compute self energies
+<span class="lineNum">      89 </span><span class="lineCov">          1 :         if (run_splitsolve) {</span>
+<span class="lineNum">      90 </span>            :             MPI_Comm dist_comm;
+<span class="lineNum">      91 </span><span class="lineNoCov">          0 :             int dist_size = matrix_procs/GPUS_per_point;</span>
+<span class="lineNum">      92 </span><span class="lineNoCov">          0 :             int dist_color = matrix_rank/dist_size;</span>
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :             MPI_Comm_split(matrix_comm,dist_color,matrix_rank,&amp;dist_comm);</span>
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :             int dist_root = dist_size-1;</span>
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :             if (dist_color%2) dist_root = 0;</span>
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :             HamSig = new TCSR&lt;CPX&gt;(SumHamC,dist_root,dist_comm);</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :             MPI_Comm_free(&amp;dist_comm);</span>
+<span class="lineNum">      98 </span>            :         }
+<span class="lineNum">      99 </span><span class="lineCov">          1 :         int n_bound_comm=min(matrix_procs,n_mu);</span>
+<span class="lineNum">     100 </span><span class="lineCov">          3 :         for (int iseq=0;iseq&lt;n_mu/n_bound_comm;iseq++) {</span>
+<span class="lineNum">     101 </span><span class="lineCov">          2 :             int ipos=boundary_id+iseq*n_bound_comm;</span>
+<span class="lineNum">     102 </span><span class="lineCov">          2 :             if (ipos&lt;n_mu) {</span>
+<span class="lineNum">     103 </span><span class="lineCov">          4 :                 if ( selfenergies[ipos].Set_master(matrix_comm,boundary_comm) ) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     104 </span>            :             }
+<span class="lineNum">     105 </span><span class="lineCov">          2 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     106 </span><span class="lineCov">          6 :             for (int i_bound_id=0;i_bound_id&lt;n_bound_comm;i_bound_id++) {</span>
+<span class="lineNum">     107 </span><span class="lineCov">          2 :                 int ibpos=i_bound_id+iseq*n_bound_comm;</span>
+<span class="lineNum">     108 </span><span class="lineCov">          6 :                 if ( selfenergies[ibpos].Cutout(SumHamC,contactvec[ibpos],energy,method,matrix_comm) ) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     109 </span>            :             }
+<span class="lineNum">     110 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR SIGMA CUTOUT &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     111 </span><span class="lineCov">          2 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     112 </span><span class="lineCov">          2 :             if (ipos&lt;n_mu) {</span>
+<span class="lineNum">     113 </span><span class="lineCov">          4 :                 if ( selfenergies[ipos].GetSigma(boundary_comm,transport_params) ) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     114 </span>            :             }
+<span class="lineNum">     115 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR SIGMA GETSIGMA &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     116 </span><span class="lineCov">          2 : int left_gpu_rank  = ceil((double)matrix_procs/GPUS_per_point)-1;</span>
+<span class="lineNum">     117 </span><span class="lineCov">          6 : if (worldrank==left_gpu_rank) cout &lt;&lt; &quot;TIME FOR FALL-THROUGH GETSIGMA &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     118 </span><span class="lineCov">          2 :             if (!run_splitsolve) {</span>
+<span class="lineNum">     119 </span><span class="lineCov">          2 : MPI_Barrier(matrix_comm);</span>
+<span class="lineNum">     120 </span><span class="lineCov">          2 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     121 </span><span class="lineCov">          6 :                 for (int i_bound_id=0;i_bound_id&lt;n_bound_comm;i_bound_id++) {</span>
+<span class="lineNum">     122 </span><span class="lineCov">          2 :                     int ibpos=i_bound_id+iseq*n_bound_comm;</span>
+<span class="lineNum">     123 </span><span class="lineCov">          4 :                     selfenergies[ibpos].Distribute(SumHamC,matrix_comm);</span>
+<span class="lineNum">     124 </span>            :                 }
+<span class="lineNum">     125 </span><span class="lineCov">          2 : MPI_Barrier(matrix_comm);</span>
+<span class="lineNum">     126 </span><span class="lineCov">          6 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR SIGMA DISTRIBUTE &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     127 </span>            :             }
+<span class="lineNum">     128 </span>            :         }
+<span class="lineNum">     129 </span>            : //add sigma to sumhamc
+<span class="lineNum">     130 </span><span class="lineCov">          1 :         if (!run_splitsolve) {</span>
+<span class="lineNum">     131 </span><span class="lineCov">          8 :             for (uint i_mu=0;i_mu&lt;muvec.size();i_mu++) {</span>
+<span class="lineNum">     132 </span><span class="lineCov">          6 :                 resultvec[i_mu].npro=selfenergies[i_mu].n_propagating;</span>
+<span class="lineNum">     133 </span><span class="lineCov">          2 :                 resultvec[i_mu].ndec=selfenergies[i_mu].n_dec;</span>
+<span class="lineNum">     134 </span><span class="lineCov">          2 :                 resultvec[i_mu].eigval_degeneracy=selfenergies[i_mu].eigval_degeneracy;</span>
+<span class="lineNum">     135 </span><span class="lineCov">          2 :                 resultvec[i_mu].rcond=selfenergies[i_mu].rcond;</span>
+<span class="lineNum">     136 </span>            :             }
+<span class="lineNum">     137 </span><span class="lineCov">          1 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     138 </span><span class="lineCov">          1 :             TCSR&lt;CPX&gt; **HamSigVec = new TCSR&lt;CPX&gt;*[n_mu+1];</span>
+<span class="lineNum">     139 </span><span class="lineCov">          4 :             CPX *HamSigSigns = new CPX[n_mu+1];</span>
+<span class="lineNum">     140 </span><span class="lineCov">          1 :             HamSigVec[0]=SumHamC;</span>
+<span class="lineNum">     141 </span><span class="lineCov">          1 :             HamSigSigns[0]=z_one;</span>
+<span class="lineNum">     142 </span><span class="lineCov">          3 :             for (int i_mu=0;i_mu&lt;n_mu;i_mu++) {</span>
+<span class="lineNum">     143 </span><span class="lineCov">          4 :                 HamSigVec[i_mu+1]=selfenergies[i_mu].spsigmadist;</span>
+<span class="lineNum">     144 </span><span class="lineCov">          4 :                 HamSigSigns[i_mu+1]=-z_one;</span>
+<span class="lineNum">     145 </span>            :             }
+<span class="lineNum">     146 </span><span class="lineCov">          1 :             HamSig = new TCSR&lt;CPX&gt;(n_mu+1,HamSigSigns,HamSigVec);</span>
+<span class="lineNum">     147 </span><span class="lineCov">          1 :             delete[] HamSigVec;</span>
+<span class="lineNum">     148 </span><span class="lineCov">          1 :             delete[] HamSigSigns;</span>
+<span class="lineNum">     149 </span><span class="lineCov">          5 :             for (int i_mu=0;i_mu&lt;n_mu;i_mu++) selfenergies[i_mu].Deallocate_Sigma();</span>
+<span class="lineNum">     150 </span><span class="lineCov">          3 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR ADDING SIGMA &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     151 </span>            :         }
+<span class="lineNum">     152 </span><span class="lineCov">          1 :         delete SumHamC;</span>
+<span class="lineNum">     153 </span>            :     }
+<span class="lineNum">     154 </span><span class="lineCov">          1 :     if (method==transport_methods::EQ) {</span>
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :         if (transport_params.inv_solver_method==inv_solver_methods::FULL) {</span>
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :             TCSR&lt;CPX&gt; *SumHamC = new TCSR&lt;CPX&gt;(Overlap-&gt;size,Overlap-&gt;n_nonzeros,Overlap-&gt;findx);</span>
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :             SumHamC-&gt;copy_contain(Overlap,d_one);</span>
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :             c_zscal(SumHamC-&gt;n_nonzeros,-energy,SumHamC-&gt;nnz,1);</span>
+<span class="lineNum">     160 </span><span class="lineNoCov">          0 :             c_daxpy(SumHamC-&gt;n_nonzeros,d_one,KohnSham-&gt;nnz,1,(double*)SumHamC-&gt;nnz,2);</span>
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :             FullInvert solver(SumHamC,Ps,-weight/M_PI*CPX(0.0,1.0),matrix_comm);</span>
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :             delete SumHamC;</span>
+<span class="lineNum">     163 </span>            : #ifdef HAVE_PARDISO_SELINV
+<span class="lineNum">     164 </span>            :         } else if (transport_params.inv_solver_method==inv_solver_methods::PARDISO) {
+<span class="lineNum">     165 </span>            :             if (KohnSham-&gt;findx!=1 || Overlap-&gt;findx!=1) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     166 </span>            :             TCSR&lt;CPX&gt; *SumHamC = new TCSR&lt;CPX&gt;(Overlap-&gt;size,Overlap-&gt;n_nonzeros,Overlap-&gt;findx);
+<span class="lineNum">     167 </span>            :             SumHamC-&gt;copy_contain(Overlap,d_one);
+<span class="lineNum">     168 </span>            :             c_zscal(SumHamC-&gt;n_nonzeros,-energy,SumHamC-&gt;nnz,1);
+<span class="lineNum">     169 </span>            :             c_daxpy(SumHamC-&gt;n_nonzeros,d_one,KohnSham-&gt;nnz,1,(double*)SumHamC-&gt;nnz,2);
+<span class="lineNum">     170 </span>            :             if (!matrix_rank) {
+<span class="lineNum">     171 </span>            :                 Pardiso::sparse_invert(SumHamC);
+<span class="lineNum">     172 </span>            :             }
+<span class="lineNum">     173 </span>            :             c_zscal(Overlap-&gt;n_nonzeros,-weight/M_PI*CPX(0.0,1.0),SumHamC-&gt;nnz,1);
+<span class="lineNum">     174 </span>            :             c_daxpy(Overlap-&gt;n_nonzeros,1.0,(double*)SumHamC-&gt;nnz,2,Ps-&gt;nnz,1);
+<span class="lineNum">     175 </span>            :             delete SumHamC;
+<span class="lineNum">     176 </span>            : #endif
+<span class="lineNum">     177 </span>            : #ifdef HAVE_PEXSI
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :         } else if (transport_params.inv_solver_method==inv_solver_methods::PEXSI) {</span>
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :             if (KohnSham-&gt;findx!=1 || Overlap-&gt;findx!=1) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     180 </span>            :   
+<span class="lineNum">     181 </span><span class="lineNoCov">          0 :             double *HS_nnz_inp = new double[2*Overlap-&gt;n_nonzeros]();</span>
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :             double *HS_nnz_out = new double[2*Overlap-&gt;n_nonzeros]();</span>
+<span class="lineNum">     183 </span>            :   
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :             c_dcopy(Overlap-&gt;n_nonzeros,Overlap-&gt;nnz,1,HS_nnz_inp,2);</span>
+<span class="lineNum">     185 </span><span class="lineNoCov">          0 :             c_zscal(Overlap-&gt;n_nonzeros,-energy,(CPX*)HS_nnz_inp,1);</span>
+<span class="lineNum">     186 </span><span class="lineNoCov">          0 :             c_daxpy(Overlap-&gt;n_nonzeros,1.0,KohnSham-&gt;nnz,1,HS_nnz_inp,2);</span>
+<span class="lineNum">     187 </span>            :   
+<span class="lineNum">     188 </span>            :             int n_nonzeros_global;
+<span class="lineNum">     189 </span><span class="lineNoCov">          0 :             MPI_Allreduce(&amp;Overlap-&gt;n_nonzeros,&amp;n_nonzeros_global,1,MPI_INT,MPI_SUM,matrix_comm);</span>
+<span class="lineNum">     190 </span>            :             int info;
+<span class="lineNum">     191 </span>            :   
+<span class="lineNum">     192 </span>            :             PPEXSIOptions options;
+<span class="lineNum">     193 </span><span class="lineNoCov">          0 :             PPEXSISetDefaultOptions(&amp;options);</span>
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 :             options.npSymbFact  = transport_params.pexsi_np_symb_fact;</span>
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :             options.ordering    = transport_params.pexsi_ordering;</span>
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :             options.rowOrdering = transport_params.pexsi_row_ordering;</span>
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :             options.verbosity   = transport_params.pexsi_verbosity;</span>
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :             int output_index    = -1;</span>
+<span class="lineNum">     199 </span><span class="lineNoCov">          0 :             if (transport_params.pexsi_verbosity) output_index = worldrank;</span>
+<span class="lineNum">     200 </span>            :       
+<span class="lineNum">     201 </span>            :             PPEXSIPlan plan;
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :             int nprowcol[2]={0,0};</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :             MPI_Dims_create(matrix_procs,2,nprowcol);</span>
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :             plan = PPEXSIPlanInitialize(matrix_comm,nprowcol[0],nprowcol[1],output_index,&amp;info);</span>
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :             PPEXSILoadRealHSMatrix(plan,options,Overlap-&gt;size_tot,n_nonzeros_global,Overlap-&gt;n_nonzeros,Overlap-&gt;size,Overlap-&gt;edge_i,Overlap-&gt;index_j,HS_nnz_inp,1,NULL,&amp;info);</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :             PPEXSISymbolicFactorizeComplexSymmetricMatrix(plan,options,&amp;info);</span>
+<span class="lineNum">     209 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :             PPEXSISelInvComplexSymmetricMatrix(plan,options,HS_nnz_inp,HS_nnz_out,&amp;info);</span>
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :             PPEXSIPlanFinalize(plan,&amp;info);</span>
+<span class="lineNum">     213 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     214 </span>            :   
+<span class="lineNum">     215 </span><span class="lineNoCov">          0 :             delete[] HS_nnz_inp;</span>
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :             c_zscal(Overlap-&gt;n_nonzeros,-weight/M_PI*CPX(0.0,1.0),(CPX*)HS_nnz_out,1);</span>
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :             c_daxpy(Overlap-&gt;n_nonzeros,1.0,HS_nnz_out,2,Ps-&gt;nnz,1);</span>
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 :             delete[] HS_nnz_out;</span>
+<span class="lineNum">     219 </span>            : #endif
+<span class="lineNum">     220 </span><span class="lineNoCov">          0 :         } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     221 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR EQ INVERSION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     222 </span><span class="lineCov">          1 :     } else if (method==transport_methods::GF) {</span>
+<span class="lineNum">     223 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :         if (transport_params.inv_solver_method==inv_solver_methods::FULL) {</span>
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :             FullInvert solver(HamSig,Ps,-weight/M_PI*CPX(0.0,1.0),matrix_comm);</span>
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :             if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :                 FullInvert solverD(HamSig,PsImag,-dweight/M_PI*CPX(0.0,1.0),matrix_comm);</span>
+<span class="lineNum">     228 </span>            :             }
+<span class="lineNum">     229 </span><span class="lineNoCov">          0 :             delete HamSig;</span>
+<span class="lineNum">     230 </span><span class="lineNoCov">          0 :         } else if (transport_params.inv_solver_method==inv_solver_methods::RGF) {</span>
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :             Bmax.push_back(Bsizes[0]-1);</span>
+<span class="lineNum">     232 </span><span class="lineNoCov">          0 :             for (uint i=1;i&lt;Bsizes.size();i++) Bmax.push_back(Bmax[i-1]+Bsizes[i]);</span>
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :             Bmin.push_back(0);</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :             for (uint i=1;i&lt;Bsizes.size();i++) Bmin.push_back(Bmax[i-1]+1);</span>
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :             std::vector&lt;int&gt; Fsizes;</span>
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :             for (uint i=0;i&lt;Bsizes.size();i++) Fsizes.push_back(orb_per_at[Bmin[i]+Bsizes[i]]-orb_per_at[Bmin[i]]);</span>
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :             if (!matrix_rank) {</span>
+<span class="lineNum">     238 </span><span class="lineNoCov">          0 :                 tmprGF::sparse_invert(HamSig,Fsizes);</span>
+<span class="lineNum">     239 </span>            :             }
+<span class="lineNum">     240 </span><span class="lineNoCov">          0 :             Ps-&gt;add_real(HamSig,-weight/M_PI*CPX(0.0,1.0));</span>
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :             if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     242 </span><span class="lineNoCov">          0 :                 PsImag-&gt;add_real(HamSig,-dweight/M_PI*CPX(0.0,1.0));</span>
+<span class="lineNum">     243 </span>            :             }
+<span class="lineNum">     244 </span><span class="lineNoCov">          0 :             delete HamSig;</span>
+<span class="lineNum">     245 </span>            : #ifdef HAVE_PARDISO_SELINV
+<span class="lineNum">     246 </span>            :         } else if (transport_params.inv_solver_method==inv_solver_methods::PARDISO) {
+<span class="lineNum">     247 </span>            :             if (HamSig-&gt;findx!=1) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     248 </span>            :             if (!matrix_rank) {
+<span class="lineNum">     249 </span>            :                 Pardiso::sparse_invert(HamSig);
+<span class="lineNum">     250 </span>            :             }
+<span class="lineNum">     251 </span>            :             Ps-&gt;add_real(HamSig,-weight/M_PI*CPX(0.0,1.0));
+<span class="lineNum">     252 </span>            :             if (transport_params.get_fermi_neutral) {
+<span class="lineNum">     253 </span>            :                 PsImag-&gt;add_real(HamSig,-dweight/M_PI*CPX(0.0,1.0));
+<span class="lineNum">     254 </span>            :             }
+<span class="lineNum">     255 </span>            :             delete HamSig;
+<span class="lineNum">     256 </span>            : #endif
+<span class="lineNum">     257 </span>            : #ifdef HAVE_PEXSI
+<span class="lineNum">     258 </span><span class="lineNoCov">          0 :         } else if (transport_params.inv_solver_method==inv_solver_methods::PEXSI) {</span>
+<span class="lineNum">     259 </span><span class="lineNoCov">          0 :             if (HamSig-&gt;findx!=1) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     260 </span>            :   
+<span class="lineNum">     261 </span><span class="lineNoCov">          0 :             double *HS_nnz_inp = new double[2*HamSig-&gt;n_nonzeros]();</span>
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :             c_dcopy(2*HamSig-&gt;n_nonzeros,(double*)HamSig-&gt;nnz,1,HS_nnz_inp,1);</span>
+<span class="lineNum">     263 </span>            :   
+<span class="lineNum">     264 </span>            :             int n_nonzeros_global;
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :             MPI_Allreduce(&amp;HamSig-&gt;n_nonzeros,&amp;n_nonzeros_global,1,MPI_INT,MPI_SUM,matrix_comm);</span>
+<span class="lineNum">     266 </span>            :             int info;
+<span class="lineNum">     267 </span>            :   
+<span class="lineNum">     268 </span>            :             PPEXSIOptions options;
+<span class="lineNum">     269 </span><span class="lineNoCov">          0 :             PPEXSISetDefaultOptions(&amp;options);</span>
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 :             options.npSymbFact  = transport_params.pexsi_np_symb_fact;</span>
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :             options.ordering    = transport_params.pexsi_ordering;</span>
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :             options.rowOrdering = transport_params.pexsi_row_ordering;</span>
+<span class="lineNum">     273 </span><span class="lineNoCov">          0 :             options.verbosity   = transport_params.pexsi_verbosity;</span>
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :             int output_index    = -1;</span>
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :             if (transport_params.pexsi_verbosity) output_index = worldrank;</span>
+<span class="lineNum">     276 </span>            :       
+<span class="lineNum">     277 </span>            :             PPEXSIPlan plan;
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :             int nprowcol[2]={0,0};</span>
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :             MPI_Dims_create(matrix_procs,2,nprowcol);</span>
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :             plan = PPEXSIPlanInitialize(matrix_comm,nprowcol[0],nprowcol[1],output_index,&amp;info);</span>
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :             PPEXSILoadRealHSMatrix(plan,options,HamSig-&gt;size_tot,n_nonzeros_global,HamSig-&gt;n_nonzeros,HamSig-&gt;size,HamSig-&gt;edge_i,HamSig-&gt;index_j,HS_nnz_inp,1,NULL,&amp;info);</span>
+<span class="lineNum">     283 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :             PPEXSISymbolicFactorizeComplexSymmetricMatrix(plan,options,&amp;info);</span>
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     286 </span><span class="lineNoCov">          0 :             PPEXSISelInvComplexSymmetricMatrix(plan,options,HS_nnz_inp,(double*)HamSig-&gt;nnz,&amp;info);</span>
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     288 </span><span class="lineNoCov">          0 :             PPEXSIPlanFinalize(plan,&amp;info);</span>
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :             if (info) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     290 </span>            :   
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :             delete[] HS_nnz_inp;</span>
+<span class="lineNum">     292 </span><span class="lineNoCov">          0 :             Ps-&gt;add_real(HamSig,-weight/M_PI*CPX(0.0,1.0));</span>
+<span class="lineNum">     293 </span><span class="lineNoCov">          0 :             if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     294 </span><span class="lineNoCov">          0 :                 PsImag-&gt;add_real(HamSig,-dweight/M_PI*CPX(0.0,1.0));</span>
+<span class="lineNum">     295 </span>            :             }
+<span class="lineNum">     296 </span><span class="lineNoCov">          0 :             delete HamSig;</span>
+<span class="lineNum">     297 </span>            : #endif
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :         } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     299 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR GF INVERSION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     300 </span><span class="lineCov">          1 :     } else if (method==transport_methods::NEGF) {</span>
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     302 </span>            :         LinearSolver&lt;CPX&gt;* solver;
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :         if (transport_params.lin_solver_method==lin_solver_methods::FULL) {</span>
+<span class="lineNum">     304 </span><span class="lineNoCov">          0 :             solver = new Full&lt;CPX&gt;(HamSig,matrix_comm);</span>
+<span class="lineNum">     305 </span>            : #ifdef HAVE_SUPERLU
+<span class="lineNum">     306 </span><span class="lineNoCov">          0 :         } else if (transport_params.lin_solver_method==lin_solver_methods::SUPERLU) {</span>
+<span class="lineNum">     307 </span><span class="lineNoCov">          0 :             solver = new SuperLU&lt;CPX&gt;(HamSig,matrix_comm);</span>
+<span class="lineNum">     308 </span>            : #endif
+<span class="lineNum">     309 </span>            : #ifdef HAVE_MUMPS
+<span class="lineNum">     310 </span>            :         } else if (transport_params.lin_solver_method==lin_solver_methods::MUMPS) {
+<span class="lineNum">     311 </span>            :             solver = new MUMPS&lt;CPX&gt;(HamSig,matrix_comm);
+<span class="lineNum">     312 </span>            : #endif
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :         } else if (transport_params.lin_solver_method==lin_solver_methods::BANDED) {</span>
+<span class="lineNum">     314 </span><span class="lineNoCov">          0 :             solver = new Banded&lt;CPX&gt;(HamSig,matrix_comm);</span>
+<span class="lineNum">     315 </span><span class="lineNoCov">          0 :         } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :         solver-&gt;prepare(&amp;Bmin[0],&amp;Bmax[0],Bmin.size(),Bsize,&amp;orb_per_at[0],10);</span>
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR NEGF SPARSE DECOMPOSITION PHASE &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :         CPX* inj = NULL;</span>
+<span class="lineNum">     320 </span><span class="lineNoCov">          0 :         CPX* sol = NULL;</span>
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :         int *dist_sol = NULL;</span>
+<span class="lineNum">     322 </span><span class="lineNoCov">          0 :         int *displc_sol = NULL;</span>
+<span class="lineNum">     323 </span><span class="lineNoCov">          0 :         int nprol = contactvec[0].ndof*contactvec[0].bandwidth;</span>
+<span class="lineNum">     324 </span><span class="lineNoCov">          0 :         int npror = contactvec[1].ndof*contactvec[1].bandwidth;</span>
+<span class="lineNum">     325 </span><span class="lineNoCov">          0 :         int sigmastartl = contactvec[0].start;</span>
+<span class="lineNum">     326 </span><span class="lineNoCov">          0 :         if (contactvec[0].inj_sign==-1) sigmastartl+=-(contactvec[0].bandwidth-1)*contactvec[0].ndof;</span>
+<span class="lineNum">     327 </span><span class="lineNoCov">          0 :         int sigmastartr = contactvec[1].start;</span>
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :         if (contactvec[1].inj_sign==-1) sigmastartr+=-(contactvec[1].bandwidth-1)*contactvec[1].ndof;</span>
+<span class="lineNum">     329 </span><span class="lineNoCov">          0 :         dist_sol = new int[matrix_procs];</span>
+<span class="lineNum">     330 </span><span class="lineNoCov">          0 :         MPI_Allgather(&amp;HamSig-&gt;size,1,MPI_INT,dist_sol,1,MPI_INT,matrix_comm);</span>
+<span class="lineNum">     331 </span><span class="lineNoCov">          0 :         displc_sol = new int[matrix_procs+1]();</span>
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :         for (int iii=1;iii&lt;matrix_procs+1;iii++) {</span>
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 :             displc_sol[iii]=displc_sol[iii-1]+dist_sol[iii-1];</span>
+<span class="lineNum">     334 </span>            :         }
+<span class="lineNum">     335 </span><span class="lineNoCov">          0 :         int injsize_loc_max=*max_element(dist_sol,dist_sol+matrix_procs);</span>
+<span class="lineNum">     336 </span><span class="lineNoCov">          0 :         inj = new CPX[injsize_loc_max*(nprol+npror)]();</span>
+<span class="lineNum">     337 </span><span class="lineNoCov">          0 :         for (int i=0;i&lt;nprol;i++) {</span>
+<span class="lineNum">     338 </span><span class="lineNoCov">          0 :             int iloc=i+sigmastartl-displc_sol[matrix_rank];</span>
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :             if (iloc&gt;=0 &amp;&amp; iloc&lt;dist_sol[matrix_rank]) {</span>
+<span class="lineNum">     340 </span><span class="lineNoCov">          0 :                 inj[iloc+i*dist_sol[matrix_rank]]=1.0;</span>
+<span class="lineNum">     341 </span>            :             }
+<span class="lineNum">     342 </span>            :         }
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :         for (int i=0;i&lt;npror;i++) {</span>
+<span class="lineNum">     344 </span><span class="lineNoCov">          0 :             int iloc=i+sigmastartr-displc_sol[matrix_rank];</span>
+<span class="lineNum">     345 </span><span class="lineNoCov">          0 :             if (iloc&gt;=0 &amp;&amp; iloc&lt;dist_sol[matrix_rank]) {</span>
+<span class="lineNum">     346 </span><span class="lineNoCov">          0 :                 inj[iloc+i*dist_sol[matrix_rank]+nprol*dist_sol[matrix_rank]]=1.0;</span>
+<span class="lineNum">     347 </span>            :             }
+<span class="lineNum">     348 </span>            :         }
+<span class="lineNum">     349 </span><span class="lineNoCov">          0 :         sol = new CPX[dist_sol[matrix_rank]*(nprol+npror)]();</span>
+<span class="lineNum">     350 </span><span class="lineNoCov">          0 :         solver-&gt;solve_equation(sol, inj, nprol+npror);</span>
+<span class="lineNum">     351 </span><span class="lineNoCov">          0 :         delete solver;</span>
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :         delete HamSig;</span>
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR NEGF SPARSE SOLVE PHASE &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :         int solsize=Ps-&gt;size_tot;</span>
+<span class="lineNum">     355 </span><span class="lineNoCov">          0 :         CPX* Sol = new CPX[solsize*(nprol+npror)];</span>
+<span class="lineNum">     356 </span><span class="lineNoCov">          0 :         for (int icol=0;icol&lt;nprol+npror;icol++) {</span>
+<span class="lineNum">     357 </span><span class="lineNoCov">          0 :             MPI_Allgatherv(&amp;sol[dist_sol[matrix_rank]*icol],dist_sol[matrix_rank],MPI_DOUBLE_COMPLEX,&amp;Sol[solsize*icol],dist_sol,displc_sol,MPI_DOUBLE_COMPLEX,matrix_comm);</span>
+<span class="lineNum">     358 </span>            :         }
+<span class="lineNum">     359 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     360 </span><span class="lineNoCov">          0 :         c_zgemm('N','N',dist_sol[matrix_rank],nprol,nprol,z_one,sol,dist_sol[matrix_rank],selfenergies[0].gamma,nprol,z_zer,inj,dist_sol[matrix_rank]);</span>
+<span class="lineNum">     361 </span><span class="lineNoCov">          0 :         c_zgemm('N','N',dist_sol[matrix_rank],npror,npror,z_one,&amp;sol[dist_sol[matrix_rank]*nprol],dist_sol[matrix_rank],selfenergies[1].gamma,npror,z_zer,&amp;inj[dist_sol[matrix_rank]*nprol],dist_sol[matrix_rank]);</span>
+<span class="lineNum">     362 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR GAMMA MULTIPLICATION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :         full_transpose(nprol,dist_sol[matrix_rank],inj,sol);</span>
+<span class="lineNum">     365 </span><span class="lineNoCov">          0 :         full_transpose(npror,dist_sol[matrix_rank],&amp;inj[dist_sol[matrix_rank]*nprol],&amp;sol[dist_sol[matrix_rank]*nprol]);</span>
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :         delete[] inj;</span>
+<span class="lineNum">     367 </span><span class="lineNoCov">          0 :         CPX* SolT = new CPX[solsize*max(nprol,npror)];</span>
+<span class="lineNum">     368 </span><span class="lineNoCov">          0 :         if (transport_params.cp2k_method==cp2k_methods::TRANSPORT) {</span>
+<span class="lineNum">     369 </span><span class="lineNoCov">          0 :             if (muvec[0]&gt;muvec[1]) {</span>
+<span class="lineNum">     370 </span><span class="lineNoCov">          0 :                 double fermil = fermi(real(energy),muvec[0],transport_params.temperature,0)-fermi(real(energy),muvec[1],transport_params.temperature,0);</span>
+<span class="lineNum">     371 </span><span class="lineNoCov">          0 :                 full_transpose(nprol,solsize,Sol,SolT);</span>
+<span class="lineNum">     372 </span><span class="lineNoCov">          0 :                 Ps-&gt;psipsidagger_transpose(sol,SolT,nprol,-weight/2.0/M_PI*fermil);</span>
+<span class="lineNum">     373 </span>            :             } else {
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :                 double fermir = fermi(real(energy),muvec[1],transport_params.temperature,0)-fermi(real(energy),muvec[0],transport_params.temperature,0);</span>
+<span class="lineNum">     375 </span><span class="lineNoCov">          0 :                 full_transpose(npror,solsize,&amp;Sol[solsize*nprol],SolT);</span>
+<span class="lineNum">     376 </span><span class="lineNoCov">          0 :                 Ps-&gt;psipsidagger_transpose(&amp;sol[dist_sol[matrix_rank]*nprol],SolT,npror,-weight/2.0/M_PI*fermir);</span>
+<span class="lineNum">     377 </span>            :             }
+<span class="lineNum">     378 </span>            :         }
+<span class="lineNum">     379 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR CONSTRUCTION OF S-PATTERN DENSITY MATRIX &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     380 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     381 </span><span class="lineNoCov">          0 :         full_transpose(nprol,solsize,Sol,SolT);</span>
+<span class="lineNum">     382 </span><span class="lineNoCov">          0 :         for (int i=0;i&lt;npror;i++) {</span>
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :             int iloc=i+sigmastartr-displc_sol[matrix_rank];</span>
+<span class="lineNum">     384 </span><span class="lineNoCov">          0 :             for (int j=0;j&lt;npror;j++) {</span>
+<span class="lineNum">     385 </span><span class="lineNoCov">          0 :                 if (iloc&gt;=0 &amp;&amp; iloc&lt;dist_sol[matrix_rank]) {</span>
+<span class="lineNum">     386 </span><span class="lineNoCov">          0 :                     selfenergies[1].gamma[i+j*npror]*=c_zdotc(nprol,&amp;SolT[(j+sigmastartr)*nprol],1,&amp;sol[iloc*nprol],1);</span>
+<span class="lineNum">     387 </span>            :                 } else {
+<span class="lineNum">     388 </span><span class="lineNoCov">          0 :                     selfenergies[1].gamma[i+j*npror]=z_zer;</span>
+<span class="lineNum">     389 </span>            :                 }
+<span class="lineNum">     390 </span>            :             }
+<span class="lineNum">     391 </span>            :         }
+<span class="lineNum">     392 </span><span class="lineNoCov">          0 :         full_transpose(npror,solsize,&amp;Sol[solsize*nprol],SolT);</span>
+<span class="lineNum">     393 </span><span class="lineNoCov">          0 :         for (int i=0;i&lt;nprol;i++) {</span>
+<span class="lineNum">     394 </span><span class="lineNoCov">          0 :             int iloc=i+sigmastartl-displc_sol[matrix_rank];</span>
+<span class="lineNum">     395 </span><span class="lineNoCov">          0 :             for (int j=0;j&lt;nprol;j++) {</span>
+<span class="lineNum">     396 </span><span class="lineNoCov">          0 :                 if (iloc&gt;=0 &amp;&amp; iloc&lt;dist_sol[matrix_rank]) {</span>
+<span class="lineNum">     397 </span><span class="lineNoCov">          0 :                     selfenergies[0].gamma[i+j*nprol]*=c_zdotc(npror,&amp;SolT[(j+sigmastartl)*npror],1,&amp;sol[iloc*npror+dist_sol[matrix_rank]*nprol],1);</span>
+<span class="lineNum">     398 </span>            :                 } else {
+<span class="lineNum">     399 </span><span class="lineNoCov">          0 :                     selfenergies[0].gamma[i+j*nprol]=z_zer;</span>
+<span class="lineNum">     400 </span>            :                 }
+<span class="lineNum">     401 </span>            :             }
+<span class="lineNum">     402 </span>            :         }
+<span class="lineNum">     403 </span><span class="lineNoCov">          0 :         delete[] dist_sol;</span>
+<span class="lineNum">     404 </span><span class="lineNoCov">          0 :         delete[] displc_sol;</span>
+<span class="lineNum">     405 </span><span class="lineNoCov">          0 :         delete[] SolT;</span>
+<span class="lineNum">     406 </span><span class="lineNoCov">          0 :         delete[] sol;</span>
+<span class="lineNum">     407 </span><span class="lineNoCov">          0 :         delete[] Sol;</span>
+<span class="lineNum">     408 </span><span class="lineNoCov">          0 :         CPX transml_loc = std::accumulate(selfenergies[1].gamma,selfenergies[1].gamma+npror*npror,z_zer);</span>
+<span class="lineNum">     409 </span><span class="lineNoCov">          0 :         CPX transmr_loc = std::accumulate(selfenergies[0].gamma,selfenergies[0].gamma+nprol*nprol,z_zer);</span>
+<span class="lineNum">     410 </span>            :         double transml;
+<span class="lineNum">     411 </span>            :         double transmr;
+<span class="lineNum">     412 </span><span class="lineNoCov">          0 :         MPI_Allreduce(&amp;transml_loc,&amp;transml,1,MPI_DOUBLE,MPI_SUM,matrix_comm);</span>
+<span class="lineNum">     413 </span><span class="lineNoCov">          0 :         MPI_Allreduce(&amp;transmr_loc,&amp;transmr,1,MPI_DOUBLE,MPI_SUM,matrix_comm);</span>
+<span class="lineNum">     414 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR TRANSMISSION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     415 </span><span class="lineNoCov">          0 :         if (!matrix_rank) {</span>
+<span class="lineNum">     416 </span><span class="lineNoCov">          0 :             resultvec[0].transm=transml;</span>
+<span class="lineNum">     417 </span><span class="lineNoCov">          0 :             resultvec[1].transm=transmr;</span>
+<span class="lineNum">     418 </span>            :         }
+<span class="lineNum">     419 </span><span class="lineNoCov">          0 :         for (int i_mu=0;i_mu&lt;n_mu;i_mu++) selfenergies[i_mu].Deallocate_Gamma();</span>
+<span class="lineNum">     420 </span><span class="lineCov">          1 :     } else if (method==transport_methods::WF) {</span>
+<span class="lineNum">     421 </span><span class="lineCov">          1 :         TCSR&lt;CPX&gt; *H1cut = new TCSR&lt;CPX&gt;(HamSig,tra_block*ntriblock,ntriblock,(tra_block+1)*ntriblock,ntriblock);</span>
+<span class="lineNum">     422 </span><span class="lineCov">          1 :         TCSR&lt;CPX&gt; *H1 = new TCSR&lt;CPX&gt;(H1cut,0,matrix_comm);</span>
+<span class="lineNum">     423 </span><span class="lineCov">          1 :         delete H1cut;</span>
+<span class="lineNum">     424 </span><span class="lineCov">          1 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     425 </span>            :         LinearSolver&lt;CPX&gt;* solver;
+<span class="lineNum">     426 </span><span class="lineCov">          1 :         if (transport_params.lin_solver_method==lin_solver_methods::FULL) {</span>
+<span class="lineNum">     427 </span><span class="lineCov">          1 :             solver = new Full&lt;CPX&gt;(HamSig,matrix_comm);</span>
+<span class="lineNum">     428 </span>            : #ifdef HAVE_SUPERLU
+<span class="lineNum">     429 </span><span class="lineNoCov">          0 :         } else if (transport_params.lin_solver_method==lin_solver_methods::SUPERLU) {</span>
+<span class="lineNum">     430 </span><span class="lineNoCov">          0 :             solver = new SuperLU&lt;CPX&gt;(HamSig,matrix_comm);</span>
+<span class="lineNum">     431 </span>            : #endif
+<span class="lineNum">     432 </span>            : #ifdef HAVE_MUMPS
+<span class="lineNum">     433 </span>            :         } else if (transport_params.lin_solver_method==lin_solver_methods::MUMPS) {
+<span class="lineNum">     434 </span>            :             solver = new MUMPS&lt;CPX&gt;(HamSig,matrix_comm);
+<span class="lineNum">     435 </span>            : #endif
+<span class="lineNum">     436 </span><span class="lineNoCov">          0 :         } else if (transport_params.lin_solver_method==lin_solver_methods::BANDED) {</span>
+<span class="lineNum">     437 </span><span class="lineNoCov">          0 :             solver = new Banded&lt;CPX&gt;(HamSig,matrix_comm);</span>
+<span class="lineNum">     438 </span>            : #ifdef HAVE_SPLITSOLVE
+<span class="lineNum">     439 </span>            :         } else if (transport_params.lin_solver_method==lin_solver_methods::SPLITSOLVE) {
+<span class="lineNum">     440 </span>            :             Bmax.push_back(Bsizes[0]-1);
+<span class="lineNum">     441 </span>            :             for (uint i=1;i&lt;Bsizes.size();i++) Bmax.push_back(Bmax[i-1]+Bsizes[i]);
+<span class="lineNum">     442 </span>            :             Bmin.push_back(0);
+<span class="lineNum">     443 </span>            :             for (uint i=1;i&lt;Bsizes.size();i++) Bmin.push_back(Bmax[i-1]+1);
+<span class="lineNum">     444 </span>            :             std::vector&lt;int&gt; Fsizes;
+<span class="lineNum">     445 </span>            :             for (uint i=0;i&lt;Bsizes.size();i++) Fsizes.push_back(orb_per_at[Bmin[i]+Bsizes[i]]-orb_per_at[Bmin[i]]);
+<span class="lineNum">     446 </span>            :             Bsize=*std::max_element(Fsizes.begin(),Fsizes.end());
+<span class="lineNum">     447 </span>            :             if (boundary_id==n_mu) {
+<span class="lineNum">     448 </span>            :                 if (cudaMallocHost((void **)&amp;M_host,(HamSig-&gt;size+Bsize)*Bsize*sizeof(double)+5*Bsize*Bsize*sizeof(CPX))!=cudaSuccess) return (LOGCERR, EXIT_FAILURE);
+<span class="lineNum">     449 </span>            :             }
+<span class="lineNum">     450 </span>            :             solver = new SplitSolve&lt;double&gt;(HamSig,M_host,matrix_procs-GPUS_per_point,1,boundary_comm,matrix_comm);
+<span class="lineNum">     451 </span>            : #endif
+<span class="lineNum">     452 </span><span class="lineNoCov">          0 :         } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     453 </span><span class="lineCov">          2 :         solver-&gt;prepare(&amp;Bmin[0],&amp;Bmax[0],Bmin.size(),Bsize,&amp;orb_per_at[0],10);</span>
+<span class="lineNum">     454 </span><span class="lineCov">          1 :         CPX* inj = NULL;</span>
+<span class="lineNum">     455 </span><span class="lineCov">          1 :         CPX* sol = NULL;</span>
+<span class="lineNum">     456 </span><span class="lineCov">          1 :         int nprol = 0;</span>
+<span class="lineNum">     457 </span><span class="lineCov">          1 :         int npror = 0;</span>
+<span class="lineNum">     458 </span><span class="lineCov">          1 :         CPX *lambda = NULL;</span>
+<span class="lineNum">     459 </span><span class="lineCov">          1 :         int *dist_sol = NULL;</span>
+<span class="lineNum">     460 </span><span class="lineCov">          1 :         int *displc_sol = NULL;</span>
+<span class="lineNum">     461 </span><span class="lineCov">          1 :         int left_gpu_rank  = ceil((double)matrix_procs/GPUS_per_point)-1;</span>
+<span class="lineNum">     462 </span><span class="lineCov">          1 :         int right_gpu_rank = matrix_procs-ceil((double)matrix_procs/GPUS_per_point);</span>
+<span class="lineNum">     463 </span><span class="lineCov">          3 : if (worldrank==left_gpu_rank) cout &lt;&lt; &quot;TIME FOR WAVEFUNCTION SPARSE DECOMPOSITION PHASE &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     464 </span><span class="lineCov">          3 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR FALL-THROUGH RANK WAVEFUNCTION &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     465 </span><span class="lineCov">          1 : MPI_Barrier(matrix_comm);</span>
+<span class="lineNum">     466 </span><span class="lineCov">          1 :         if (transport_params.lin_solver_method==lin_solver_methods::SPLITSOLVE) {</span>
+<span class="lineNum">     467 </span><span class="lineNoCov">          0 :             int left_bc_rank  = 0;</span>
+<span class="lineNum">     468 </span><span class="lineNoCov">          0 :             int right_bc_rank = matrix_procs-1;</span>
+<span class="lineNum">     469 </span><span class="lineNoCov">          0 :             int NBC[2]={contactvec[0].ndof*contactvec[0].bandwidth,contactvec[1].ndof*contactvec[1].bandwidth};</span>
+<span class="lineNum">     470 </span><span class="lineNoCov">          0 :             solver-&gt;prepare_corner(selfenergies[0].sigma,selfenergies[1].sigma,NBC,NULL,NULL,0,0,NULL,0);</span>
+<span class="lineNum">     471 </span><span class="lineNoCov">          0 :             if (matrix_rank==left_bc_rank) nprol=selfenergies[0].n_propagating;</span>
+<span class="lineNum">     472 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;nprol,1,MPI_INT,left_bc_rank,matrix_comm);</span>
+<span class="lineNum">     473 </span><span class="lineNoCov">          0 :             if (matrix_rank==right_bc_rank) npror=selfenergies[1].n_propagating;</span>
+<span class="lineNum">     474 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;npror,1,MPI_INT,right_bc_rank,matrix_comm);</span>
+<span class="lineNum">     475 </span><span class="lineNoCov">          0 :             lambda = new CPX[nprol+npror];</span>
+<span class="lineNum">     476 </span><span class="lineNoCov">          0 :             if (matrix_rank==left_bc_rank) c_zcopy(nprol,selfenergies[0].lambdapro,1,lambda,1);</span>
+<span class="lineNum">     477 </span><span class="lineNoCov">          0 :             MPI_Bcast(lambda,nprol,MPI_DOUBLE_COMPLEX,left_bc_rank,matrix_comm);</span>
+<span class="lineNum">     478 </span><span class="lineNoCov">          0 :             if (matrix_rank==right_bc_rank) c_zcopy(npror,selfenergies[1].lambdapro,1,&amp;lambda[nprol],1);</span>
+<span class="lineNum">     479 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;lambda[nprol],npror,MPI_DOUBLE_COMPLEX,right_bc_rank,matrix_comm);</span>
+<span class="lineNum">     480 </span>            :             MPI_Status status;
+<span class="lineNum">     481 </span><span class="lineNoCov">          0 :             if (matrix_rank==left_bc_rank) MPI_Send(selfenergies[0].inj,NBC[0]*nprol,MPI_DOUBLE_COMPLEX,left_gpu_rank,1,matrix_comm);</span>
+<span class="lineNum">     482 </span><span class="lineNoCov">          0 :             if (matrix_rank==left_gpu_rank) {</span>
+<span class="lineNum">     483 </span><span class="lineNoCov">          0 :                 inj = new CPX[NBC[0]*(nprol+npror)]();</span>
+<span class="lineNum">     484 </span><span class="lineNoCov">          0 :                 MPI_Recv(inj,NBC[0]*nprol,MPI_DOUBLE_COMPLEX,left_bc_rank,1,matrix_comm,&amp;status);</span>
+<span class="lineNum">     485 </span>            :             }
+<span class="lineNum">     486 </span><span class="lineNoCov">          0 :             if (matrix_rank==right_bc_rank) MPI_Send(selfenergies[1].inj,NBC[1]*npror,MPI_DOUBLE_COMPLEX,right_gpu_rank,3,matrix_comm);</span>
+<span class="lineNum">     487 </span><span class="lineNoCov">          0 :             if (matrix_rank==right_gpu_rank) {</span>
+<span class="lineNum">     488 </span><span class="lineNoCov">          0 :                 inj = new CPX[NBC[1]*(nprol+npror)]();</span>
+<span class="lineNum">     489 </span><span class="lineNoCov">          0 :                 MPI_Recv(&amp;inj[NBC[1]*nprol],NBC[1]*npror,MPI_DOUBLE_COMPLEX,right_bc_rank,3,matrix_comm,&amp;status);</span>
+<span class="lineNum">     490 </span>            :             }
+<span class="lineNum">     491 </span>            : //if npror is zero do i get a segfault because i access the bad element or is it not accessed
+<span class="lineNum">     492 </span><span class="lineNoCov">          0 :             if (matrix_rank==left_bc_rank) {</span>
+<span class="lineNum">     493 </span><span class="lineNoCov">          0 :                 resultvec[0].npro=selfenergies[0].n_propagating;</span>
+<span class="lineNum">     494 </span><span class="lineNoCov">          0 :                 resultvec[0].ndec=selfenergies[0].n_dec;</span>
+<span class="lineNum">     495 </span><span class="lineNoCov">          0 :                 resultvec[0].eigval_degeneracy=selfenergies[0].eigval_degeneracy;</span>
+<span class="lineNum">     496 </span><span class="lineNoCov">          0 :                 resultvec[0].rcond=selfenergies[0].rcond;</span>
+<span class="lineNum">     497 </span><span class="lineNoCov">          0 :                 selfenergies[0].Finalize();</span>
+<span class="lineNum">     498 </span>            :             }
+<span class="lineNum">     499 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[0].npro,1,MPI_INT,left_bc_rank,matrix_comm);</span>
+<span class="lineNum">     500 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[0].ndec,1,MPI_INT,left_bc_rank,matrix_comm);</span>
+<span class="lineNum">     501 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[0].eigval_degeneracy,1,MPI_INT,left_bc_rank,matrix_comm);</span>
+<span class="lineNum">     502 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[0].rcond,1,MPI_DOUBLE,left_bc_rank,matrix_comm);</span>
+<span class="lineNum">     503 </span><span class="lineNoCov">          0 :             if (matrix_rank==right_bc_rank) {</span>
+<span class="lineNum">     504 </span><span class="lineNoCov">          0 :                 resultvec[1].npro=selfenergies[1].n_propagating;</span>
+<span class="lineNum">     505 </span><span class="lineNoCov">          0 :                 resultvec[1].ndec=selfenergies[1].n_dec;</span>
+<span class="lineNum">     506 </span><span class="lineNoCov">          0 :                 resultvec[1].eigval_degeneracy=selfenergies[1].eigval_degeneracy;</span>
+<span class="lineNum">     507 </span><span class="lineNoCov">          0 :                 resultvec[1].rcond=selfenergies[1].rcond;</span>
+<span class="lineNum">     508 </span><span class="lineNoCov">          0 :                 selfenergies[1].Finalize();</span>
+<span class="lineNum">     509 </span>            :             }
+<span class="lineNum">     510 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[1].npro,1,MPI_INT,right_bc_rank,matrix_comm);</span>
+<span class="lineNum">     511 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[1].ndec,1,MPI_INT,right_bc_rank,matrix_comm);</span>
+<span class="lineNum">     512 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[1].eigval_degeneracy,1,MPI_INT,right_bc_rank,matrix_comm);</span>
+<span class="lineNum">     513 </span><span class="lineNoCov">          0 :             MPI_Bcast(&amp;resultvec[1].rcond,1,MPI_DOUBLE,right_bc_rank,matrix_comm);</span>
+<span class="lineNum">     514 </span><span class="lineNoCov">          0 :             if (boundary_id==n_mu) {</span>
+<span class="lineNum">     515 </span>            :                 int solver_size,solver_rank;
+<span class="lineNum">     516 </span><span class="lineNoCov">          0 :                 MPI_Comm_size(boundary_comm,&amp;solver_size);</span>
+<span class="lineNum">     517 </span><span class="lineNoCov">          0 :                 MPI_Comm_rank(boundary_comm,&amp;solver_rank);</span>
+<span class="lineNum">     518 </span><span class="lineNoCov">          0 :                 dist_sol = new int[solver_size];</span>
+<span class="lineNum">     519 </span><span class="lineNoCov">          0 :                 MPI_Allgather(&amp;HamSig-&gt;size,1,MPI_INT,dist_sol,1,MPI_INT,boundary_comm);</span>
+<span class="lineNum">     520 </span><span class="lineNoCov">          0 :                 displc_sol = new int[solver_size+1]();</span>
+<span class="lineNum">     521 </span><span class="lineNoCov">          0 :                 for (int iii=1;iii&lt;solver_size+1;iii++) {</span>
+<span class="lineNum">     522 </span><span class="lineNoCov">          0 :                     displc_sol[iii]=displc_sol[iii-1]+dist_sol[iii-1];</span>
+<span class="lineNum">     523 </span>            :                 }
+<span class="lineNum">     524 </span><span class="lineNoCov">          0 :                 sol = new CPX[dist_sol[solver_rank]*(nprol+npror)]();</span>
+<span class="lineNum">     525 </span>            :             }
+<span class="lineNum">     526 </span>            :         } else {
+<span class="lineNum">     527 </span><span class="lineCov">          1 :             nprol=selfenergies[0].n_propagating;</span>
+<span class="lineNum">     528 </span><span class="lineCov">          1 :             npror=selfenergies[1].n_propagating;</span>
+<span class="lineNum">     529 </span><span class="lineCov">          5 :             lambda = new CPX[nprol+npror];</span>
+<span class="lineNum">     530 </span><span class="lineCov">          2 :             c_zcopy(nprol,selfenergies[0].lambdapro,1,lambda,1);</span>
+<span class="lineNum">     531 </span><span class="lineCov">          2 :             c_zcopy(npror,selfenergies[1].lambdapro,1,&amp;lambda[nprol],1);</span>
+<span class="lineNum">     532 </span><span class="lineCov">          1 :             dist_sol = new int[matrix_procs];</span>
+<span class="lineNum">     533 </span><span class="lineCov">          1 :             MPI_Allgather(&amp;HamSig-&gt;size,1,MPI_INT,dist_sol,1,MPI_INT,matrix_comm);</span>
+<span class="lineNum">     534 </span><span class="lineCov">          1 :             displc_sol = new int[matrix_procs+1]();</span>
+<span class="lineNum">     535 </span><span class="lineCov">          3 :             for (int iii=1;iii&lt;matrix_procs+1;iii++) {</span>
+<span class="lineNum">     536 </span><span class="lineCov">          1 :                 displc_sol[iii]=displc_sol[iii-1]+dist_sol[iii-1];</span>
+<span class="lineNum">     537 </span>            :             }
+<span class="lineNum">     538 </span><span class="lineCov">          2 :             int injsize_loc_max=*max_element(dist_sol,dist_sol+matrix_procs);</span>
+<span class="lineNum">     539 </span><span class="lineCov">       4609 :             inj = new CPX[injsize_loc_max*(nprol+npror)]();</span>
+<span class="lineNum">     540 </span><span class="lineCov">          1 :             if (selfenergies[0].spainjdist-&gt;n_nonzeros) {</span>
+<span class="lineNum">     541 </span><span class="lineCov">          1 :                 selfenergies[0].spainjdist-&gt;sparse_to_full(inj,HamSig-&gt;size,nprol);</span>
+<span class="lineNum">     542 </span>            :             }
+<span class="lineNum">     543 </span><span class="lineCov">          1 :             if (selfenergies[1].spainjdist-&gt;n_nonzeros) {</span>
+<span class="lineNum">     544 </span><span class="lineCov">          1 :                 selfenergies[1].spainjdist-&gt;sparse_to_full(&amp;inj[HamSig-&gt;size*nprol],HamSig-&gt;size,npror);</span>
+<span class="lineNum">     545 </span>            :             }
+<span class="lineNum">     546 </span><span class="lineCov">          5 :             for (int i_mu=0;i_mu&lt;n_mu;i_mu++) selfenergies[i_mu].Deallocate_Injection();</span>
+<span class="lineNum">     547 </span><span class="lineCov">       4609 :             sol = new CPX[dist_sol[matrix_rank]*(nprol+npror)]();</span>
+<span class="lineNum">     548 </span>            :         }
+<span class="lineNum">     549 </span><span class="lineCov">          1 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     550 </span><span class="lineCov">          1 :         solver-&gt;solve_equation(sol, inj, nprol+npror);</span>
+<span class="lineNum">     551 </span><span class="lineCov">          1 :         if (transport_params.lin_solver_method!=lin_solver_methods::SPLITSOLVE || matrix_rank==left_gpu_rank || matrix_rank==right_gpu_rank) {</span>
+<span class="lineNum">     552 </span><span class="lineCov">          1 :             delete[] inj;</span>
+<span class="lineNum">     553 </span>            :         }
+<span class="lineNum">     554 </span><span class="lineCov">          1 :         delete solver;</span>
+<span class="lineNum">     555 </span><span class="lineCov">          1 :         delete HamSig;</span>
+<span class="lineNum">     556 </span>            : #ifdef HAVE_SPLITSOLVE
+<span class="lineNum">     557 </span>            :         if (transport_params.lin_solver_method==lin_solver_methods::SPLITSOLVE &amp;&amp; boundary_id==n_mu) {
+<span class="lineNum">     558 </span>            :             cudaFreeHost(M_host);
+<span class="lineNum">     559 </span>            :         }
+<span class="lineNum">     560 </span>            : #endif
+<span class="lineNum">     561 </span><span class="lineCov">          3 : if (worldrank==left_gpu_rank) cout &lt;&lt; &quot;TIME FOR WAVEFUNCTION SPARSE SOLVE PHASE &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     562 </span><span class="lineCov">          1 :         int solsize=Ps-&gt;size_tot;</span>
+<span class="lineNum">     563 </span><span class="lineCov">       4609 :         CPX* Sol = new CPX[solsize*(nprol+npror)];</span>
+<span class="lineNum">     564 </span><span class="lineCov">          9 :         for (int icol=0;icol&lt;nprol+npror;icol++) {</span>
+<span class="lineNum">     565 </span><span class="lineCov">          4 :             if (transport_params.lin_solver_method==lin_solver_methods::SPLITSOLVE) {</span>
+<span class="lineNum">     566 </span><span class="lineNoCov">          0 :                 if (boundary_id==n_mu) {</span>
+<span class="lineNum">     567 </span>            :                     int solver_rank;
+<span class="lineNum">     568 </span><span class="lineNoCov">          0 :                     MPI_Comm_rank(boundary_comm,&amp;solver_rank);</span>
+<span class="lineNum">     569 </span><span class="lineNoCov">          0 :                     MPI_Allgatherv(&amp;sol[dist_sol[solver_rank]*icol],dist_sol[solver_rank],MPI_DOUBLE_COMPLEX,&amp;Sol[solsize*icol],dist_sol,displc_sol,MPI_DOUBLE_COMPLEX,boundary_comm);</span>
+<span class="lineNum">     570 </span>            :                 }
+<span class="lineNum">     571 </span><span class="lineNoCov">          0 :                 MPI_Bcast(&amp;Sol[solsize*icol],solsize,MPI_DOUBLE_COMPLEX,left_gpu_rank,matrix_comm);</span>
+<span class="lineNum">     572 </span>            :             } else {
+<span class="lineNum">     573 </span><span class="lineCov">          4 :                 MPI_Allgatherv(&amp;sol[dist_sol[matrix_rank]*icol],dist_sol[matrix_rank],MPI_DOUBLE_COMPLEX,&amp;Sol[solsize*icol],dist_sol,displc_sol,MPI_DOUBLE_COMPLEX,matrix_comm);</span>
+<span class="lineNum">     574 </span>            :             }
+<span class="lineNum">     575 </span>            :         }
+<span class="lineNum">     576 </span><span class="lineCov">          1 :         if (transport_params.lin_solver_method!=lin_solver_methods::SPLITSOLVE || boundary_id==n_mu) {</span>
+<span class="lineNum">     577 </span><span class="lineCov">          1 :             delete[] sol;</span>
+<span class="lineNum">     578 </span><span class="lineCov">          1 :             delete[] dist_sol;</span>
+<span class="lineNum">     579 </span><span class="lineCov">          1 :             delete[] displc_sol;</span>
+<span class="lineNum">     580 </span>            :         }
+<span class="lineNum">     581 </span>            : //maybe i should have a solver comm (pointer to MPI_COMM_NULL after use) and a function sol_alloc and sol_dealloc
+<span class="lineNum">     582 </span><span class="lineCov">          1 :         if (transport_params.cp2k_method==cp2k_methods::TRANSMISSION) {</span>
+<span class="lineNum">     583 </span><span class="lineCov">          2 :             ifstream rangefile(&quot;CURRENT_CUBE_RANGE&quot;);</span>
+<span class="lineNum">     584 </span><span class="lineCov">          1 :             CPX factor_w=0.0;</span>
+<span class="lineNum">     585 </span><span class="lineCov">          2 :             if (weight==1.0) {</span>
+<span class="lineNum">     586 </span>            :                 factor_w=1.0;
+<span class="lineNum">     587 </span><span class="lineNoCov">          0 :             } else if (abs(muvec[0]-muvec[1])&gt;0.01) {</span>
+<span class="lineNum">     588 </span><span class="lineNoCov">          0 :                 if (muvec[0]&gt;muvec[1]) {</span>
+<span class="lineNum">     589 </span><span class="lineNoCov">          0 :                     double fermil = fermi(real(energy),muvec[0],transport_params.temperature,0)-fermi(real(energy),muvec[1],transport_params.temperature,0);</span>
+<span class="lineNum">     590 </span><span class="lineNoCov">          0 :                     factor_w=+weight*fermil;</span>
+<span class="lineNum">     591 </span>            :                 } else {
+<span class="lineNum">     592 </span><span class="lineNoCov">          0 :                     double fermir = fermi(real(energy),muvec[1],transport_params.temperature,0)-fermi(real(energy),muvec[0],transport_params.temperature,0);</span>
+<span class="lineNum">     593 </span><span class="lineNoCov">          0 :                     factor_w=+weight*fermir;</span>
+<span class="lineNum">     594 </span>            :                 }
+<span class="lineNum">     595 </span><span class="lineNoCov">          0 :             } else if (rangefile) {</span>
+<span class="lineNum">     596 </span>            :                 double range_start, range_end;
+<span class="lineNum">     597 </span><span class="lineNoCov">          0 :                 rangefile &gt;&gt; range_start;</span>
+<span class="lineNum">     598 </span><span class="lineNoCov">          0 :                 rangefile &gt;&gt; range_end;</span>
+<span class="lineNum">     599 </span><span class="lineNoCov">          0 :                 if (real(energy)&gt;range_start &amp;&amp; real(energy)&lt;range_end) {</span>
+<span class="lineNum">     600 </span><span class="lineNoCov">          0 :                     factor_w=weight;</span>
+<span class="lineNum">     601 </span>            :                 }
+<span class="lineNum">     602 </span><span class="lineNoCov">          0 :                 rangefile.close();</span>
+<span class="lineNum">     603 </span>            :             }
+<span class="lineNum">     604 </span><span class="lineCov">       2305 :             CPX* SolT = new CPX[solsize*nprol];</span>
+<span class="lineNum">     605 </span><span class="lineCov">          1 :             full_transpose(nprol,solsize,Sol,SolT);</span>
+<span class="lineNum">     606 </span><span class="lineCov">          2 :             Ps-&gt;psipsidagger_transpose(Overlap,resultvec[0].dosprofile,&amp;orb_per_at[0],PsImag,SolT,nprol,-0.5*factor_w,matrix_comm);</span>
+<span class="lineNum">     607 </span><span class="lineCov">          1 :             delete[] SolT;</span>
+<span class="lineNum">     608 </span><span class="lineCov">       2305 :             SolT = new CPX[solsize*npror];</span>
+<span class="lineNum">     609 </span><span class="lineCov">          1 :             full_transpose(npror,solsize,&amp;Sol[solsize*nprol],SolT);</span>
+<span class="lineNum">     610 </span><span class="lineCov">          2 :             Ps-&gt;psipsidagger_transpose(Overlap,resultvec[1].dosprofile,&amp;orb_per_at[0],PsImag,SolT,npror,+0.5*factor_w,matrix_comm);</span>
+<span class="lineNum">     611 </span><span class="lineCov">          1 :             delete[] SolT;</span>
+<span class="lineNum">     612 </span>            :         }
+<span class="lineNum">     613 </span><span class="lineCov">          1 :         if (transport_params.cp2k_method==cp2k_methods::TRANSPORT) {</span>
+<span class="lineNum">     614 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     615 </span>            : //int minmuarg=std::min_element( vec.begin(), vec.end() ); and then loop over all that are not minmuarg
+<span class="lineNum">     616 </span><span class="lineNoCov">          0 :             if (muvec[0]&gt;muvec[1]) {</span>
+<span class="lineNum">     617 </span><span class="lineNoCov">          0 :                 double fermil = fermi(real(energy),muvec[0],transport_params.temperature,0)-fermi(real(energy),muvec[1],transport_params.temperature,0);</span>
+<span class="lineNum">     618 </span><span class="lineNoCov">          0 :                 CPX* SolT = new CPX[solsize*nprol];</span>
+<span class="lineNum">     619 </span><span class="lineNoCov">          0 :                 full_transpose(nprol,solsize,Sol,SolT);</span>
+<span class="lineNum">     620 </span><span class="lineNoCov">          0 :                 if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     621 </span><span class="lineNoCov">          0 :                     Overlap-&gt;psipsidagger_transpose(resultvec[0].dosprofile,SolT,nprol,matrix_comm);</span>
+<span class="lineNum">     622 </span>            :                 } else {
+<span class="lineNum">     623 </span><span class="lineNoCov">          0 :                     Ps-&gt;psipsidagger_transpose(Overlap,resultvec[0].dosprofile,&amp;orb_per_at[0],PsImag,SolT,nprol,+weight*fermil,matrix_comm);</span>
+<span class="lineNum">     624 </span><span class="lineNoCov">          0 :                     delete[] SolT;</span>
+<span class="lineNum">     625 </span><span class="lineNoCov">          0 :                     SolT = new CPX[solsize*npror];</span>
+<span class="lineNum">     626 </span><span class="lineNoCov">          0 :                     full_transpose(npror,solsize,&amp;Sol[solsize*nprol],SolT);</span>
+<span class="lineNum">     627 </span><span class="lineNoCov">          0 :                     Ps-&gt;psipsidagger_transpose(Overlap,resultvec[1].dosprofile,&amp;orb_per_at[0],PsImag,SolT,npror,0.0,matrix_comm);</span>
+<span class="lineNum">     628 </span>            :                 }
+<span class="lineNum">     629 </span><span class="lineNoCov">          0 :                 delete[] SolT;</span>
+<span class="lineNum">     630 </span>            :             } else {
+<span class="lineNum">     631 </span><span class="lineNoCov">          0 :                 double fermir = fermi(real(energy),muvec[1],transport_params.temperature,0)-fermi(real(energy),muvec[0],transport_params.temperature,0);</span>
+<span class="lineNum">     632 </span><span class="lineNoCov">          0 :                 CPX* SolT = new CPX[solsize*npror];</span>
+<span class="lineNum">     633 </span><span class="lineNoCov">          0 :                 full_transpose(npror,solsize,&amp;Sol[solsize*nprol],SolT);</span>
+<span class="lineNum">     634 </span><span class="lineNoCov">          0 :                 if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     635 </span><span class="lineNoCov">          0 :                     Overlap-&gt;psipsidagger_transpose(resultvec[1].dosprofile,SolT,npror,matrix_comm);</span>
+<span class="lineNum">     636 </span>            :                 } else {
+<span class="lineNum">     637 </span><span class="lineNoCov">          0 :                     Ps-&gt;psipsidagger_transpose(Overlap,resultvec[1].dosprofile,&amp;orb_per_at[0],PsImag,SolT,npror,+weight*fermir,matrix_comm);</span>
+<span class="lineNum">     638 </span><span class="lineNoCov">          0 :                     delete[] SolT;</span>
+<span class="lineNum">     639 </span><span class="lineNoCov">          0 :                     SolT = new CPX[solsize*nprol];</span>
+<span class="lineNum">     640 </span><span class="lineNoCov">          0 :                     full_transpose(nprol,solsize,Sol,SolT);</span>
+<span class="lineNum">     641 </span><span class="lineNoCov">          0 :                     Ps-&gt;psipsidagger_transpose(Overlap,resultvec[0].dosprofile,&amp;orb_per_at[0],PsImag,SolT,nprol,0.0,matrix_comm);</span>
+<span class="lineNum">     642 </span>            :                 }
+<span class="lineNum">     643 </span><span class="lineNoCov">          0 :                 delete[] SolT;</span>
+<span class="lineNum">     644 </span>            :             }
+<span class="lineNum">     645 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR CONSTRUCTION OF S-PATTERN DENSITY MATRIX &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     646 </span>            :         }
+<span class="lineNum">     647 </span><span class="lineCov">          1 :         if (transport_params.cp2k_method==cp2k_methods::LOCAL_SCF) {</span>
+<span class="lineNum">     648 </span><span class="lineNoCov">          0 :             CPX* Soll = new CPX[solsize*(nprol+npror)]();</span>
+<span class="lineNum">     649 </span><span class="lineNoCov">          0 :             CPX* Solr = new CPX[solsize*(nprol+npror)]();</span>
+<span class="lineNum">     650 </span><span class="lineNoCov">          0 :             for (int ibw=bandwidth+1;ibw&lt;ncells;ibw++) {</span>
+<span class="lineNum">     651 </span>            : //            for (int ibw=0;ibw&lt;ncells;ibw++) {
+<span class="lineNum">     652 </span><span class="lineNoCov">          0 :                 c_zlacpy('A',ndof,nprol+npror,Sol,solsize,&amp;Soll[ndof*ibw],solsize);</span>
+<span class="lineNum">     653 </span><span class="lineNoCov">          0 :                 c_zlacpy('A',ndof,nprol+npror,&amp;Sol[solsize-ndof],solsize,&amp;Solr[solsize-ndof*(ibw+1)],solsize);</span>
+<span class="lineNum">     654 </span><span class="lineNoCov">          0 :                 for (int ipro=0;ipro&lt;nprol+npror;ipro++) {</span>
+<span class="lineNum">     655 </span><span class="lineNoCov">          0 :                     c_zscal(solsize,pow(lambda[ipro],-1),&amp;Soll[ipro*solsize],1);</span>
+<span class="lineNum">     656 </span><span class="lineNoCov">          0 :                     c_zscal(solsize,pow(lambda[ipro],+1),&amp;Solr[ipro*solsize],1);</span>
+<span class="lineNum">     657 </span>            :                 }
+<span class="lineNum">     658 </span>            :             }
+<span class="lineNum">     659 </span><span class="lineNoCov">          0 :             double fermil=fermi(real(energy),muvec[0],transport_params.temperature,0);</span>
+<span class="lineNum">     660 </span><span class="lineNoCov">          0 :             double fermir=fermi(real(energy),muvec[1],transport_params.temperature,0);</span>
+<span class="lineNum">     661 </span><span class="lineNoCov">          0 : sabtime=get_time(d_zer);</span>
+<span class="lineNum">     662 </span><span class="lineNoCov">          0 :             CPX* SolT = new CPX[solsize*max(nprol,npror)];</span>
+<span class="lineNum">     663 </span><span class="lineNoCov">          0 :             CPX* SollT = new CPX[solsize*max(nprol,npror)];</span>
+<span class="lineNum">     664 </span><span class="lineNoCov">          0 :             CPX* SolrT = new CPX[solsize*max(nprol,npror)];</span>
+<span class="lineNum">     665 </span><span class="lineNoCov">          0 :             full_transpose(nprol,solsize,Sol,SolT);</span>
+<span class="lineNum">     666 </span><span class="lineNoCov">          0 :             full_transpose(nprol,solsize,Soll,SollT);</span>
+<span class="lineNum">     667 </span><span class="lineNoCov">          0 :             full_transpose(nprol,solsize,Solr,SolrT);</span>
+<span class="lineNum">     668 </span><span class="lineNoCov">          0 :             resultvec[0].dos=Ps-&gt;psipsidagger_transpose(Overlap,SolT,SollT,SolrT,nprol,ndof,bandwidth,+weight*fermil);</span>
+<span class="lineNum">     669 </span><span class="lineNoCov">          0 :             full_transpose(npror,solsize,&amp;Sol[solsize*nprol],SolT);</span>
+<span class="lineNum">     670 </span><span class="lineNoCov">          0 :             full_transpose(npror,solsize,&amp;Soll[solsize*nprol],SollT);</span>
+<span class="lineNum">     671 </span><span class="lineNoCov">          0 :             full_transpose(npror,solsize,&amp;Solr[solsize*nprol],SolrT);</span>
+<span class="lineNum">     672 </span><span class="lineNoCov">          0 :             resultvec[1].dos=Ps-&gt;psipsidagger_transpose(Overlap,SolT,SollT,SolrT,npror,ndof,bandwidth,+weight*fermir);</span>
+<span class="lineNum">     673 </span><span class="lineNoCov">          0 :             delete[] SolT;</span>
+<span class="lineNum">     674 </span><span class="lineNoCov">          0 :             delete[] SollT;</span>
+<span class="lineNum">     675 </span><span class="lineNoCov">          0 :             delete[] SolrT;</span>
+<span class="lineNum">     676 </span>            : /*
+<span class="lineNum">     677 </span>            :             Ps-&gt;psipsidagger(Overlap,Sol,Soll,Solr,nprol,ndof,bandwidth,+weight*fermil);
+<span class="lineNum">     678 </span>            :             Ps-&gt;psipsidagger(Overlap,&amp;Sol[Ps-&gt;size_tot*nprol],&amp;Soll[Ps-&gt;size_tot*nprol],&amp;Solr[Ps-&gt;size_tot*nprol],npror,ndof,bandwidth,+weight*fermir);
+<span class="lineNum">     679 </span>            : */
+<span class="lineNum">     680 </span><span class="lineNoCov">          0 : if (!worldrank) cout &lt;&lt; &quot;TIME FOR CONSTRUCTION OF S-PATTERN DENSITY MATRIX &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     681 </span><span class="lineNoCov">          0 :             delete[] Soll;</span>
+<span class="lineNum">     682 </span><span class="lineNoCov">          0 :             delete[] Solr;</span>
+<span class="lineNum">     683 </span>            :         }
+<span class="lineNum">     684 </span><span class="lineCov">          1 :         delete[] lambda;</span>
+<span class="lineNum">     685 </span>            : // transmission
+<span class="lineNum">     686 </span><span class="lineCov">          1 :         if (!matrix_rank) {</span>
+<span class="lineNum">     687 </span><span class="lineCov">        217 :             CPX *vecoutdof=new CPX[ntriblock];</span>
+<span class="lineNum">     688 </span><span class="lineCov">          1 :             resultvec[0].transm=d_zer;</span>
+<span class="lineNum">     689 </span><span class="lineCov">          3 :             for (int ipro=0;ipro&lt;nprol;ipro++) {</span>
+<span class="lineNum">     690 </span><span class="lineCov">          2 :                 H1-&gt;mat_vec_mult(&amp;Sol[Ps-&gt;size_tot*ipro+(tra_block+1)*ntriblock],vecoutdof,1);</span>
+<span class="lineNum">     691 </span><span class="lineCov">          4 :                  resultvec[0].transm+=4*M_PI*imag(c_zdotc(ntriblock,&amp;Sol[Ps-&gt;size_tot*ipro+tra_block*ntriblock],1,vecoutdof,1));</span>
+<span class="lineNum">     692 </span>            :             }
+<span class="lineNum">     693 </span><span class="lineCov">          1 :             resultvec[1].transm=d_zer;</span>
+<span class="lineNum">     694 </span><span class="lineCov">          3 :             for (int ipro=nprol;ipro&lt;nprol+npror;ipro++) {</span>
+<span class="lineNum">     695 </span><span class="lineCov">          2 :                 H1-&gt;mat_vec_mult(&amp;Sol[Ps-&gt;size_tot*ipro+(tra_block+1)*ntriblock],vecoutdof,1);</span>
+<span class="lineNum">     696 </span><span class="lineCov">          4 :                 resultvec[1].transm+=4*M_PI*imag(c_zdotc(ntriblock,&amp;Sol[Ps-&gt;size_tot*ipro+tra_block*ntriblock],1,vecoutdof,1));</span>
+<span class="lineNum">     697 </span>            :             }
+<span class="lineNum">     698 </span><span class="lineCov">          1 :             delete[] vecoutdof;</span>
+<span class="lineNum">     699 </span>            :         }
+<span class="lineNum">     700 </span><span class="lineCov">          1 :         delete[] Sol;</span>
+<span class="lineNum">     701 </span><span class="lineCov">          1 :         delete H1;</span>
+<span class="lineNum">     702 </span><span class="lineNoCov">          0 :     } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     703 </span><span class="lineCov">          1 :     MPI_Comm_free(&amp;boundary_comm);</span>
+<a name="704"><span class="lineNum">     704 </span>            : </a>
+<span class="lineNum">     705 </span>            :     return 0;
+<span class="lineNum">     706 </span><span class="lineCov">          4 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

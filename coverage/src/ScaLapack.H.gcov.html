@@ -1,0 +1,623 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/ScaLapack.H</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - ScaLapack.H<span style="font-size: 80%;"> (source / <a href="ScaLapack.H.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntry">22</td>
+            <td class="headerCovTableEntryLo">68.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #ifndef __SCALAPACK
+<span class="lineNum">      13 </span>            : #define __SCALAPACK
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : #include &lt;mpi.h&gt;
+<span class="lineNum">      16 </span>            : #include &lt;iostream&gt;
+<span class="lineNum">      17 </span>            : #include &lt;stdio.h&gt;
+<span class="lineNum">      18 </span>            : #include &lt;fstream&gt;
+<span class="lineNum">      19 </span>            : #include &lt;time.h&gt;
+<span class="lineNum">      20 </span>            : #include &quot;Blas.H&quot;
+<span class="lineNum">      21 </span>            : #include &quot;Utilities.H&quot;
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : extern &quot;C&quot; {
+<span class="lineNum">      24 </span>            :     
+<span class="lineNum">      25 </span>            :     void fortran_name(dgehrd,DGEHRD)(int*,int*,int*,double*,int*,double*,double*,int*,int*);
+<span class="lineNum">      26 </span>            : #ifndef __BLAS
+<span class="lineNum">      27 </span>            :     void fortran_name(dlacpy,DLACPY)(char*,int*,int*,double*,int*,double*,int*);
+<span class="lineNum">      28 </span>            :     void fortran_name(zlacpy,ZLACPY)(char*,int*,int*,CPX*,int*,CPX*,int*);
+<span class="lineNum">      29 </span>            : #endif /* __BLAS */
+<span class="lineNum">      30 </span>            :     double fortran_name(pdlamch,PDLAMCH)(int*,char*);
+<span class="lineNum">      31 </span>            :     void fortran_name(dorghr,DORGHR)(int*,int*,int*,double*,int*,double*,double*,int*,int*);
+<span class="lineNum">      32 </span>            :     void fortran_name(dhseqr,DHSEQR)(char*,char*,int*,int*,int*,double*,int*,double*,double*,\
+<span class="lineNum">      33 </span>            :                                      double*,int*,double*,int*,int*);
+<span class="lineNum">      34 </span>            :     void fortran_name(dtrevc,DTREVC)(char*,char*,bool*,int*,double*,int*,double*,int*,double*,\
+<span class="lineNum">      35 </span>            :                                      int*,int*,int*,double*,int*);
+<span class="lineNum">      36 </span>            :     void fortran_name(ztrevc,ZTREVC)(char*,char*,bool*,int*,CPX*,int*,CPX*,int*,CPX*,\
+<span class="lineNum">      37 </span>            :                                      int*,int*,int*,CPX*,double*,int*);
+<span class="lineNum">      38 </span>            :     void fortran_name(dgebal,DGEBAL)(char*,int*,double*,int*,int*,int*,double*,int*);
+<span class="lineNum">      39 </span>            :     double fortran_name(zlange,ZLANGE)(char*,int*,int*,CPX*,int*,double*);
+<span class="lineNum">      40 </span>            :     void fortran_name(zgecon,ZGECON)(char*,int*,CPX*,int*,double*,double*,CPX*,double*,int*);
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            :     int fortran_name(numroc,NUMROC)(int*,int*,int*,int*,int*);
+<span class="lineNum">      43 </span>            :     int fortran_name(indxg2p,INDXG2P)(int*,int*,int*,int*,int*);
+<span class="lineNum">      44 </span>            :     void fortran_name(descinit,DESCINIT)(int*,int*,int*,int*,int*,int*,int*,int*,int*,int*);
+<span class="lineNum">      45 </span>            :     void fortran_name(pdsyev,PDSYEV)(char*,char*,int*,double*,int*,int*,int*,double*,\
+<span class="lineNum">      46 </span>            :                                      double*,int*,int*,int*,double*,int*,int*);
+<span class="lineNum">      47 </span>            :     void fortran_name(pdgehrd,PDGEHRD)(int*,int*,int*,double*,int*,int*,int*,double*,\
+<span class="lineNum">      48 </span>            :                                        double*,int*,int*);
+<span class="lineNum">      49 </span>            :     void fortran_name(pzgehrd,PZGEHRD)(int*,int*,int*,CPX*,int*,int*,int*,CPX*,\
+<span class="lineNum">      50 </span>            :                                        CPX*,int*,int*);
+<span class="lineNum">      51 </span>            :     void fortran_name(pdlacpy,PDLACPY)(char*,int*,int*,double*,int*,int*,int*,double*,\
+<span class="lineNum">      52 </span>            :                                        int*,int*,int*);
+<span class="lineNum">      53 </span>            :     void fortran_name(pzlacpy,PZLACPY)(char*,int*,int*,CPX*,int*,int*,int*,CPX*,\
+<span class="lineNum">      54 </span>            :                                        int*,int*,int*);
+<span class="lineNum">      55 </span>            :     void fortran_name(pdlaset,PDLASET)(char*,int*,int*,double*,double*,double*,int*,int*,int*);
+<span class="lineNum">      56 </span>            :     void fortran_name(pzlaset,PZLASET)(char*,int*,int*,CPX*,CPX*,CPX*,int*,int*,int*);
+<span class="lineNum">      57 </span>            :     void fortran_name(pdlahqr,PDLAHQR)(bool*,bool*,int*,int*,int*,double*,int*,double*,double*,\
+<span class="lineNum">      58 </span>            :                                        int*,int*,double*,int*,double*,int*,int*,int*,int*);
+<span class="lineNum">      59 </span>            :     void fortran_name(pzlahqr,PZLAHQR)(bool*,bool*,int*,int*,int*,CPX*,int*,CPX*,\
+<span class="lineNum">      60 </span>            :                                        int*,int*,CPX*,int*,CPX*,int*,int*,int*,int*);
+<span class="lineNum">      61 </span>            :     void fortran_name(pdormhr,PDORMHR)(char*,char*,int*,int*,int*,int*,double*,int*,int*,int*,\
+<span class="lineNum">      62 </span>            :                                        double*,double*,int*,int*,int*,double*,int*,int*);
+<span class="lineNum">      63 </span>            :     void fortran_name(pzunmhr,PZUNMHR)(char*,char*,int*,int*,int*,int*,CPX*,int*,int*,int*,\
+<span class="lineNum">      64 </span>            :                                        CPX*,CPX*,int*,int*,int*,CPX*,int*,int*);
+<span class="lineNum">      65 </span>            :     void fortran_name(pztrevc,PZTREVC)(char*,char*,bool*,int*,CPX*,int*,CPX*,int*,CPX*,int*,\
+<span class="lineNum">      66 </span>            :                                        int*,int*,CPX*,double*,int*);
+<span class="lineNum">      67 </span>            :     void fortran_name(pdgemm,PDGEMM)(char*,char*,int*,int*,int*,double*,double*,int*,int*,int*,\
+<span class="lineNum">      68 </span>            :                                      double*,int*,int*,int*,double*,double*,int*,int*,int*);
+<span class="lineNum">      69 </span>            :     void fortran_name(pzgemm,PZGEMM)(char*,char*,int*,int*,int*,CPX*,CPX*,int*,int*,int*,\
+<span class="lineNum">      70 </span>            :                                      CPX*,int*,int*,int*,CPX*,CPX*,int*,int*,int*);
+<span class="lineNum">      71 </span>            :     void fortran_name(pzgetrf,PZGETRF)(int*,int*,CPX*,int*,int*,int*,int*,int*);
+<span class="lineNum">      72 </span>            :     void fortran_name(pzgetrs,PZGETRS)(char*,int*,int*,CPX*,int*,int*,int*,int*,CPX*,\
+<span class="lineNum">      73 </span>            :                                        int*,int*,int*,int*);
+<span class="lineNum">      74 </span>            :     void fortran_name(pzgetri,PZGETRI)(int*,CPX*,int*,int*,int*,int*,CPX*,int*,int*,int*,int*);
+<span class="lineNum">      75 </span>            :     void fortran_name(pdgeadd,PDGEADD)(char*,int*,int*,double*,double*,int*,int*,int*,double*,\
+<span class="lineNum">      76 </span>            :                                        double*,int*,int*,int*);
+<span class="lineNum">      77 </span>            :     void fortran_name(pzgeadd,PZGEADD)(char*,int*,int*,CPX*,CPX*,int*,int*,int*,CPX*,CPX*,int*,\
+<span class="lineNum">      78 </span>            :                                        int*,int*);
+<span class="lineNum">      79 </span>            :     void fortran_name(pzgesvd,PZGESVD)(char*,char*,int*,int*,CPX*,int*,int*,int*,double*,CPX*,\
+<span class="lineNum">      80 </span>            :                                        int*,int*,int*,CPX*,int*,int*,int*,CPX*,int*,double*,int*);
+<span class="lineNum">      81 </span>            :     void fortran_name(pdsygvx,PDSYGVX)(int*,char*,char*,char*,int*,double*,int*,int*,int*,\
+<span class="lineNum">      82 </span>            :                                        double*,int*,int*,int*,double*,double*,int*,int*,double*,\
+<span class="lineNum">      83 </span>            :                                        int*,int*,double*,double*,double*,int*,int*,int*,double*,\
+<span class="lineNum">      84 </span>            :                                        int*,int*,int*,int*,int*,double*,int*);
+<span class="lineNum">      85 </span>            :     void fortran_name(pzhegvx,PZHEGVX)(int*,char*,char*,char*,int*,CPX*,int*,int*,int*,CPX*,int*,\
+<span class="lineNum">      86 </span>            :                                        int*,int*,double*,double*,int*,int*,double*,int*,int*,\
+<span class="lineNum">      87 </span>            :                                        double*,double*,CPX*,int*,int*,int*,CPX*,int*,double*,\
+<span class="lineNum">      88 </span>            :                                        int*,int*,int*,int*,int*,double*,int*);
+<span class="lineNum">      89 </span>            :     void fortran_name(pdgemr2d,PDGEMR2D)(int*,int*,double*,int*,int*,int*,double*,int*,int*,int*,int*);
+<span class="lineNum">      90 </span>            :     void fortran_name(pzgemr2d,PZGEMR2D)(int*,int*,CPX*,int*,int*,int*,CPX*,int*,int*,int*,int*);
+<span class="lineNum">      91 </span>            :     void fortran_name(pzgbtrf,PZGBTRF)(int*,int*,int*,CPX*,int*,int*,int*,CPX*,int*,CPX*,\
+<span class="lineNum">      92 </span>            :                                        int*,int*);
+<span class="lineNum">      93 </span>            :     void fortran_name(pzgbtrs,PZGBTRS)(char*,int*,int*,int*,int*,CPX*,int*,int*,int*,CPX*,\
+<span class="lineNum">      94 </span>            :                                        int*,int*,CPX*,int*,CPX*,int*,int*);
+<span class="lineNum">      95 </span>            :     void fortran_name(pzdbtrf,PZGBTRF)(int*,int*,int*,CPX*,int*,int*,CPX*,int*,CPX*,\
+<span class="lineNum">      96 </span>            :                                        int*,int*);
+<span class="lineNum">      97 </span>            :     void fortran_name(pzdbtrs,PZGBTRS)(char*,int*,int*,int*,int*,CPX*,int*,int*,CPX*,\
+<span class="lineNum">      98 </span>            :                                        int*,int*,CPX*,int*,CPX*,int*,int*);
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            :     void fortran_name(blacs_pinfo,BLACS_pinfo)(int*,int*);
+<span class="lineNum">     102 </span>            :     void fortran_name(blacs_get,BLACS_GET)(int*,int*,int*);
+<span class="lineNum">     103 </span>            :     void fortran_name(blacs_gridinit,BLACS_GRIDINIT)(int*,char*,int*,int*);
+<span class="lineNum">     104 </span>            :     void fortran_name(blacs_gridinfo,BLACS_GRIDINFO)(int*,int*,int*,int*,int*);
+<span class="lineNum">     105 </span>            :     void fortran_name(blacs_gridexit,BLACS_GRIDEXIT)(int*);
+<span class="lineNum">     106 </span>            : }
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            : /*Lapack*****************************************************************************************/
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span>            : inline void c_dgehrd(int N,int ILO,int IHI,double *A,int LDA,double *TAU,double *WORK,\
+<span class="lineNum">     111 </span>            :                      int LWORK,int *INFO)
+<span class="lineNum">     112 </span>            : {
+<span class="lineNum">     113 </span>            :     fortran_name(dgehrd,DGEHRD)(&amp;N,&amp;ILO,&amp;IHI,A,&amp;LDA,TAU,WORK,&amp;LWORK,INFO);
+<span class="lineNum">     114 </span>            : }
+<span class="lineNum">     115 </span>            : 
+<span class="lineNum">     116 </span>            : /************************************************************************************************/
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            : #ifndef __BLAS
+<span class="lineNum">     119 </span>            : inline void c_dlacpy(char UPLO,int M,int N,double *A,int LDA,double *B,int LDB)
+<span class="lineNum">     120 </span>            : {
+<span class="lineNum">     121 </span>            :     fortran_name(dlacpy,DLACPY)(&amp;UPLO,&amp;M,&amp;N,A,&amp;LDA,B,&amp;LDB);
+<span class="lineNum">     122 </span>            : }
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span>            : /************************************************************************************************/
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span>            : inline void c_zlacpy(char UPLO,int M,int N,CPX *A,int LDA,CPX *B,int LDB)
+<span class="lineNum">     127 </span>            : {
+<span class="lineNum">     128 </span>            :     fortran_name(zlacpy,ZLACPY)(&amp;UPLO,&amp;M,&amp;N,A,&amp;LDA,B,&amp;LDB);
+<span class="lineNum">     129 </span>            : }
+<span class="lineNum">     130 </span>            : #endif /* __BLAS */
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            : /************************************************************************************************/
+<span class="lineNum">     133 </span>            : 
+<span class="lineNum">     134 </span>            : inline double c_pdlamch(int ictxt,char cmach)
+<span class="lineNum">     135 </span>            : {
+<span class="lineNum">     136 </span><span class="lineCov">        384 :     return fortran_name(pdlamch,PDLAMCH)(&amp;ictxt,&amp;cmach);</span>
+<span class="lineNum">     137 </span>            : }
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span>            : /************************************************************************************************/
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            : inline void c_dorghr(int N,int ILO,int IHI,double *A,int LDA,double *TAU,double *WORK,\
+<span class="lineNum">     142 </span>            :                      int LWORK,int *INFO)
+<span class="lineNum">     143 </span>            : {
+<span class="lineNum">     144 </span>            :     fortran_name(dorghr,DORGHR)(&amp;N,&amp;ILO,&amp;IHI,A,&amp;LDA,TAU,WORK,&amp;LWORK,INFO);
+<span class="lineNum">     145 </span>            : }
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span>            : /************************************************************************************************/
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span>            : inline void c_dhseqr(char JOB,char COMPZ,int N,int ILO,int IHI,double *H,int LDH,double *WR,\
+<span class="lineNum">     150 </span>            :                      double *WI,double *Z,int LDZ,double *WORK,int LWORK,int *INFO)
+<span class="lineNum">     151 </span>            : {
+<span class="lineNum">     152 </span>            :     fortran_name(dhseqr,DHSEQR)(&amp;JOB,&amp;COMPZ,&amp;N,&amp;ILO,&amp;IHI,H,&amp;LDH,WR,WI,Z,&amp;LDZ,WORK,&amp;LWORK,INFO);
+<span class="lineNum">     153 </span>            : }
+<span class="lineNum">     154 </span>            : 
+<span class="lineNum">     155 </span>            : /************************************************************************************************/
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span>            : inline void c_dtrevc(char SIDE,char HOWMNY,bool SELECT,int N,double *T,int LDT,double *VL,\
+<span class="lineNum">     158 </span>            :                      int LDVL,double *VR,int LDVR,int MM,int *M,double *WORK,int *INFO)
+<span class="lineNum">     159 </span>            : {
+<span class="lineNum">     160 </span>            :     fortran_name(dtrevc,DTREVC)(&amp;SIDE,&amp;HOWMNY,&amp;SELECT,&amp;N,T,&amp;LDT,VL,&amp;LDVL,VR,&amp;LDVR,&amp;MM,M,\
+<span class="lineNum">     161 </span>            :                                 WORK,INFO);
+<span class="lineNum">     162 </span>            : }
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span>            : /************************************************************************************************/
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span>            : inline void c_ztrevc(char SIDE,char HOWMNY,bool SELECT,int N,CPX *T,int LDT,CPX *VL,\
+<span class="lineNum">     167 </span>            :                      int LDVL,CPX *VR,int LDVR,int MM,int *M,CPX *WORK,double *RWORK,int *INFO)
+<span class="lineNum">     168 </span>            : {
+<span class="lineNum">     169 </span>            :     fortran_name(ztrevc,ZTREVC)(&amp;SIDE,&amp;HOWMNY,&amp;SELECT,&amp;N,T,&amp;LDT,VL,&amp;LDVL,VR,&amp;LDVR,&amp;MM,M,\
+<span class="lineNum">     170 </span>            :                                 WORK,RWORK,INFO);
+<span class="lineNum">     171 </span>            : }
+<span class="lineNum">     172 </span>            : 
+<span class="lineNum">     173 </span>            : /************************************************************************************************/
+<span class="lineNum">     174 </span>            : 
+<span class="lineNum">     175 </span>            : inline void c_dgebal(char JOB,int N,double *A,int LDA,int ILO,int IHI,double *SCALE,int *INFO )
+<span class="lineNum">     176 </span>            : {
+<span class="lineNum">     177 </span>            :     fortran_name(dgebal,DGEBAL)(&amp;JOB,&amp;N,A,&amp;LDA,&amp;ILO,&amp;IHI,SCALE,INFO);
+<span class="lineNum">     178 </span>            : }
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span>            : /************************************************************************************************/
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span>            : inline double c_zlange(char NORM,int M,int N,CPX *A,int LDA,double *WORK)
+<span class="lineNum">     183 </span>            : {
+<span class="lineNum">     184 </span><span class="lineCov">          2 :     return fortran_name(zlange,ZLANGE)(&amp;NORM,&amp;M,&amp;N,A,&amp;LDA,WORK);</span>
+<span class="lineNum">     185 </span>            : }
+<span class="lineNum">     186 </span>            : 
+<span class="lineNum">     187 </span>            : /************************************************************************************************/
+<span class="lineNum">     188 </span>            : 
+<span class="lineNum">     189 </span>            : inline void c_zgecon(char NORM,int N,CPX *A,int LDA,double ANORM,double *RCOND,\
+<span class="lineNum">     190 </span>            :                      CPX *WORK,double *RWORK,int *INFO)
+<span class="lineNum">     191 </span>            : {
+<span class="lineNum">     192 </span><span class="lineCov">          2 :     fortran_name(zgecon,ZGECON)(&amp;NORM,&amp;N,A,&amp;LDA,&amp;ANORM,RCOND,WORK,RWORK,INFO);</span>
+<span class="lineNum">     193 </span>            : }
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span>            : /*ScaLapack**************************************************************************************/
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span>            : inline int c_numroc(int N,int NB,int IPROC,int ISRCPROC,int NPROCS)
+<span class="lineNum">     198 </span>            : {
+<span class="lineNum">     199 </span><span class="lineCov">        776 :     return fortran_name(numroc,NUMROC)(&amp;N,&amp;NB,&amp;IPROC,&amp;ISRCPROC,&amp;NPROCS);</span>
+<span class="lineNum">     200 </span>            : }
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span>            : /************************************************************************************************/
+<span class="lineNum">     203 </span>            : 
+<span class="lineNum">     204 </span>            : inline int c_indxg2p(int INDXGLOB,int NB,int IPROC,int ISRCPROC,int NPROCS)
+<span class="lineNum">     205 </span>            : {
+<span class="lineNum">     206 </span>            :     return fortran_name(indxg2p,INDXG2P)(&amp;INDXGLOB,&amp;NB,&amp;IPROC,&amp;ISRCPROC,&amp;NPROCS);
+<span class="lineNum">     207 </span>            : }
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span>            : /************************************************************************************************/
+<span class="lineNum">     210 </span>            : 
+<span class="lineNum">     211 </span>            : inline void c_descinit(int *DESC,int M,int N,int MB,int NB,int IRSRC,int ICSRC,int ICTXT,\
+<span class="lineNum">     212 </span>            :                        int LLD, int *INFO)
+<span class="lineNum">     213 </span>            : {
+<span class="lineNum">     214 </span><span class="lineCov">        778 :     fortran_name(descinit,DESCINIT)(DESC,&amp;M,&amp;N,&amp;MB,&amp;NB,&amp;IRSRC,&amp;ICSRC,&amp;ICTXT,&amp;LLD,INFO);</span>
+<span class="lineNum">     215 </span>            : }
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            : /************************************************************************************************/
+<span class="lineNum">     218 </span>            : 
+<span class="lineNum">     219 </span>            : inline void c_pdsyev(char JOBZ,char UPLO,int N,double *A,int IA,int JA,int *DESCA,double *W,
+<span class="lineNum">     220 </span>            :                      double *Z,int IZ,int JZ,int *DESCZ,double *WORK,int LWORK,int *INFO)
+<span class="lineNum">     221 </span>            : {
+<span class="lineNum">     222 </span>            : 
+<span class="lineNum">     223 </span>            :     fortran_name(pdsyev,PDSYEV)(&amp;JOBZ,&amp;UPLO,&amp;N,A,&amp;IA,&amp;JA,DESCA,W,Z,&amp;IZ,&amp;JZ,DESCZ,WORK,\
+<span class="lineNum">     224 </span>            :                                 &amp;LWORK,INFO);
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span>            : }
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span>            : /************************************************************************************************/
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span>            : inline void c_pdgehrd(int N,int ILO,int IHI,double *A,int IA,int JA,int *DESCA,double* TAU,\
+<span class="lineNum">     231 </span>            :                       double *WORK,int LWORK,int *INFO)
+<span class="lineNum">     232 </span>            : {
+<span class="lineNum">     233 </span>            :     fortran_name(pdgehrd,PDGEHRD)(&amp;N,&amp;ILO,&amp;IHI,A,&amp;IA,&amp;JA,DESCA,TAU,WORK,&amp;LWORK,INFO);
+<span class="lineNum">     234 </span>            : }
+<span class="lineNum">     235 </span>            : 
+<span class="lineNum">     236 </span>            : /************************************************************************************************/
+<span class="lineNum">     237 </span>            : 
+<span class="lineNum">     238 </span>            : inline void c_pzgehrd(int N,int ILO,int IHI,CPX *A,int IA,int JA,int *DESCA,CPX* TAU,\
+<span class="lineNum">     239 </span>            :                       CPX *WORK,int LWORK,int *INFO)
+<span class="lineNum">     240 </span>            : {
+<span class="lineNum">     241 </span>            :     fortran_name(pzgehrd,PZGEHRD)(&amp;N,&amp;ILO,&amp;IHI,A,&amp;IA,&amp;JA,DESCA,TAU,WORK,&amp;LWORK,INFO);
+<span class="lineNum">     242 </span>            : }
+<span class="lineNum">     243 </span>            : 
+<span class="lineNum">     244 </span>            : /************************************************************************************************/
+<span class="lineNum">     245 </span>            : 
+<span class="lineNum">     246 </span>            : inline void c_pdlacpy(char UPLO,int M,int N,double *A,int IA,int JA,int *DESCA,double *B,\
+<span class="lineNum">     247 </span>            :                       int IB,int JB, int *DESCB)
+<span class="lineNum">     248 </span>            : {
+<span class="lineNum">     249 </span>            :     fortran_name(pdlacpy,PDLACPY)(&amp;UPLO,&amp;M,&amp;N,A,&amp;IA,&amp;JA,DESCA,B,&amp;IB,&amp;JB,DESCB);
+<span class="lineNum">     250 </span>            : }
+<span class="lineNum">     251 </span>            : 
+<span class="lineNum">     252 </span>            : /************************************************************************************************/
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span>            : inline void c_pzlacpy(char UPLO,int M,int N,CPX *A,int IA,int JA,int *DESCA,CPX *B,\
+<span class="lineNum">     255 </span>            :                       int IB,int JB, int *DESCB)
+<span class="lineNum">     256 </span>            : {
+<span class="lineNum">     257 </span>            :     fortran_name(pzlacpy,PZLACPY)(&amp;UPLO,&amp;M,&amp;N,A,&amp;IA,&amp;JA,DESCA,B,&amp;IB,&amp;JB,DESCB);
+<span class="lineNum">     258 </span>            : }
+<span class="lineNum">     259 </span>            : 
+<span class="lineNum">     260 </span>            : /************************************************************************************************/
+<span class="lineNum">     261 </span>            : 
+<span class="lineNum">     262 </span>            : inline void c_pdlaset(char UPLO,int M,int N,double ALPHA,double BETA,double *A,int IA,\
+<span class="lineNum">     263 </span>            :                       int JA,int *DESCA)
+<span class="lineNum">     264 </span>            : {
+<span class="lineNum">     265 </span>            :     fortran_name(pdlaset,PDLASET)(&amp;UPLO,&amp;M,&amp;N,&amp;ALPHA,&amp;BETA,A,&amp;IA,&amp;JA,DESCA);
+<span class="lineNum">     266 </span>            : }
+<span class="lineNum">     267 </span>            : 
+<span class="lineNum">     268 </span>            : /************************************************************************************************/
+<span class="lineNum">     269 </span>            : 
+<span class="lineNum">     270 </span>            : inline void c_pzlaset(char UPLO,int M,int N,CPX ALPHA,CPX BETA,CPX *A,int IA,\
+<span class="lineNum">     271 </span>            :                       int JA,int *DESCA)
+<span class="lineNum">     272 </span>            : {
+<span class="lineNum">     273 </span>            :     fortran_name(pzlaset,PZLASET)(&amp;UPLO,&amp;M,&amp;N,&amp;ALPHA,&amp;BETA,A,&amp;IA,&amp;JA,DESCA);
+<span class="lineNum">     274 </span>            : }
+<span class="lineNum">     275 </span>            : 
+<span class="lineNum">     276 </span>            : /************************************************************************************************/
+<span class="lineNum">     277 </span>            : 
+<span class="lineNum">     278 </span>            : inline void c_pdlahqr(bool WANTT,bool WANTZ,int N,int ILO,int IHI,double *A,int *DESCA,\
+<span class="lineNum">     279 </span>            :                       double *WR,double *WI,int ILOZ,int IHIZ,double *Z,int *DESCZ,double *WORK,\
+<span class="lineNum">     280 </span>            :                       int LWORK,int *IWORK,int ILWORK,int *INFO)
+<span class="lineNum">     281 </span>            : {
+<span class="lineNum">     282 </span>            :     fortran_name(pdlahqr,PDLAHQR)(&amp;WANTT,&amp;WANTZ,&amp;N,&amp;ILO,&amp;IHI,A,DESCA,WR,WI,&amp;ILOZ,&amp;IHIZ,Z,DESCZ,\
+<span class="lineNum">     283 </span>            :                                   WORK,&amp;LWORK,IWORK,&amp;ILWORK,INFO);
+<span class="lineNum">     284 </span>            : }
+<span class="lineNum">     285 </span>            : 
+<span class="lineNum">     286 </span>            : /************************************************************************************************/
+<span class="lineNum">     287 </span>            : 
+<span class="lineNum">     288 </span>            : inline void c_pzlahqr(bool WANTT,bool WANTZ,int N,int ILO,int IHI,CPX *A,int *DESCA,\
+<span class="lineNum">     289 </span>            :                       CPX *W,int ILOZ,int IHIZ,CPX *Z,int *DESCZ,CPX *WORK,\
+<span class="lineNum">     290 </span>            :                       int LWORK,int *IWORK,int ILWORK,int *INFO)
+<span class="lineNum">     291 </span>            : {
+<span class="lineNum">     292 </span>            :     fortran_name(pzlahqr,PZLAHQR)(&amp;WANTT,&amp;WANTZ,&amp;N,&amp;ILO,&amp;IHI,A,DESCA,W,&amp;ILOZ,&amp;IHIZ,Z,DESCZ,\
+<span class="lineNum">     293 </span>            :                                   WORK,&amp;LWORK,IWORK,&amp;ILWORK,INFO);
+<span class="lineNum">     294 </span>            : }
+<span class="lineNum">     295 </span>            : 
+<span class="lineNum">     296 </span>            : /************************************************************************************************/
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span>            : inline void c_pdormhr(char SIDE,char TRANS,int M,int N,int ILO,int IHI,double *A,int IA,int JA,\
+<span class="lineNum">     299 </span>            :                       int *DESCA,double *TAU,double *C,int IC,int JC,int *DESCC,double *WORK,\
+<span class="lineNum">     300 </span>            :                       int LWORK,int *INFO)
+<span class="lineNum">     301 </span>            : {
+<span class="lineNum">     302 </span>            :     fortran_name(pdormhr,PDORMHR)(&amp;SIDE,&amp;TRANS,&amp;M,&amp;N,&amp;ILO,&amp;IHI,A,&amp;IA,&amp;JA,DESCA,\
+<span class="lineNum">     303 </span>            :                                   TAU,C,&amp;IC,&amp;JC,DESCC,WORK,&amp;LWORK,INFO);
+<span class="lineNum">     304 </span>            : }
+<span class="lineNum">     305 </span>            : 
+<span class="lineNum">     306 </span>            : /************************************************************************************************/
+<span class="lineNum">     307 </span>            : 
+<span class="lineNum">     308 </span>            : inline void c_pzunmhr(char SIDE,char TRANS,int M,int N,int ILO,int IHI,CPX *A,int IA,int JA,\
+<span class="lineNum">     309 </span>            :                       int *DESCA,CPX *TAU,CPX *C,int IC,int JC,int *DESCC,CPX *WORK,\
+<span class="lineNum">     310 </span>            :                       int LWORK,int *INFO)
+<span class="lineNum">     311 </span>            : {
+<span class="lineNum">     312 </span>            :     fortran_name(pzunmhr,PZUNMHR)(&amp;SIDE,&amp;TRANS,&amp;M,&amp;N,&amp;ILO,&amp;IHI,A,&amp;IA,&amp;JA,DESCA,\
+<span class="lineNum">     313 </span>            :                                   TAU,C,&amp;IC,&amp;JC,DESCC,WORK,&amp;LWORK,INFO);
+<span class="lineNum">     314 </span>            : }
+<span class="lineNum">     315 </span>            : 
+<span class="lineNum">     316 </span>            : /************************************************************************************************/
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span>            : inline void c_pztrevc(char SIDE,char HOWMNY,bool SELECT,int N,CPX *T,int *DESCT,CPX *VL,\
+<span class="lineNum">     319 </span>            :                       int *DESCVL,CPX *VR,int *DESCVR,int MM,int *M,CPX *WORK,double *RWORK,\
+<span class="lineNum">     320 </span>            :                       int *INFO)
+<span class="lineNum">     321 </span>            : {
+<span class="lineNum">     322 </span>            :     fortran_name(pztrevc,PZTREVC)(&amp;SIDE,&amp;HOWMNY,&amp;SELECT,&amp;N,T,DESCT,VL,DESCVL,VR,DESCVR,\
+<span class="lineNum">     323 </span>            :                                   &amp;MM,M,WORK,RWORK,INFO);
+<span class="lineNum">     324 </span>            : }
+<span class="lineNum">     325 </span>            : 
+<span class="lineNum">     326 </span>            : /************************************************************************************************/
+<span class="lineNum">     327 </span>            : 
+<span class="lineNum">     328 </span>            : inline void c_pdgemm(char transa,char transb,int m,int n,int k,double alpha,double *a,int ia,\
+<span class="lineNum">     329 </span>            :                      int ja,int *desc_a,double *b,int ib,int jb,int *desc_b,double beta,\
+<span class="lineNum">     330 </span>            :                      double *c,int ic,int jc,int *desc_c)
+<span class="lineNum">     331 </span>            : {
+<span class="lineNum">     332 </span>            :     fortran_name(pdgemm,PDGEMM)(&amp;transa,&amp;transb,&amp;m,&amp;n,&amp;k,&amp;alpha,a,&amp;ia,&amp;ja,desc_a,b,&amp;ib,&amp;jb,\
+<span class="lineNum">     333 </span>            :                                 desc_b,&amp;beta,c,&amp;ic,&amp;jc,desc_c);
+<span class="lineNum">     334 </span>            : }
+<span class="lineNum">     335 </span>            : 
+<span class="lineNum">     336 </span>            : /************************************************************************************************/
+<span class="lineNum">     337 </span>            : 
+<span class="lineNum">     338 </span>            : inline void c_pzgemm(char transa,char transb,int m,int n,int k,CPX alpha,CPX *a,int ia,\
+<span class="lineNum">     339 </span>            :                      int ja,int *desc_a,CPX *b,int ib,int jb,int *desc_b,CPX beta,\
+<span class="lineNum">     340 </span>            :                      CPX *c,int ic,int jc,int *desc_c)
+<span class="lineNum">     341 </span>            : {
+<span class="lineNum">     342 </span>            :     fortran_name(pzgemm,PZGEMM)(&amp;transa,&amp;transb,&amp;m,&amp;n,&amp;k,&amp;alpha,a,&amp;ia,&amp;ja,desc_a,b,&amp;ib,&amp;jb,\
+<span class="lineNum">     343 </span><span class="lineCov">          4 :                                 desc_b,&amp;beta,c,&amp;ic,&amp;jc,desc_c);</span>
+<span class="lineNum">     344 </span>            : }
+<span class="lineNum">     345 </span>            : 
+<span class="lineNum">     346 </span>            : /************************************************************************************************/
+<span class="lineNum">     347 </span>            : 
+<span class="lineNum">     348 </span>            : inline void c_pzgetrf(int M,int N,CPX *A,int IA,int JA,int *DESCA,int *IPIV,int *INFO)
+<span class="lineNum">     349 </span>            : {
+<span class="lineNum">     350 </span><span class="lineCov">          1 :     fortran_name(pzgetrf,PZGETRF)(&amp;M,&amp;N,A,&amp;IA,&amp;JA,DESCA,IPIV,INFO);</span>
+<span class="lineNum">     351 </span>            : }
+<span class="lineNum">     352 </span>            : 
+<span class="lineNum">     353 </span>            : /************************************************************************************************/
+<span class="lineNum">     354 </span>            : 
+<span class="lineNum">     355 </span>            : inline void c_pzgetrs(char TRANS,int N,int NRHS,CPX *A,int IA,int JA,int *DESCA,int *IPIV,\
+<span class="lineNum">     356 </span>            :                       CPX *B,int IB,int JB,int *DESCB,int *INFO)
+<span class="lineNum">     357 </span>            : {
+<span class="lineNum">     358 </span><span class="lineCov">          1 :     fortran_name(pzgetrs,PZGETRS)(&amp;TRANS,&amp;N,&amp;NRHS,A,&amp;IA,&amp;JA,DESCA,IPIV,B,&amp;IB,&amp;JB,DESCB,INFO);</span>
+<span class="lineNum">     359 </span>            : }
+<span class="lineNum">     360 </span>            : 
+<span class="lineNum">     361 </span>            : /************************************************************************************************/
+<span class="lineNum">     362 </span>            : 
+<span class="lineNum">     363 </span>            : inline void c_pzgetri(int N,CPX *A,int IA,int JA,int *DESCA,int *IPIV,CPX *WORK,int LWORK,\
+<span class="lineNum">     364 </span>            :                       int *IWORK,int LIWORK,int *INFO)
+<span class="lineNum">     365 </span>            : {
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :     fortran_name(pzgetri,PZGETRI)(&amp;N,A,&amp;IA,&amp;JA,DESCA,IPIV,WORK,&amp;LWORK,IWORK,&amp;LIWORK,INFO);</span>
+<span class="lineNum">     367 </span>            : }
+<span class="lineNum">     368 </span>            : 
+<span class="lineNum">     369 </span>            : /************************************************************************************************/
+<span class="lineNum">     370 </span>            : 
+<span class="lineNum">     371 </span>            : inline void c_pdgeadd(char TRANS,int M,int N,double ALPHA,double *A,int IA,int JA,int *DESCA,\
+<span class="lineNum">     372 </span>            :                       double BETA,double *C,int IC,int JC,int *DESCC)
+<span class="lineNum">     373 </span>            : {
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :     fortran_name(pdgeadd,PDGEADD)(&amp;TRANS,&amp;M,&amp;N,&amp;ALPHA,A,&amp;IA,&amp;JA,DESCA,&amp;BETA,C,&amp;IC,&amp;JC,DESCC);</span>
+<span class="lineNum">     375 </span>            : }
+<span class="lineNum">     376 </span>            : 
+<span class="lineNum">     377 </span>            : /************************************************************************************************/
+<span class="lineNum">     378 </span>            : 
+<span class="lineNum">     379 </span>            : inline void c_pzgesvd(char JOBU,char JOBVT,int M,int N,CPX *A,int IA,int JA,int *DESCA,double *S,\
+<span class="lineNum">     380 </span>            :                       CPX *U,int IU,int JU,int *DESCU,CPX *VT,int IVT,int JVT,int *DESCVT,\
+<span class="lineNum">     381 </span>            :                       CPX *WORK,int LWORK,double *RWORK,int *INFO)
+<span class="lineNum">     382 </span>            : 
+<span class="lineNum">     383 </span>            : {
+<span class="lineNum">     384 </span>            :     fortran_name(pzgesvd,PZGESVD)(&amp;JOBU,&amp;JOBVT,&amp;M,&amp;N,A,&amp;IA,&amp;JA,DESCA,S,U,&amp;IU,&amp;JU,DESCU,\
+<span class="lineNum">     385 </span><span class="lineCov">          4 :                  VT,&amp;IVT,&amp;JVT,DESCVT,WORK,&amp;LWORK,RWORK,INFO);</span>
+<span class="lineNum">     386 </span>            : }
+<span class="lineNum">     387 </span>            : 
+<span class="lineNum">     388 </span>            : /************************************************************************************************/
+<span class="lineNum">     389 </span>            : 
+<span class="lineNum">     390 </span>            : inline void c_pzgeadd(char TRANS,int M,int N,CPX ALPHA,CPX *A,int IA,int JA,int *DESCA,\
+<span class="lineNum">     391 </span>            :                       CPX BETA,CPX *C,int IC,int JC,int *DESCC)
+<span class="lineNum">     392 </span>            : {
+<span class="lineNum">     393 </span><span class="lineCov">       1160 :     fortran_name(pzgeadd,PZGEADD)(&amp;TRANS,&amp;M,&amp;N,&amp;ALPHA,A,&amp;IA,&amp;JA,DESCA,&amp;BETA,C,&amp;IC,&amp;JC,DESCC);</span>
+<span class="lineNum">     394 </span>            : }
+<span class="lineNum">     395 </span>            : 
+<span class="lineNum">     396 </span>            : /************************************************************************************************/
+<span class="lineNum">     397 </span>            : 
+<span class="lineNum">     398 </span>            : inline void c_pdsygvx(int ibtype, char jobz, char range, char uplo, int n, double *a,\
+<span class="lineNum">     399 </span>            :                       int ia, int ja, int *desca, double *b, int ib, int jb, int *descb,\
+<span class="lineNum">     400 </span>            :                       double vl, double vu, int il, int iu, double abstol, int *m,\
+<span class="lineNum">     401 </span>            :                       int *nz, double *w, double orfac, double *z, int iz, int jz, int *descz,\
+<span class="lineNum">     402 </span>            :                       double *work, int lwork, int *iwork, int liwork,\
+<span class="lineNum">     403 </span>            :                       int *ifail, int *iclustr, double *gap, int *info)
+<span class="lineNum">     404 </span>            : {
+<span class="lineNum">     405 </span>            :     fortran_name(pdsygvx,PDSYGVX)(&amp;ibtype,&amp;jobz,&amp;range,&amp;uplo,&amp;n,a,&amp;ia,&amp;ja,desca,b,&amp;ib,&amp;jb,descb,\
+<span class="lineNum">     406 </span>            :                                   &amp;vl,&amp;vu,&amp;il,&amp;iu,&amp;abstol,m,nz,w,&amp;orfac,z,&amp;iz,&amp;jz,descz,\
+<span class="lineNum">     407 </span><span class="lineNoCov">          0 :                                   work,&amp;lwork,iwork,&amp;liwork,ifail,iclustr,gap,info);</span>
+<span class="lineNum">     408 </span>            : }
+<span class="lineNum">     409 </span>            : 
+<span class="lineNum">     410 </span>            : /************************************************************************************************/
+<span class="lineNum">     411 </span>            : 
+<span class="lineNum">     412 </span>            : inline void c_pzhegvx(int ibtype, char jobz, char range, char uplo, int n, CPX *a,\
+<span class="lineNum">     413 </span>            :                       int ia, int ja, int *desca, CPX *b, int ib, int jb, int *descb,\
+<span class="lineNum">     414 </span>            :                       double vl, double vu, int il, int iu, double abstol, int *m,\
+<span class="lineNum">     415 </span>            :                       int *nz, double *w, double orfac, CPX *z, int iz, int jz, int *descz,\
+<span class="lineNum">     416 </span>            :                       CPX *work, int lwork, double *rwork, int lrwork, int *iwork, int liwork,\
+<span class="lineNum">     417 </span>            :                       int *ifail, int *iclustr, double *gap, int *info)
+<span class="lineNum">     418 </span>            : {
+<span class="lineNum">     419 </span>            :     fortran_name(pzhegvx,PZHEGVX)(&amp;ibtype,&amp;jobz,&amp;range,&amp;uplo,&amp;n,a,&amp;ia,&amp;ja,desca,b,&amp;ib,&amp;jb,descb,\
+<span class="lineNum">     420 </span>            :                                   &amp;vl,&amp;vu,&amp;il,&amp;iu,&amp;abstol,m,nz,w,&amp;orfac,z,&amp;iz,&amp;jz,descz,\
+<span class="lineNum">     421 </span><span class="lineCov">        768 :                                   work,&amp;lwork,rwork,&amp;lrwork,iwork,&amp;liwork,ifail,iclustr,gap,info);</span>
+<span class="lineNum">     422 </span>            : }
+<span class="lineNum">     423 </span>            : 
+<span class="lineNum">     424 </span>            : /************************************************************************************************/
+<span class="lineNum">     425 </span>            : 
+<span class="lineNum">     426 </span>            : inline void c_pdgemr2d(int m,int n,double *a,int ia,int ja,int *desca,\
+<span class="lineNum">     427 </span>            :                        double *b,int ib,int jb,int *descb,int ictxt)
+<span class="lineNum">     428 </span>            : {
+<span class="lineNum">     429 </span>            :     fortran_name(pdgemr2d,PDGEMR2D)(&amp;m,&amp;n,a,&amp;ia,&amp;ja,desca,b,&amp;ib,&amp;jb,descb,&amp;ictxt);
+<span class="lineNum">     430 </span>            : }
+<span class="lineNum">     431 </span>            : 
+<span class="lineNum">     432 </span>            : /************************************************************************************************/
+<span class="lineNum">     433 </span>            : 
+<span class="lineNum">     434 </span>            : inline void c_pzgemr2d(int m,int n,CPX *a,int ia,int ja,int *desca,\
+<span class="lineNum">     435 </span>            :                        CPX *b,int ib,int jb,int *descb,int ictxt)
+<span class="lineNum">     436 </span>            : {
+<span class="lineNum">     437 </span><span class="lineCov">          3 :     fortran_name(pzgemr2d,PZGEMR2D)(&amp;m,&amp;n,a,&amp;ia,&amp;ja,desca,b,&amp;ib,&amp;jb,descb,&amp;ictxt);</span>
+<span class="lineNum">     438 </span>            : }
+<span class="lineNum">     439 </span>            : 
+<span class="lineNum">     440 </span>            : /************************************************************************************************/
+<span class="lineNum">     441 </span>            : 
+<span class="lineNum">     442 </span>            : inline void c_pzgbtrf(int n,int bwl,int bwu,CPX *a,int ja,int *desca,int *ipiv,CPX *af,int laf,\
+<span class="lineNum">     443 </span>            :                       CPX *work,int lwork,int *info)
+<span class="lineNum">     444 </span>            : {
+<span class="lineNum">     445 </span><span class="lineNoCov">          0 :     fortran_name(pzgbtrf,PZGBTRF)(&amp;n,&amp;bwl,&amp;bwu,a,&amp;ja,desca,ipiv,af,&amp;laf,work,&amp;lwork,info);</span>
+<span class="lineNum">     446 </span>            : }
+<span class="lineNum">     447 </span>            : 
+<span class="lineNum">     448 </span>            : /************************************************************************************************/
+<span class="lineNum">     449 </span>            : 
+<span class="lineNum">     450 </span>            : inline void c_pzgbtrs(char trans,int n,int bwl,int bwu,int nrhs,CPX *a,int ja,int *desca,\
+<span class="lineNum">     451 </span>            :                       int *ipiv,CPX *b,int ib,int *descb,CPX *af,int laf,CPX *work,int lwork,\
+<span class="lineNum">     452 </span>            :                       int *info)
+<span class="lineNum">     453 </span>            : {
+<span class="lineNum">     454 </span>            :     fortran_name(pzgbtrs,PZGBTRS)(&amp;trans,&amp;n,&amp;bwl,&amp;bwu,&amp;nrhs,a,&amp;ja,desca,ipiv,b,&amp;ib,descb,af,&amp;laf,\
+<span class="lineNum">     455 </span><span class="lineNoCov">          0 :                                   work,&amp;lwork,info);</span>
+<span class="lineNum">     456 </span>            : }
+<span class="lineNum">     457 </span>            : 
+<span class="lineNum">     458 </span>            : /************************************************************************************************/
+<span class="lineNum">     459 </span>            : 
+<span class="lineNum">     460 </span>            : inline void c_pzdbtrf(int n,int bwl,int bwu,CPX *a,int ja,int *desca,CPX *af,int laf,\
+<span class="lineNum">     461 </span>            :                       CPX *work,int lwork,int *info)
+<span class="lineNum">     462 </span>            : {
+<span class="lineNum">     463 </span><span class="lineNoCov">          0 :     fortran_name(pzdbtrf,PZDBTRF)(&amp;n,&amp;bwl,&amp;bwu,a,&amp;ja,desca,af,&amp;laf,work,&amp;lwork,info);</span>
+<span class="lineNum">     464 </span>            : }
+<span class="lineNum">     465 </span>            : 
+<span class="lineNum">     466 </span>            : /************************************************************************************************/
+<span class="lineNum">     467 </span>            : 
+<span class="lineNum">     468 </span>            : inline void c_pzdbtrs(char trans,int n,int bwl,int bwu,int nrhs,CPX *a,int ja,int *desca,\
+<span class="lineNum">     469 </span>            :                       CPX *b,int ib,int *descb,CPX *af,int laf,CPX *work,int lwork,int *info)
+<span class="lineNum">     470 </span>            : {
+<span class="lineNum">     471 </span>            :     fortran_name(pzdbtrs,PZDBTRS)(&amp;trans,&amp;n,&amp;bwl,&amp;bwu,&amp;nrhs,a,&amp;ja,desca,b,&amp;ib,descb,af,&amp;laf,\
+<span class="lineNum">     472 </span><span class="lineNoCov">          0 :                                   work,&amp;lwork,info);</span>
+<span class="lineNum">     473 </span>            : }
+<span class="lineNum">     474 </span>            : 
+<span class="lineNum">     475 </span>            : /*Blacs******************************************************************************************/
+<span class="lineNum">     476 </span>            : 
+<span class="lineNum">     477 </span>            : inline void Cblacs_pinfo(int *MYPNUM,int *NPROCS)
+<span class="lineNum">     478 </span>            : {
+<span class="lineNum">     479 </span>            :     fortran_name(blacs_pinfo,BLACS_pinfo)(MYPNUM,NPROCS);
+<span class="lineNum">     480 </span>            : }
+<span class="lineNum">     481 </span>            : 
+<span class="lineNum">     482 </span>            : /************************************************************************************************/
+<span class="lineNum">     483 </span>            : 
+<span class="lineNum">     484 </span>            : inline void Cblacs_get(int ICONTXT,int WHAT,int *VAL)
+<span class="lineNum">     485 </span>            : {
+<span class="lineNum">     486 </span>            :     fortran_name(blacs_get,BLASCS_GET)(&amp;ICONTXT,&amp;WHAT,VAL);
+<span class="lineNum">     487 </span>            : }
+<span class="lineNum">     488 </span>            : 
+<span class="lineNum">     489 </span>            : /************************************************************************************************/
+<span class="lineNum">     490 </span>            : 
+<span class="lineNum">     491 </span>            : inline void Cblacs_gridinit(int *ICONTXT,char *ORDER,int NPROW,int NPCOL)
+<span class="lineNum">     492 </span>            : {
+<span class="lineNum">     493 </span><span class="lineCov">        388 :     fortran_name(blacs_gridinit,BLACS_GRIDINIT)(ICONTXT,ORDER,&amp;NPROW,&amp;NPCOL);</span>
+<span class="lineNum">     494 </span>            : }
+<span class="lineNum">     495 </span>            : 
+<span class="lineNum">     496 </span>            : /************************************************************************************************/
+<span class="lineNum">     497 </span>            : 
+<span class="lineNum">     498 </span>            : inline void Cblacs_gridinfo(int ICONTXT,int *NPROW,int *NPCOL,int *MYPROW,int *MYPCOL)
+<span class="lineNum">     499 </span>            : {
+<span class="lineNum">     500 </span><span class="lineCov">        388 :     fortran_name(blacs_gridinfo,BLACS_GRIDINFO)(&amp;ICONTXT,NPROW,NPCOL,MYPROW,MYPCOL);</span>
+<span class="lineNum">     501 </span>            : }
+<span class="lineNum">     502 </span>            : 
+<span class="lineNum">     503 </span>            : /************************************************************************************************/
+<span class="lineNum">     504 </span>            : 
+<span class="lineNum">     505 </span>            : inline void Cblacs_gridexit(int ICONTXT)
+<span class="lineNum">     506 </span>            : {
+<span class="lineNum">     507 </span><span class="lineCov">        388 :     fortran_name(blacs_gridexit,BLACS_GRIDEXIT)(&amp;ICONTXT);</span>
+<span class="lineNum">     508 </span>            : }
+<span class="lineNum">     509 </span>            : 
+<span class="lineNum">     510 </span>            : /*Own********************************************************************************************/
+<span class="lineNum">     511 </span>            : 
+<span class="lineNum">     512 </span>            : void my_dgeev(int n,double *a,int lda,double *wr,double *wi,double *vr,int ldvr,double *work,\
+<span class="lineNum">     513 </span>            :               int lwork,int *info);
+<span class="lineNum">     514 </span>            : void pdgeev(int n,double *a,int *desca,double *wr,double *wi,double *vr,int *descvr,\
+<span class="lineNum">     515 </span>            :             double *work,int lwork,MPI_Comm comm,int *info);
+<span class="lineNum">     516 </span>            : void pzgeev(int n,CPX *a,int *desca,CPX *w,CPX *vr,int *descvr,CPX *work,int lwork,\
+<span class="lineNum">     517 </span>            :             MPI_Comm comm,int *info);
+<span class="lineNum">     518 </span>            : void pdgeev_driver(int n, double *a, double *wr, double *wi,double *vr,int NPROW,int NPCOL,\
+<span class="lineNum">     519 </span>            :                    MPI_Comm comm,int *info);
+<span class="lineNum">     520 </span>            : void pzgeev_driver(int n, CPX *a, CPX *w,CPX *vr,int NPROW,int NPCOL,MPI_Comm comm,int *info);
+<span class="lineNum">     521 </span>            : void pdgemm_driver(char transa,char transb,int m,int n,int k,double alpha,double *a,\
+<span class="lineNum">     522 </span>            :                    int lda,double *b,int ldb,double beta,double *c,int ldc,int NPROW,\
+<span class="lineNum">     523 </span>            :                    int NPCOL,MPI_Comm comm);
+<span class="lineNum">     524 </span>            : void pzgemm_driver(char transa,char transb,int m,int n,int k,CPX alpha,CPX *a,\
+<span class="lineNum">     525 </span>            :                    int lda,CPX *b,int ldb,CPX beta,CPX *c,int ldc,int NPROW,\
+<span class="lineNum">     526 </span>            :                    int NPCOL,MPI_Comm comm);
+<span class="lineNum">     527 </span>            : void distribute(int myrow,int mycol,int M, int N,int NR_loc,int MB,int NB,int NPROW,int NPCOL,\
+<span class="lineNum">     528 </span>            :                 int ROWMAX,int COLMAX,double *A,double *Aloc);
+<span class="lineNum">     529 </span>            : void zdistribute(int myrow,int mycol,int M, int N,int NR_loc,int MB,int NB,int NPROW,int NPCOL,\
+<span class="lineNum">     530 </span>            :                  int ROWMAX,int COLMAX,CPX *A,CPX *Aloc);
+<span class="lineNum">     531 </span>            : void receive(int myrow,int mycol,int M, int N,int NR_loc,int NC_loc,int MB,int NB,int NPROW,\
+<span class="lineNum">     532 </span>            :              int NPCOL,int ROWMAX,int COLMAX,double *A,double *Aloc,MPI_Comm comm);
+<span class="lineNum">     533 </span>            : void zreceive(int myrow,int mycol,int M, int N,int NR_loc,int NC_loc,int MB,int NB,int NPROW,\
+<span class="lineNum">     534 </span>            :               int NPCOL,int ROWMAX,int COLMAX,CPX *A,CPX *Aloc,MPI_Comm comm);
+<span class="lineNum">     535 </span>            : void insert_block(int myrow,int mycol,int M, int N,int NR_loc,int MB,int NB,int NPROW,int NPCOL,\
+<span class="lineNum">     536 </span>            :                   int ROWMAX,int COLMAX,double *A,double *Aloc);
+<span class="lineNum">     537 </span>            : void zinsert_block(int myrow,int mycol,int M, int N,int NR_loc,int MB,int NB,int NPROW,int NPCOL,\
+<span class="lineNum">     538 </span>            :                    int ROWMAX,int COLMAX,CPX *A,CPX *Aloc);
+<span class="lineNum">     539 </span>            : void get_hess(int myrow,int mycol,int M, int N,int NR_loc,int MB,int NB,int NPROW,int NPCOL,\
+<span class="lineNum">     540 </span>            :               int ROWMAX,int COLMAX,double *Aloc);
+<span class="lineNum">     541 </span>            : void get_zhess(int myrow,int mycol,int M, int N,int NR_loc,int MB,int NB,int NPROW,int NPCOL,\
+<span class="lineNum">     542 </span>            :               int ROWMAX,int COLMAX,CPX *Aloc);
+<span class="lineNum">     543 </span>            : void get_blocking_factors(int NPROW,int NPCOL,int m,int n,int* MB,int* NB);
+<span class="lineNum">     544 </span>            : 
+<span class="lineNum">     545 </span>            : #endif
+<span class="lineNum">     546 </span>            : 
+<span class="lineNum">     547 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

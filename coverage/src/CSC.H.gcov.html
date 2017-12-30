@@ -1,0 +1,478 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/CSC.H</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - CSC.H<span style="font-size: 80%;"> (source / <a href="CSC.H.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">29</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #ifndef __CSC
+<span class="lineNum">      13 </span>            : #define __CSC
+<span class="lineNum">      14 </span>            : 
+<span class="lineNum">      15 </span>            : #include &quot;CSR.H&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Types.H&quot;
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : template &lt;class T, class W&gt;
+<span class="lineNum">      19 </span>            : class TCSC{
+<span class="lineNum">      20 </span>            : public:
+<span class="lineNum">      21 </span>            :     
+<span class="lineNum">      22 </span>            :     TCSC(int,int,int);
+<span class="lineNum">      23 </span>            :     TCSC(TCSR&lt;T&gt;*,int);
+<span class="lineNum">      24 </span>            :     ~TCSC();
+<span class="lineNum">      25 </span>            :     
+<span class="lineNum">      26 </span>            :     void write(const char*);
+<span class="lineNum">      27 </span>            :     void init_variable(T*,int);
+<span class="lineNum">      28 </span>            :     void get_column_edge();
+<span class="lineNum">      29 </span>            :     void vec_mat_mult(T*,T*,int);
+<span class="lineNum">      30 </span>            :     void vec_mat_mult_add(T*,T*,int);
+<span class="lineNum">      31 </span>            :     void convert_csr(TCSR&lt;T&gt;*);
+<span class="lineNum">      32 </span>            :     void convert_csr(TCSR&lt;T&gt;*,int,int);
+<span class="lineNum">      33 </span>            :     void imag_transpose(TCSR&lt;double&gt;*,CPX);
+<span class="lineNum">      34 </span>            :     void add_imag_transpose(TCSR&lt;double&gt;*,CPX);
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            :     int size,n_nonzeros,findx;
+<span class="lineNum">      37 </span>            :     T *nnz;
+<span class="lineNum">      38 </span>            :     W *index_i,*index_j,*edge_j;
+<span class="lineNum">      39 </span>            : };
+<span class="lineNum">      40 </span>            : 
+<a name="41"><span class="lineNum">      41 </span>            : </a>
+<span class="lineNum">      42 </span>            : template &lt;class T, class W&gt;
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 : TCSC&lt;T,W&gt;::TCSC(int N, int n_nnz, int fortran_index)</span>
+<span class="lineNum">      44 </span>            : {
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :     nnz        = new T[n_nnz];</span>
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :     index_i    = new W[n_nnz];</span>
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :     index_j    = new W[N];</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :     edge_j     = new W[N+1];</span>
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :     size       = N;</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :     n_nonzeros = n_nnz;</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :     findx      = fortran_index;</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            : /************************************************************************************************/
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : template &lt;class T,class W&gt;
+<span class="lineNum">      59 </span>            : TCSC&lt;T,W&gt;::TCSC(TCSR&lt;T&gt; *CSRMat,int fortran_index)
+<span class="lineNum">      60 </span>            : {
+<span class="lineNum">      61 </span>            :     size       = CSRMat-&gt;size;
+<span class="lineNum">      62 </span>            :     n_nonzeros = CSRMat-&gt;n_nonzeros;
+<span class="lineNum">      63 </span>            :     findx      = fortran_index;
+<span class="lineNum">      64 </span>            :     
+<span class="lineNum">      65 </span>            :     nnz        = new T[n_nonzeros];
+<span class="lineNum">      66 </span>            :     index_i    = new W[n_nonzeros];
+<span class="lineNum">      67 </span>            :     index_j    = new W[size];
+<span class="lineNum">      68 </span>            :     edge_j     = new W[size+1];
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            :     convert_csr(CSRMat);
+<span class="lineNum">      71 </span>            : }
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            : /************************************************************************************************/
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span>            : template &lt;class T,class W&gt;
+<span class="lineNum">      76 </span>            : void TCSC&lt;T,W&gt;::convert_csr(TCSR&lt;T&gt; *CSRMat)
+<span class="lineNum">      77 </span>            : {
+<span class="lineNum">      78 </span>            :     int i, j, val;
+<span class="lineNum">      79 </span>            :     W *rowptr;
+<span class="lineNum">      80 </span>            :     int col, rowptr_col;
+<span class="lineNum">      81 </span>            :     int fin  = CSRMat-&gt;findx;
+<span class="lineNum">      82 </span>            :     int fout = findx;
+<span class="lineNum">      83 </span>            :     
+<span class="lineNum">      84 </span>            :     rowptr   = new W[size];
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            :     for(i=0;i&lt;size;i++){rowptr[i] = 0;}
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span>            :     for(i=0;i&lt;size;i++){
+<span class="lineNum">      89 </span>            :         for(j=CSRMat-&gt;edge_i[i]-fin;j&lt;CSRMat-&gt;edge_i[i+1]-fin;j++){
+<span class="lineNum">      90 </span>            :             rowptr[CSRMat-&gt;index_j[j]-fin]++;
+<span class="lineNum">      91 </span>            :         }
+<span class="lineNum">      92 </span>            :     }
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span>            :     val = 0;
+<span class="lineNum">      95 </span>            :     for(i=0;i&lt;size;i++){
+<span class="lineNum">      96 </span>            :         edge_j[i] = val + fout;
+<span class="lineNum">      97 </span>            :         val       = val + rowptr[i];
+<span class="lineNum">      98 </span>            :         rowptr[i] = edge_j[i] - fout;
+<span class="lineNum">      99 </span>            :     }
+<span class="lineNum">     100 </span>            :     edge_j[size] = val + fout;
+<span class="lineNum">     101 </span>            :     
+<span class="lineNum">     102 </span>            :     for(i=0;i&lt;size;i++){
+<span class="lineNum">     103 </span>            :         for(j=CSRMat-&gt;edge_i[i]-fin;j&lt;CSRMat-&gt;edge_i[i+1]-fin;j++){
+<span class="lineNum">     104 </span>            :             col = CSRMat-&gt;index_j[j]-fin;
+<span class="lineNum">     105 </span>            :             rowptr_col = rowptr[col];
+<span class="lineNum">     106 </span>            :             index_i[rowptr_col] = i + fout;
+<span class="lineNum">     107 </span>            :             nnz[rowptr_col] = CSRMat-&gt;nnz[j];
+<span class="lineNum">     108 </span>            :             rowptr[col]++;
+<span class="lineNum">     109 </span>            :         }
+<span class="lineNum">     110 </span>            :     }
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span>            :     delete[] rowptr;
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span>            : }
+<span class="lineNum">     115 </span>            :     
+<span class="lineNum">     116 </span>            : /************************************************************************************************/
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            : template &lt;class T,class W&gt;
+<span class="lineNum">     119 </span>            : void TCSC&lt;T,W&gt;::convert_csr(TCSR&lt;T&gt; *CSRMat,int nrow,int ncol)
+<span class="lineNum">     120 </span>            : {
+<span class="lineNum">     121 </span>            :     int i, j, val;
+<span class="lineNum">     122 </span>            :     W *rowptr;
+<span class="lineNum">     123 </span>            :     int col, rowptr_col;
+<span class="lineNum">     124 </span>            :     int fin  = CSRMat-&gt;findx;
+<span class="lineNum">     125 </span>            :     int fout = findx;
+<span class="lineNum">     126 </span>            :     size     = ncol;
+<span class="lineNum">     127 </span>            :     
+<span class="lineNum">     128 </span>            :     rowptr   = new W[size];
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            :     for(i=0;i&lt;size;i++){rowptr[i] = 0;}
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            :     for(i=0;i&lt;nrow;i++){
+<span class="lineNum">     133 </span>            :         for(j=CSRMat-&gt;edge_i[i]-fin;j&lt;CSRMat-&gt;edge_i[i+1]-fin;j++){
+<span class="lineNum">     134 </span>            :             rowptr[CSRMat-&gt;index_j[j]-fin]++;
+<span class="lineNum">     135 </span>            :         }
+<span class="lineNum">     136 </span>            :     }
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span>            :     val = 0;
+<span class="lineNum">     139 </span>            :     for(i=0;i&lt;size;i++){
+<span class="lineNum">     140 </span>            :         edge_j[i] = val + fout;
+<span class="lineNum">     141 </span>            :         val       = val + rowptr[i];
+<span class="lineNum">     142 </span>            :         rowptr[i] = edge_j[i] - fout;
+<span class="lineNum">     143 </span>            :     }
+<span class="lineNum">     144 </span>            :     edge_j[size] = val + fout;
+<span class="lineNum">     145 </span>            :     
+<span class="lineNum">     146 </span>            :     for(i=0;i&lt;nrow;i++){
+<span class="lineNum">     147 </span>            :         for(j=CSRMat-&gt;edge_i[i]-fin;j&lt;CSRMat-&gt;edge_i[i+1]-fin;j++){
+<span class="lineNum">     148 </span>            :             col = CSRMat-&gt;index_j[j]-fin;
+<span class="lineNum">     149 </span>            :             rowptr_col = rowptr[col];
+<span class="lineNum">     150 </span>            :             index_i[rowptr_col] = i + fout;
+<span class="lineNum">     151 </span>            :             nnz[rowptr_col] = CSRMat-&gt;nnz[j];
+<span class="lineNum">     152 </span>            :             rowptr[col]++;
+<span class="lineNum">     153 </span>            :         }
+<span class="lineNum">     154 </span>            :     }
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span>            :     delete[] rowptr;
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            : }
+<span class="lineNum">     159 </span>            :     
+<span class="lineNum">     160 </span>            : /************************************************************************************************/
+<a name="161"><span class="lineNum">     161 </span>            : </a>
+<span class="lineNum">     162 </span>            : template &lt;class T,class W&gt;
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 : TCSC&lt;T,W&gt;::~TCSC()</span>
+<span class="lineNum">     164 </span>            : {
+<span class="lineNum">     165 </span><span class="lineNoCov">          0 :     delete[] nnz;</span>
+<span class="lineNum">     166 </span><span class="lineNoCov">          0 :     delete[] index_i;</span>
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :     delete[] index_j;</span>
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :     delete[] edge_j;</span>
+<span class="lineNum">     169 </span>            : 
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span>            : /************************************************************************************************/
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span>            : template &lt;class T,class W&gt;
+<span class="lineNum">     175 </span>            : void TCSC&lt;T,W&gt;::init_variable(T *var,int N)
+<span class="lineNum">     176 </span>            : {
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 :     for(int i=0;i&lt;N;i++){</span>
+<span class="lineNum">     178 </span><span class="lineNoCov">          0 :         var[i]=(T)0;</span>
+<span class="lineNum">     179 </span>            :     }
+<span class="lineNum">     180 </span>            : }
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span>            : /************************************************************************************************/
+<span class="lineNum">     183 </span>            : 
+<span class="lineNum">     184 </span>            : template &lt;&gt;
+<span class="lineNum">     185 </span>            : inline void TCSC&lt;double,int&gt;::write(const char* filename)
+<span class="lineNum">     186 </span>            : {
+<span class="lineNum">     187 </span>            :     int i,j;
+<span class="lineNum">     188 </span>            :     
+<span class="lineNum">     189 </span>            :     ofstream myfile;
+<span class="lineNum">     190 </span>            :     myfile.open (filename);
+<span class="lineNum">     191 </span>            :     myfile.precision(8);
+<span class="lineNum">     192 </span>            :     for(j=0;j&lt;size;j++){
+<span class="lineNum">     193 </span>            :         for(i=edge_j[j]-findx;i&lt;edge_j[j+1]-findx;i++){
+<span class="lineNum">     194 </span>            :             myfile&lt;&lt;index_i[i]+1-findx&lt;&lt;&quot; &quot;&lt;&lt;j+1&lt;&lt;&quot; &quot;&lt;&lt;nnz[i]&lt;&lt;&quot;\n&quot;;
+<span class="lineNum">     195 </span>            :         }
+<span class="lineNum">     196 </span>            :     }
+<span class="lineNum">     197 </span>            :     myfile.close();
+<span class="lineNum">     198 </span>            :     
+<span class="lineNum">     199 </span>            : }
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span>            : /************************************************************************************************/
+<span class="lineNum">     202 </span>            : 
+<span class="lineNum">     203 </span>            : template &lt;&gt;
+<span class="lineNum">     204 </span>            : inline void TCSC&lt;double,long int&gt;::write(const char* filename)
+<span class="lineNum">     205 </span>            : {
+<span class="lineNum">     206 </span>            :     int i,j;
+<span class="lineNum">     207 </span>            :     
+<span class="lineNum">     208 </span>            :     ofstream myfile;
+<span class="lineNum">     209 </span>            :     myfile.open (filename);
+<span class="lineNum">     210 </span>            :     myfile.precision(8);
+<span class="lineNum">     211 </span>            :     for(j=0;j&lt;size;j++){
+<span class="lineNum">     212 </span>            :         for(i=edge_j[j]-findx;i&lt;edge_j[j+1]-findx;i++){
+<span class="lineNum">     213 </span>            :             myfile&lt;&lt;index_i[i]+1-findx&lt;&lt;&quot; &quot;&lt;&lt;j+1&lt;&lt;&quot; &quot;&lt;&lt;nnz[i]&lt;&lt;&quot;\n&quot;;
+<span class="lineNum">     214 </span>            :         }
+<span class="lineNum">     215 </span>            :     }
+<span class="lineNum">     216 </span>            :     myfile.close();
+<span class="lineNum">     217 </span>            :     
+<span class="lineNum">     218 </span>            : }
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span>            : /************************************************************************************************/
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span>            : template &lt;&gt;
+<span class="lineNum">     223 </span>            : inline void TCSC&lt;CPX,int&gt;::write(const char* filename)
+<span class="lineNum">     224 </span>            : {
+<span class="lineNum">     225 </span>            :     int i,j;
+<span class="lineNum">     226 </span>            :     
+<span class="lineNum">     227 </span>            :     ofstream myfile;
+<span class="lineNum">     228 </span>            :     myfile.open (filename);
+<span class="lineNum">     229 </span>            :     myfile.precision(8);
+<span class="lineNum">     230 </span>            :     for(j=0;j&lt;size;j++){
+<span class="lineNum">     231 </span>            :         for(i=edge_j[j]-findx;i&lt;edge_j[j+1]-findx;i++){
+<span class="lineNum">     232 </span>            :             myfile&lt;&lt;index_i[i]+1-findx&lt;&lt;&quot; &quot;&lt;&lt;j+1&lt;&lt;&quot; &quot;&lt;&lt;real(nnz[i])&lt;&lt;&quot; &quot;\
+<span class="lineNum">     233 </span>            :                   &lt;&lt;imag(nnz[i])&lt;&lt;&quot;\n&quot;;
+<span class="lineNum">     234 </span>            :         }
+<span class="lineNum">     235 </span>            :     }
+<span class="lineNum">     236 </span>            :     myfile.close();
+<span class="lineNum">     237 </span>            :     
+<span class="lineNum">     238 </span>            : }
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span>            : /************************************************************************************************/
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span>            : template &lt;&gt;
+<span class="lineNum">     243 </span>            : inline void TCSC&lt;CPX,long int&gt;::write(const char* filename)
+<span class="lineNum">     244 </span>            : {
+<span class="lineNum">     245 </span>            :     int i,j;
+<span class="lineNum">     246 </span>            :     
+<span class="lineNum">     247 </span>            :     ofstream myfile;
+<span class="lineNum">     248 </span>            :     myfile.open (filename);
+<span class="lineNum">     249 </span>            :     myfile.precision(8);
+<span class="lineNum">     250 </span>            :     for(j=0;j&lt;size;j++){
+<span class="lineNum">     251 </span>            :         for(i=edge_j[j]-findx;i&lt;edge_j[j+1]-findx;i++){
+<span class="lineNum">     252 </span>            :             myfile&lt;&lt;index_i[i]+1-findx&lt;&lt;&quot; &quot;&lt;&lt;j+1&lt;&lt;&quot; &quot;&lt;&lt;real(nnz[i])&lt;&lt;&quot; &quot;\
+<span class="lineNum">     253 </span>            :                   &lt;&lt;imag(nnz[i])&lt;&lt;&quot;\n&quot;;
+<span class="lineNum">     254 </span>            :         }
+<span class="lineNum">     255 </span>            :     }
+<span class="lineNum">     256 </span>            :     myfile.close();
+<span class="lineNum">     257 </span>            :     
+<span class="lineNum">     258 </span>            : }
+<span class="lineNum">     259 </span>            : 
+<span class="lineNum">     260 </span>            : /************************************************************************************************/
+<span class="lineNum">     261 </span>            : 
+<span class="lineNum">     262 </span>            : template &lt;class T,class W&gt;
+<span class="lineNum">     263 </span>            : void TCSC&lt;T,W&gt;::get_column_edge()
+<span class="lineNum">     264 </span>            : {
+<span class="lineNum">     265 </span>            :     int j;
+<span class="lineNum">     266 </span>            : 
+<span class="lineNum">     267 </span><span class="lineNoCov">          0 :     edge_j[0] = findx;</span>
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span><span class="lineNoCov">          0 :     for(j=0;j&lt;size;j++){</span>
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 :         edge_j[j+1] = edge_j[j]+index_j[j];</span>
+<span class="lineNum">     271 </span>            :     }
+<span class="lineNum">     272 </span>            :     
+<span class="lineNum">     273 </span>            : }
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span>            : /************************************************************************************************/
+<a name="276"><span class="lineNum">     276 </span>            : </a>
+<span class="lineNum">     277 </span>            : template &lt;&gt;
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 : inline void TCSC&lt;CPX,int&gt;::vec_mat_mult(CPX *in, CPX *out, int NR)</span>
+<span class="lineNum">     279 </span>            : {
+<span class="lineNum">     280 </span>            :     int i,j;
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :     CPX *vec = new CPX[NR];</span>
+<span class="lineNum">     282 </span>            : 
+<span class="lineNum">     283 </span>            :     
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :     for(j=0;j&lt;size;j++){</span>
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :         init_variable(vec,NR);</span>
+<span class="lineNum">     286 </span><span class="lineNoCov">          0 :         for(i=edge_j[j]-findx;i&lt;(edge_j[j+1]-findx);i++){</span>
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :             c_zaxpy(NR,nnz[i],&amp;in[(index_i[i]-findx)*NR],1,vec,1);</span>
+<span class="lineNum">     288 </span>            :         }
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :         c_zcopy(NR,vec,1,&amp;out[j*NR],1);</span>
+<span class="lineNum">     290 </span>            :     }
+<span class="lineNum">     291 </span>            :     
+<span class="lineNum">     292 </span><span class="lineNoCov">          0 :     delete[] vec;</span>
+<span class="lineNum">     293 </span>            : 
+<span class="lineNum">     294 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     295 </span>            : 
+<span class="lineNum">     296 </span>            : /************************************************************************************************/
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span>            : template &lt;&gt;
+<span class="lineNum">     299 </span>            : inline void TCSC&lt;double,int&gt;::vec_mat_mult(double *in, double *out, int NR)
+<span class="lineNum">     300 </span>            : {
+<span class="lineNum">     301 </span>            :     int i,j;
+<span class="lineNum">     302 </span>            :     double *vec = new double[NR];
+<span class="lineNum">     303 </span>            :     
+<span class="lineNum">     304 </span>            :     for(j=0;j&lt;size;j++){
+<span class="lineNum">     305 </span>            :         init_variable(vec,NR);
+<span class="lineNum">     306 </span>            :         for(i=edge_j[j]-findx;i&lt;(edge_j[j+1]-findx);i++){
+<span class="lineNum">     307 </span>            :             c_daxpy(NR,nnz[i],&amp;in[(index_i[i]-findx)*NR],1,vec,1);
+<span class="lineNum">     308 </span>            :         }
+<span class="lineNum">     309 </span>            :         c_dcopy(NR,vec,1,&amp;out[j*NR],1);
+<span class="lineNum">     310 </span>            :     }
+<span class="lineNum">     311 </span>            :     
+<span class="lineNum">     312 </span>            :     delete[] vec;
+<span class="lineNum">     313 </span>            : 
+<span class="lineNum">     314 </span>            : }
+<span class="lineNum">     315 </span>            : 
+<span class="lineNum">     316 </span>            : /************************************************************************************************/
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span>            : template &lt;&gt;
+<span class="lineNum">     319 </span>            : inline void TCSC&lt;CPX,int&gt;::vec_mat_mult_add(CPX *in,CPX *out,int NR)
+<span class="lineNum">     320 </span>            : {
+<span class="lineNum">     321 </span>            :     int i,j;
+<span class="lineNum">     322 </span>            :     CPX *vec = new CPX[NR];
+<span class="lineNum">     323 </span>            :     
+<span class="lineNum">     324 </span>            :     for(j=0;j&lt;size;j++){
+<span class="lineNum">     325 </span>            :         init_variable(vec,NR);
+<span class="lineNum">     326 </span>            :         for(i=edge_j[j]-findx;i&lt;(edge_j[j+1]-findx);i++){
+<span class="lineNum">     327 </span>            :             c_zaxpy(NR,nnz[i],&amp;in[(index_i[i]-findx)*NR],1,vec,1);
+<span class="lineNum">     328 </span>            :         }
+<span class="lineNum">     329 </span>            :         c_zaxpy(NR,CPX(1.0,0.0),vec,1,&amp;out[j*NR],1);
+<span class="lineNum">     330 </span>            :     }
+<span class="lineNum">     331 </span>            :     
+<span class="lineNum">     332 </span>            :     delete[] vec;
+<span class="lineNum">     333 </span>            : 
+<span class="lineNum">     334 </span>            : }
+<span class="lineNum">     335 </span>            : 
+<span class="lineNum">     336 </span>            : /************************************************************************************************/
+<span class="lineNum">     337 </span>            : 
+<span class="lineNum">     338 </span>            : template &lt;&gt;
+<span class="lineNum">     339 </span>            : inline void TCSC&lt;double,int&gt;::vec_mat_mult_add(double *in,double *out,int NR)
+<span class="lineNum">     340 </span>            : {
+<span class="lineNum">     341 </span>            :     int i,j;
+<span class="lineNum">     342 </span>            :     double *vec = new double[NR];
+<span class="lineNum">     343 </span>            :     
+<span class="lineNum">     344 </span>            :     for(j=0;j&lt;size;j++){
+<span class="lineNum">     345 </span>            :         init_variable(vec,NR);
+<span class="lineNum">     346 </span>            :         for(i=edge_j[j]-findx;i&lt;(edge_j[j+1]-findx);i++){
+<span class="lineNum">     347 </span>            :             c_daxpy(NR,nnz[i],&amp;in[(index_i[i]-findx)*NR],1,vec,1);
+<span class="lineNum">     348 </span>            :         }
+<span class="lineNum">     349 </span>            :         c_daxpy(NR,1.0,vec,1,&amp;out[j*NR],1);
+<span class="lineNum">     350 </span>            :     }
+<span class="lineNum">     351 </span>            :     
+<span class="lineNum">     352 </span>            :     delete[] vec;
+<span class="lineNum">     353 </span>            : 
+<span class="lineNum">     354 </span>            : }
+<span class="lineNum">     355 </span>            : 
+<span class="lineNum">     356 </span>            : /************************************************************************************************/
+<span class="lineNum">     357 </span>            : 
+<span class="lineNum">     358 </span>            : template &lt;&gt;
+<span class="lineNum">     359 </span>            : inline void TCSC&lt;CPX,int&gt;::imag_transpose(TCSR&lt;double&gt; *A,CPX factor)
+<span class="lineNum">     360 </span>            : {
+<span class="lineNum">     361 </span>            :     if (size != A-&gt;size) throw CSR_Exception(__LINE__,__FILE__);
+<span class="lineNum">     362 </span>            : 
+<span class="lineNum">     363 </span>            :     int i,e;
+<span class="lineNum">     364 </span>            :     double *linefull=new double[size];
+<span class="lineNum">     365 </span>            : 
+<span class="lineNum">     366 </span>            :     for (i=0;i&lt;size;i++) {
+<span class="lineNum">     367 </span>            :         for (int ii=0;ii&lt;size;ii++) linefull[ii]=0.0;
+<span class="lineNum">     368 </span>            :         for (e=edge_j[i]-findx;e&lt;edge_j[i+1]-findx;e++) {
+<span class="lineNum">     369 </span>            :             linefull[index_i[e]-findx]=imag(factor*nnz[e]);
+<span class="lineNum">     370 </span>            :         }
+<span class="lineNum">     371 </span>            :         for (e=A-&gt;edge_i[i]-A-&gt;findx;e&lt;A-&gt;edge_i[i+1]-A-&gt;findx;e++) {
+<span class="lineNum">     372 </span>            :             A-&gt;nnz[e]=linefull[A-&gt;index_j[e]-A-&gt;findx];
+<span class="lineNum">     373 </span>            :         }
+<span class="lineNum">     374 </span>            :     }
+<span class="lineNum">     375 </span>            :     delete[] linefull;
+<span class="lineNum">     376 </span>            : }
+<span class="lineNum">     377 </span>            : 
+<span class="lineNum">     378 </span>            : /************************************************************************************************/
+<span class="lineNum">     379 </span>            : 
+<span class="lineNum">     380 </span>            : template &lt;&gt;
+<span class="lineNum">     381 </span>            : inline void TCSC&lt;CPX,int&gt;::add_imag_transpose(TCSR&lt;double&gt; *A,CPX factor)
+<span class="lineNum">     382 </span>            : {
+<span class="lineNum">     383 </span>            :     if (size != A-&gt;size) throw CSR_Exception(__LINE__,__FILE__);
+<span class="lineNum">     384 </span>            : 
+<span class="lineNum">     385 </span>            :     int i,e;
+<span class="lineNum">     386 </span>            :     double *linefull=new double[size];
+<span class="lineNum">     387 </span>            : 
+<span class="lineNum">     388 </span>            :     for (i=0;i&lt;size;i++) {
+<span class="lineNum">     389 </span>            :         for (int ii=0;ii&lt;size;ii++) linefull[ii]=0.0;
+<span class="lineNum">     390 </span>            :         for (e=edge_j[i]-findx;e&lt;edge_j[i+1]-findx;e++) {
+<span class="lineNum">     391 </span>            :             linefull[index_i[e]-findx]=imag(factor*nnz[e]);
+<span class="lineNum">     392 </span>            :         }
+<span class="lineNum">     393 </span>            :         for (e=A-&gt;edge_i[i]-A-&gt;findx;e&lt;A-&gt;edge_i[i+1]-A-&gt;findx;e++) {
+<span class="lineNum">     394 </span>            :             A-&gt;nnz[e]+=linefull[A-&gt;index_j[e]-A-&gt;findx];
+<span class="lineNum">     395 </span>            :         }
+<span class="lineNum">     396 </span>            :     }
+<span class="lineNum">     397 </span>            :     delete[] linefull;
+<span class="lineNum">     398 </span>            : }
+<span class="lineNum">     399 </span>            : 
+<span class="lineNum">     400 </span>            : /************************************************************************************************/
+<span class="lineNum">     401 </span>            : 
+<span class="lineNum">     402 </span>            : #endif
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

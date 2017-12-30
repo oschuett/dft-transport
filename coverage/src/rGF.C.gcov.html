@@ -1,0 +1,793 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/rGF.C</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - rGF.C<span style="font-size: 80%;"> (source / <a href="rGF.C.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">204</td>
+            <td class="headerCovTableEntryLo">0.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntryLo">7.7 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      13 </span>            : #include &lt;assert.h&gt;
+<span class="lineNum">      14 </span>            : #include &lt;string.h&gt;
+<span class="lineNum">      15 </span>            : #include &lt;sstream&gt;
+<span class="lineNum">      16 </span>            : #include &lt;algorithm&gt;
+<span class="lineNum">      17 </span>            : 
+<span class="lineNum">      18 </span>            : #include &quot;rGF.H&quot;
+<span class="lineNum">      19 </span>            : 
+<span class="lineNum">      20 </span>            : /** \brief Constructor
+<span class="lineNum">      21 </span>            :  *  
+<span class="lineNum">      22 </span>            :  *  Constructor for the rGF solver.
+<span class="lineNum">      23 </span>            :  *
+<a name="24"><span class="lineNum">      24 </span>            :  *  \param e_minus_h E (energy) times unity matrix minus the Hamiltonian.</a>
+<span class="lineNum">      25 </span>            :  */
+<span class="lineNum">      26 </span><span class="lineNoCov">          0 : rGF::rGF(TCSR&lt;CPX&gt;* e_minus_h) {</span>
+<span class="lineNum">      27 </span><span class="lineNoCov">          0 :     matrix = e_minus_h;</span>
+<span class="lineNum">      28 </span><span class="lineNoCov">          0 :     fortran_index = 0; // fortran index</span>
+<span class="lineNum">      29 </span><span class="lineNoCov">          0 : }</span>
+<a name="30"><span class="lineNum">      30 </span>            : </a>
+<span class="lineNum">      31 </span>            : /// \brief Destructor
+<span class="lineNum">      32 </span><span class="lineNoCov">          0 : rGF::~rGF() {}</span>
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : /** \brief rGF solving algorithm
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  *  Member function to solve for the Green's function in a block by block
+<span class="lineNum">      37 </span>            :  *  format (not in one big sparse matrix).
+<span class="lineNum">      38 </span>            :  *
+<span class="lineNum">      39 </span>            :  *  \param Bmin Vector containing the index of the first element of each diagonal
+<span class="lineNum">      40 </span>            :  *              block in the Hamiltonian (input).
+<span class="lineNum">      41 </span>            :  *
+<span class="lineNum">      42 </span>            :  *  \param Bmax Vector containing the index of the corresponding last element.
+<span class="lineNum">      43 </span>            :  *              NOTE: This are the lines corresponding to the first and last
+<span class="lineNum">      44 </span>            :  *              orbital of the first and last atoms respectively of the 
+<span class="lineNum">      45 </span>            :  *              indexed cell (input).
+<span class="lineNum">      46 </span>            :  *
+<span class="lineNum">      47 </span>            :  *  \param GR Array containing the diagonal blocks of GR (output).
+<span class="lineNum">      48 </span>            :  *
+<span class="lineNum">      49 </span>            :  *
+<span class="lineNum">      50 </span>            :  *  M_TODO:
+<span class="lineNum">      51 </span>            :  *    - consider writing a pardiso class like this rGF class
+<span class="lineNum">      52 </span>            :  *    - consider creating a parent class (like Mathieu)
+<span class="lineNum">      53 </span>            :  *
+<span class="lineNum">      54 </span>            :  *  Potential optimizations:
+<span class="lineNum">      55 </span>            :  *    - having Bmin, Bmax, X_start_index and as gR members
+<span class="lineNum">      56 </span>            :  *    - getting rid of GR and GRNNp1 by writing to the sparse matrix directly
+<span class="lineNum">      57 </span>            :  *    - multithreaded BLAS
+<span class="lineNum">      58 </span>            :  *    - separate thread for GRNNp1 calculation
+<span class="lineNum">      59 </span>            :  *    - multithreaded mat_vec_mult and trans_vec_mat_mult
+<span class="lineNum">      60 </span>            :  *
+<a name="61"><span class="lineNum">      61 </span>            :  */</a>
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 : void rGF::solve_blocks(std::vector&lt;int&gt; Bmin, std::vector&lt;int&gt; Bmax, CPX *GR,</span>
+<span class="lineNum">      64 </span>            :                        CPX *GRNNp1)
+<span class="lineNum">      65 </span>            : {
+<span class="lineNum">      66 </span><span class="lineNoCov">          0 :   int num_blocks = Bmin.size();</span>
+<span class="lineNum">      67 </span><span class="lineNoCov">          0 :   std::vector&lt;int&gt; GR_start_index(num_blocks + 1, Bmin[0]);</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :   std::vector&lt;int&gt; GRNNp1_start_index(num_blocks, Bmin[0]);</span>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            :   // Determining block sizes, corresponding start and end indices and
+<span class="lineNum">      71 </span>            :   // biggest block's size
+<span class="lineNum">      72 </span><span class="lineNoCov">          0 :   int current_diagonal=0;</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :   int next_diagonal=0;</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :   int largest_diagonal=0;</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :   for (int i = 0; i &lt; num_blocks-1; ++i){</span>
+<span class="lineNum">      76 </span><span class="lineNoCov">          0 :     current_diagonal = Bmax[i] - Bmin[i] + 1;</span>
+<span class="lineNum">      77 </span><span class="lineNoCov">          0 :     next_diagonal = Bmax[i+1] - Bmin[i+1] + 1;</span>
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 :     GR_start_index[i+1] = GR_start_index[i] +</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :                           (current_diagonal * current_diagonal);</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 :     GRNNp1_start_index[i+1] = GRNNp1_start_index[i] +</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :                               (current_diagonal * next_diagonal);</span>
+<span class="lineNum">      82 </span><span class="lineNoCov">          0 :     if (current_diagonal &gt; largest_diagonal) {</span>
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 :       largest_diagonal = current_diagonal;</span>
+<span class="lineNum">      84 </span>            :     }
+<span class="lineNum">      85 </span>            :   }
+<span class="lineNum">      86 </span><span class="lineNoCov">          0 :   GR_start_index[num_blocks] = GR_start_index[num_blocks-1] +</span>
+<span class="lineNum">      87 </span><span class="lineNoCov">          0 :                                (next_diagonal * next_diagonal);</span>
+<span class="lineNum">      88 </span><span class="lineNoCov">          0 :   if (next_diagonal &gt; largest_diagonal) {</span>
+<span class="lineNum">      89 </span><span class="lineNoCov">          0 :     largest_diagonal = next_diagonal;</span>
+<span class="lineNum">      90 </span>            :   }
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span>            :   //double time_start = get_time(0.0);
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span>            :   // Allocate working memory
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :   sparse_CSR = new TCSR&lt;CPX&gt;(largest_diagonal, largest_diagonal *</span>
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :                               largest_diagonal, fortran_index);</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :   sparse_CSC = new TCSC&lt;CPX,int&gt;(largest_diagonal, largest_diagonal *</span>
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :                                   largest_diagonal, fortran_index);</span>
+<span class="lineNum">      99 </span><span class="lineNoCov">          0 :   tmp0 = new CPX[largest_diagonal * largest_diagonal];</span>
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :   tmp1 = new CPX[largest_diagonal * largest_diagonal];</span>
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :   tmp2 = new CPX[largest_diagonal * largest_diagonal];</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :   CPX *gR = new CPX[GR_start_index[num_blocks]];</span>
+<span class="lineNum">     103 </span>            : 
+<span class="lineNum">     104 </span>            :   // rGF, STAGE 1
+<span class="lineNum">     105 </span>            :   // last element of the diagonal
+<span class="lineNum">     106 </span><span class="lineNoCov">          0 :   calculate_gR_init(num_blocks - 1, Bmin, Bmax, GR_start_index, gR);</span>
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span>            :   // Recursion upwards along the diagonal:
+<span class="lineNum">     109 </span>            :   // gR_{i-1} = (E - H_{i-1} - T_{i-1,i} * gR_{i} * T_{i,i-1})^{-1}
+<span class="lineNum">     110 </span><span class="lineNoCov">          0 :   for (int block = num_blocks - 2; block &gt; 0; --block) {</span>
+<span class="lineNum">     111 </span>            :     //double sub_time_start = get_time(0.0);
+<span class="lineNum">     112 </span><span class="lineNoCov">          0 :     calculate_sigmaR(block, Bmin, Bmax, GR_start_index, gR);</span>
+<span class="lineNum">     113 </span><span class="lineNoCov">          0 :     calculate_gR_rec(block, Bmin, Bmax, GR_start_index, gR);</span>
+<span class="lineNum">     114 </span>            :     //std::cout &lt;&lt; &quot;gR_total_&quot; &lt;&lt; block &lt;&lt; &quot;: &quot; &lt;&lt; get_time(sub_time_start) &lt;&lt; &quot;\n&quot;;
+<span class="lineNum">     115 </span>            :   }
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            :   // gR_0 goes to tmp2 goes to GR, tmp0&lt;-&gt;tmp2 for the later recursion
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 :   int diagonal_length = Bmax[0] - Bmin[0] + 1;</span>
+<span class="lineNum">     119 </span><span class="lineNoCov">          0 :   int diagonal_block_size = diagonal_length * diagonal_length;</span>
+<span class="lineNum">     120 </span><span class="lineNoCov">          0 :   calculate_sigmaR(0, Bmin, Bmax, GR_start_index, gR);</span>
+<span class="lineNum">     121 </span><span class="lineNoCov">          0 :   calculate_gR_rec(0, Bmin, Bmax, GR_start_index, tmp2);</span>
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :   c_zcopy(diagonal_block_size, tmp2, 1, GR, 1);</span>
+<span class="lineNum">     123 </span><span class="lineNoCov">          0 :   std::swap(tmp0, tmp2);</span>
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            :   //write_mat_c(GR, diagonal_length, diagonal_length, &quot;tests/rGF/GR_0.csv&quot;);
+<span class="lineNum">     126 </span>            : 
+<span class="lineNum">     127 </span>            :   //std::cout &lt;&lt; &quot;rGF, stage1 total: &quot; &lt;&lt; get_time(time_start) &lt;&lt; &quot;\n&quot;;
+<span class="lineNum">     128 </span>            :   //time_start = get_time(0.0);
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            : 
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            :   // rGF STAGE 2
+<span class="lineNum">     133 </span>            :   //
+<span class="lineNum">     134 </span>            :   // calculated GR_{0} = (E-H_{0} - T_{0,1} * gR_{1} * T_{1,0})^{-1} = gR_{0}
+<span class="lineNum">     135 </span>            : 
+<span class="lineNum">     136 </span>            :   // M_TODO: technically speaking gR is overallocated by the first block as
+<span class="lineNum">     137 </span>            :   // gR[0] gR[GR_start_index[1]] is never actually used.
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            :   /*
+<span class="lineNum">     141 </span>            :   // GRN1_current = 1*GRr_current + GRN1_current
+<span class="lineNum">     142 </span>            :   // M_TODO: since we're not reusing GRN1_current we could allocate tightly
+<span class="lineNum">     143 </span>            :   CPX GRN1_current = new CPX[largest_diagonal * largest_diagonal]; // overallocation
+<span class="lineNum">     144 </span>            :   set_to_zero(largest_diagonal * largest_diagonal, GRN1_current);
+<span class="lineNum">     145 </span>            :   c_zcopy(diagonal_length * diagonal_length, GRr_current, 1, GRN1_current, 1);
+<span class="lineNum">     146 </span>            :   
+<span class="lineNum">     147 </span>            :   
+<span class="lineNum">     148 </span>            :   // tmp = GRN1_current * Gammal
+<span class="lineNum">     149 </span>            :   CPX tmp1 = new CPX[largest_diagonal * largest_diagonal];
+<span class="lineNum">     150 </span>            :   c_zgemm('N', 'N', diagonal_length, diagonal_length, diagonal_length,
+<span class="lineNum">     151 </span>            :           CPX(1.0, 0.0), GRN1_current, diagonal_length, Gammal, 
+<span class="lineNum">     152 </span>            :           diagonal_length, CPX(0.0, 0.0), tmp1, diagonal_length);
+<span class="lineNum">     153 </span>            :   
+<span class="lineNum">     154 </span>            :   // Zl = tmp1 * complexconjugate(GRN1_current);
+<span class="lineNum">     155 </span>            :   CPX Zl = new CPX[largest_diagonal * largest_diagonal];
+<span class="lineNum">     156 </span>            :   c_zgemm('N', 'C', diagonal_length, diagonal_length, diagonal_length,
+<span class="lineNum">     157 </span>            :           CPX(1.0, 0.0), M, diagonal_length, GRN1_current, diagonal_length,
+<span class="lineNum">     158 </span>            :           CPX(0.0, 0.0), Zl, diagonal_length);
+<span class="lineNum">     159 </span>            :   */
+<span class="lineNum">     160 </span>            :    
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span>            :   // recursion along the diagonal (downwards)
+<span class="lineNum">     163 </span>            :   //
+<span class="lineNum">     164 </span>            :   // calculate
+<span class="lineNum">     165 </span>            :   // GR_{i} = gR_{i} + gR_{i} * T_{i,i-1} * GR_{i-1} * T_{i-1,i} * gR_{i}
+<span class="lineNum">     166 </span>            :   // GR_{i-1,i} = -1 * GR_{i-1} * T_{i-1,i} * gR_{i}
+<span class="lineNum">     167 </span>            :   //
+<span class="lineNum">     168 </span>            :   // 1 &lt;= i &lt;= num_blocks
+<span class="lineNum">     169 </span>            :   
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 :   for (int block = 1; block &lt; num_blocks; ++block) {</span>
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :     diagonal_length = Bmax[block] - Bmin[block] + 1;</span>
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :     diagonal_block_size = GR_start_index[block] - GR_start_index[block - 1];</span>
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :     calculate_GR(block, Bmin, Bmax, &amp;gR[GR_start_index[block]],</span>
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :                  &amp;GR[GR_start_index[block]],</span>
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 :                  &amp;GRNNp1[GRNNp1_start_index[block -1]]);</span>
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            :     /*std::stringstream filename;
+<span class="lineNum">     178 </span>            :     filename.str(&quot;&quot;);
+<span class="lineNum">     179 </span>            :     filename &lt;&lt; &quot;tests/rGF/GR_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     180 </span>            :     write_mat_c(&amp;GR[GR_start_index[block]], diagonal_length, diagonal_length, 
+<span class="lineNum">     181 </span>            :               filename.str());
+<span class="lineNum">     182 </span>            :     filename.str(&quot;&quot;);
+<span class="lineNum">     183 </span>            :     filename &lt;&lt; &quot;tests/rGF/GRNNp1_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     184 </span>            :     write_mat_c(&amp;GRNNp1[GRNNp1_start_index[block - 1]], Bmax[block - 1] - 
+<span class="lineNum">     185 </span>            :               Bmin[block - 1] + 1, diagonal_length, filename.str());*/
+<span class="lineNum">     186 </span>            :   }
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :   delete sparse_CSR;</span>
+<span class="lineNum">     189 </span><span class="lineNoCov">          0 :   delete sparse_CSC;</span>
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :   delete[] tmp0;</span>
+<span class="lineNum">     191 </span><span class="lineNoCov">          0 :   delete[] tmp1;</span>
+<span class="lineNum">     192 </span><span class="lineNoCov">          0 :   delete[] tmp2;</span>
+<span class="lineNum">     193 </span><span class="lineNoCov">          0 :   delete[] gR;</span>
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span>            :   //std::cout &lt;&lt; &quot;rGF, stage2 total: &quot; &lt;&lt; get_time(time_start) &lt;&lt; &quot;\n&quot;;
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     198 </span>            : 
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span>            : /** \brief Extraction of a diagonal block from the main sparse matrix
+<span class="lineNum">     202 </span>            :  *
+<span class="lineNum">     203 </span>            :  * This routine extracts a diagonal block from the instance's matrix 
+<span class="lineNum">     204 </span>            :  * (this-&gt;matrix) and stores it in diagonal_block as full matrix.
+<span class="lineNum">     205 </span>            :  *
+<span class="lineNum">     206 </span>            :  * \param block Index of the block to be extracted (numbering starts with 0)
+<span class="lineNum">     207 </span>            :  *              (input).
+<span class="lineNum">     208 </span>            :  *
+<span class="lineNum">     209 </span>            :  * \param Bmin Vector of block start indices along the diagonal (input).
+<span class="lineNum">     210 </span>            :  *
+<span class="lineNum">     211 </span>            :  * \param Bmax Vector of block end indices along the diagonal (input).
+<span class="lineNum">     212 </span>            :  *
+<span class="lineNum">     213 </span>            :  * \param diagonal_block The full matrix in which the diagonal block is to be
+<a name="214"><span class="lineNum">     214 </span>            :  *                       stored (output).</a>
+<span class="lineNum">     215 </span>            :  */
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 : void rGF::get_diagonal_block(int block, std::vector&lt;int&gt; Bmin,</span>
+<span class="lineNum">     217 </span>            :                                  std::vector&lt;int&gt; Bmax, CPX *diagonal_block)
+<span class="lineNum">     218 </span>            : {
+<span class="lineNum">     219 </span><span class="lineNoCov">          0 :   int diagonal_length = Bmax[block] - Bmin[block] + 1;</span>
+<span class="lineNum">     220 </span><span class="lineNoCov">          0 :   assert(diagonal_length &lt;= Bmax[block] + 1);</span>
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span><span class="lineNoCov">          0 :   set_to_zero(diagonal_length * diagonal_length, diagonal_block);</span>
+<span class="lineNum">     223 </span>            : 
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :   for (int i_absolute = Bmin[block]; i_absolute &lt;= Bmax[block]; </span>
+<span class="lineNum">     225 </span>            :        ++i_absolute) {
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :     int i_relative = i_absolute - Bmin[block];</span>
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :     for (int j_absolute = matrix-&gt;edge_i[i_absolute] - matrix-&gt;findx;</span>
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :          j_absolute &lt; matrix-&gt;edge_i[i_absolute+1] - matrix-&gt;findx;</span>
+<span class="lineNum">     229 </span>            :          ++j_absolute) { 
+<span class="lineNum">     230 </span><span class="lineNoCov">          0 :       int j_relative = matrix-&gt;index_j[j_absolute] - matrix-&gt;findx - </span>
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :                                 Bmin[block];</span>
+<span class="lineNum">     232 </span><span class="lineNoCov">          0 :       if ((j_relative &gt;=  0) &amp;&amp; (j_relative &lt; diagonal_length)) {</span>
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :         diagonal_block[(i_relative * diagonal_length) + j_relative] =</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :                                                          matrix-&gt;nnz[j_absolute];</span>
+<span class="lineNum">     235 </span>            :       }
+<span class="lineNum">     236 </span>            :     }
+<span class="lineNum">     237 </span>            :   }
+<span class="lineNum">     238 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span>            : 
+<span class="lineNum">     241 </span>            : /** \brief Extraction of two offdiagonal blocks from the main sparse matrix
+<span class="lineNum">     242 </span>            :  *
+<span class="lineNum">     243 </span>            :  * This routine extracts the two offdiagonal blocks T_{i,i+1} and T_{i+1,i}
+<span class="lineNum">     244 </span>            :  * from the instance's matrix (this-&gt;matrix) and stores them in the sparse
+<span class="lineNum">     245 </span>            :  * matrices T_iip1 (CSC) and T_ip1i (CSR) respectively. T_{i,i+1} is the 
+<span class="lineNum">     246 </span>            :  * conjugate of T_{i+1,i}, T_{i+1,i} will be taken as source for construction 
+<span class="lineNum">     247 </span>            :  * of both blocks.
+<span class="lineNum">     248 </span>            :  *
+<span class="lineNum">     249 </span>            :  * \param block Index i for extraction of T_{i,i+1} and T_{i+1,i} (numbering
+<span class="lineNum">     250 </span>            :  *              starts with 0) (input).
+<span class="lineNum">     251 </span>            :  *
+<span class="lineNum">     252 </span>            :  * \param Bmin Vector of block start indices along the diagonal (input).
+<span class="lineNum">     253 </span>            :  *
+<span class="lineNum">     254 </span>            :  * \param Bmax Vector of block end indices along the diagonal (input).
+<span class="lineNum">     255 </span>            :  *
+<span class="lineNum">     256 </span>            :  * \param T_iip1 Sparse (CSC) matrix to contain T_{i,i+1} (output).
+<span class="lineNum">     257 </span>            :  *
+<a name="258"><span class="lineNum">     258 </span>            :  * \param T_iip1 Sparse (CSR) matrix to contain T_{i+1,i} (output).</a>
+<span class="lineNum">     259 </span>            :  */
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 : void rGF::get_Tip1i_csc_Tiip1_csr(int block, std::vector&lt;int&gt; Bmin,</span>
+<span class="lineNum">     261 </span>            :                                   std::vector&lt;int&gt; Bmax, TCSC&lt;CPX,int&gt; *T_ip1i, 
+<span class="lineNum">     262 </span>            :                                   TCSR&lt;CPX&gt; *T_iip1)
+<span class="lineNum">     263 </span>            : {
+<span class="lineNum">     264 </span><span class="lineNoCov">          0 :   assert(block &lt; (int)(Bmin.size() - 1));</span>
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :   assert(block &gt;= 0);</span>
+<span class="lineNum">     266 </span>            : 
+<span class="lineNum">     267 </span><span class="lineNoCov">          0 :   int current_diagonal = Bmax[block] - Bmin[block] + 1;</span>
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span><span class="lineNoCov">          0 :   T_iip1-&gt;size = current_diagonal; // CSR-&gt;size = number of rows</span>
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 :   T_ip1i-&gt;size = current_diagonal; // CSC-&gt;size = number of columns</span>
+<span class="lineNum">     271 </span>            : 
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :   int new_values_index = 0;</span>
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span><span class="lineNoCov">          0 :   for (int row_absolute = Bmin[block]; row_absolute &lt;= Bmax[block] ; </span>
+<span class="lineNum">     275 </span>            :       ++row_absolute) {
+<span class="lineNum">     276 </span>            : 
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :     int row = row_absolute - Bmin[block];</span>
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :     T_iip1-&gt;index_i[row] = 0;</span>
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :     T_ip1i-&gt;index_j[row] = 0;</span>
+<span class="lineNum">     280 </span>            : 
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :     int row_start = matrix-&gt;edge_i[row_absolute] - matrix-&gt;findx;</span>
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :     int next_row_start = matrix-&gt;edge_i[row_absolute + 1] - matrix-&gt;findx;</span>
+<span class="lineNum">     283 </span>            : 
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :     for (int value_index = row_start; value_index &lt; next_row_start;</span>
+<span class="lineNum">     285 </span>            :          ++value_index) {
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :       int values_column = matrix-&gt;index_j[value_index] - matrix-&gt;findx;</span>
+<span class="lineNum">     288 </span>            : 
+<span class="lineNum">     289 </span><span class="lineNoCov">          0 :       if ((Bmin[block+1] &lt;= values_column) &amp;&amp; (values_column &lt;= Bmax[block+1])) {</span>
+<span class="lineNum">     290 </span>            : 
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :         int new_values_column = values_column - Bmin[block+1];</span>
+<span class="lineNum">     292 </span>            : 
+<span class="lineNum">     293 </span><span class="lineNoCov">          0 :         T_iip1-&gt;index_j[new_values_index] = new_values_column + fortran_index;</span>
+<span class="lineNum">     294 </span><span class="lineNoCov">          0 :         T_iip1-&gt;nnz[new_values_index] = matrix-&gt;nnz[value_index];</span>
+<span class="lineNum">     295 </span><span class="lineNoCov">          0 :         T_iip1-&gt;index_i[row]++;</span>
+<span class="lineNum">     296 </span>            : 
+<span class="lineNum">     297 </span><span class="lineNoCov">          0 :         T_ip1i-&gt;index_i[new_values_index] = new_values_column + fortran_index;</span>
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :         T_ip1i-&gt;nnz[new_values_index] = matrix-&gt;nnz[value_index];</span>
+<span class="lineNum">     299 </span><span class="lineNoCov">          0 :         T_ip1i-&gt;index_j[row]++;</span>
+<span class="lineNum">     300 </span>            : 
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 :         new_values_index++;</span>
+<span class="lineNum">     302 </span>            :       } 
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :       else if (values_column &gt; Bmax[block+1]) {</span>
+<span class="lineNum">     304 </span>            :         break;
+<span class="lineNum">     305 </span>            :       }
+<span class="lineNum">     306 </span>            :     }
+<span class="lineNum">     307 </span>            :   }
+<span class="lineNum">     308 </span>            : 
+<span class="lineNum">     309 </span><span class="lineNoCov">          0 :   T_iip1-&gt;n_nonzeros = new_values_index;</span>
+<span class="lineNum">     310 </span><span class="lineNoCov">          0 :   T_ip1i-&gt;n_nonzeros = new_values_index;</span>
+<span class="lineNum">     311 </span><span class="lineNoCov">          0 :   T_iip1-&gt;get_row_edge();</span>
+<span class="lineNum">     312 </span><span class="lineNoCov">          0 :   T_ip1i-&gt;get_column_edge();</span>
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     314 </span>            : 
+<span class="lineNum">     315 </span>            : 
+<span class="lineNum">     316 </span>            : /** \brief Extraction of two offdiagonal blocks from the main sparse matrix
+<span class="lineNum">     317 </span>            :  *
+<span class="lineNum">     318 </span>            :  * This routine extracts the two offdiagonal blocks T_{i,i+1} and T_{i+1,i}
+<span class="lineNum">     319 </span>            :  * from the instance's matrix (this-&gt;matrix) and stores them in the sparse
+<span class="lineNum">     320 </span>            :  * matrices T_ip1i (CSR) and T_iip1 (CSC) respectively. T_{i+1,i} is the 
+<span class="lineNum">     321 </span>            :  * conjugate of T_{i,i+1}. T_{i,i+1} will be taken as source for construction
+<span class="lineNum">     322 </span>            :  * of both blocks.
+<span class="lineNum">     323 </span>            :  *
+<span class="lineNum">     324 </span>            :  * \param block Index i for extraction of T_{i,i+1} and T_{i+1,i} (numbering
+<span class="lineNum">     325 </span>            :  *              starts with 0) (input).
+<span class="lineNum">     326 </span>            :  *
+<span class="lineNum">     327 </span>            :  * \param Bmin Vector of block start indices along the diagonal (input).
+<span class="lineNum">     328 </span>            :  *
+<span class="lineNum">     329 </span>            :  * \param Bmax Vector of block end indices along the diagonal (input).
+<span class="lineNum">     330 </span>            :  *
+<span class="lineNum">     331 </span>            :  * \param T_ip1i Sparse (CSR) matrix to contain T_{i,i+1} (output).
+<span class="lineNum">     332 </span>            :  *
+<a name="333"><span class="lineNum">     333 </span>            :  * \param T_iip1 Sparse (CSC) matrix to contain T_{i+1,i} (output).</a>
+<span class="lineNum">     334 </span>            :  */
+<span class="lineNum">     335 </span><span class="lineNoCov">          0 : void rGF::get_Tip1i_csr_Tiip1_csc(int block, std::vector&lt;int&gt; Bmin,</span>
+<span class="lineNum">     336 </span>            :                                   std::vector&lt;int&gt; Bmax, TCSR&lt;CPX&gt; *T_ip1i, 
+<span class="lineNum">     337 </span>            :                                   TCSC&lt;CPX,int&gt; *T_iip1)
+<span class="lineNum">     338 </span>            : {
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :   assert(block &lt; (int)(Bmin.size() - 1));</span>
+<span class="lineNum">     340 </span><span class="lineNoCov">          0 :   assert(block &gt;= 0);</span>
+<span class="lineNum">     341 </span>            : 
+<span class="lineNum">     342 </span><span class="lineNoCov">          0 :   int next_diagonal = Bmax[block+1] - Bmin[block+1] + 1;</span>
+<span class="lineNum">     343 </span>            : 
+<span class="lineNum">     344 </span><span class="lineNoCov">          0 :   T_ip1i-&gt;size = next_diagonal; // CSR-&gt;size = number of rows     </span>
+<span class="lineNum">     345 </span><span class="lineNoCov">          0 :   T_iip1-&gt;size = next_diagonal; // CSC-&gt;size = number of columns</span>
+<span class="lineNum">     346 </span>            : 
+<span class="lineNum">     347 </span><span class="lineNoCov">          0 :   int new_values_index = 0;</span>
+<span class="lineNum">     348 </span>            : 
+<span class="lineNum">     349 </span><span class="lineNoCov">          0 :   for (int row_absolute = Bmin[block+1]; row_absolute &lt;= Bmax[block+1];</span>
+<span class="lineNum">     350 </span>            :        ++row_absolute) {
+<span class="lineNum">     351 </span>            : 
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :     int row = row_absolute - Bmin[block+1];</span>
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 :     T_iip1-&gt;index_j[row] = 0;</span>
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :     T_ip1i-&gt;index_i[row] = 0;</span>
+<span class="lineNum">     355 </span>            : 
+<span class="lineNum">     356 </span><span class="lineNoCov">          0 :     int row_start = matrix-&gt;edge_i[row_absolute] - matrix-&gt;findx;</span>
+<span class="lineNum">     357 </span><span class="lineNoCov">          0 :     int next_row_start = matrix-&gt;edge_i[row_absolute + 1] - matrix-&gt;findx;</span>
+<span class="lineNum">     358 </span>            : 
+<span class="lineNum">     359 </span><span class="lineNoCov">          0 :     for (int value_index = row_start; value_index &lt; next_row_start;</span>
+<span class="lineNum">     360 </span>            :          value_index++) {
+<span class="lineNum">     361 </span>            : 
+<span class="lineNum">     362 </span><span class="lineNoCov">          0 :       int values_column = matrix-&gt;index_j[value_index] - matrix-&gt;findx;</span>
+<span class="lineNum">     363 </span>            : 
+<span class="lineNum">     364 </span><span class="lineNoCov">          0 :       if ((Bmin[block] &lt;= values_column) &amp;&amp; (values_column &lt;= Bmax[block])) {</span>
+<span class="lineNum">     365 </span>            : 
+<span class="lineNum">     366 </span><span class="lineNoCov">          0 :         int new_values_column = values_column - Bmin[block];</span>
+<span class="lineNum">     367 </span>            : 
+<span class="lineNum">     368 </span><span class="lineNoCov">          0 :         T_ip1i-&gt;index_j[new_values_index] = new_values_column + fortran_index;</span>
+<span class="lineNum">     369 </span><span class="lineNoCov">          0 :         T_ip1i-&gt;nnz[new_values_index] = matrix-&gt;nnz[value_index];</span>
+<span class="lineNum">     370 </span><span class="lineNoCov">          0 :         T_ip1i-&gt;index_i[row]++;</span>
+<span class="lineNum">     371 </span>            : 
+<span class="lineNum">     372 </span><span class="lineNoCov">          0 :         T_iip1-&gt;index_i[new_values_index] = new_values_column + fortran_index;</span>
+<span class="lineNum">     373 </span><span class="lineNoCov">          0 :         T_iip1-&gt;nnz[new_values_index] = matrix-&gt;nnz[value_index];</span>
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :         T_iip1-&gt;index_j[row]++;</span>
+<span class="lineNum">     375 </span>            : 
+<span class="lineNum">     376 </span><span class="lineNoCov">          0 :         ++new_values_index;</span>
+<span class="lineNum">     377 </span>            :       }
+<span class="lineNum">     378 </span><span class="lineNoCov">          0 :       else if (values_column &gt; Bmax[block+1]) {</span>
+<span class="lineNum">     379 </span>            :         break;
+<span class="lineNum">     380 </span>            :       }
+<span class="lineNum">     381 </span>            :     }
+<span class="lineNum">     382 </span>            :   }
+<span class="lineNum">     383 </span>            : 
+<span class="lineNum">     384 </span><span class="lineNoCov">          0 :   T_iip1-&gt;n_nonzeros = new_values_index;</span>
+<span class="lineNum">     385 </span><span class="lineNoCov">          0 :   T_ip1i-&gt;n_nonzeros = new_values_index;</span>
+<span class="lineNum">     386 </span><span class="lineNoCov">          0 :   T_iip1-&gt;get_column_edge();</span>
+<span class="lineNum">     387 </span><span class="lineNoCov">          0 :   T_ip1i-&gt;get_row_edge();</span>
+<span class="lineNum">     388 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     389 </span>            : 
+<span class="lineNum">     390 </span>            : 
+<span class="lineNum">     391 </span>            : /** \brief Function to calculate a block of gR
+<span class="lineNum">     392 </span>            :  *
+<span class="lineNum">     393 </span>            :  * Function to calcuate gR = (matrix_{i,i}-SigR)^{-1} for a given subblock i,i
+<span class="lineNum">     394 </span>            :  * of the main matrix.
+<span class="lineNum">     395 </span>            :  *
+<span class="lineNum">     396 </span>            :  * \pre sigmaR is stored in tmp0.
+<span class="lineNum">     397 </span>            :  *
+<span class="lineNum">     398 </span>            :  * \param block The index of the block to calculate (input).
+<span class="lineNum">     399 </span>            :  *
+<span class="lineNum">     400 </span>            :  * \param Bmin Vector of block start indices along the diagonal (input).
+<span class="lineNum">     401 </span>            :  *
+<span class="lineNum">     402 </span>            :  * \param Bmax Vector of block end indices along the diagonal (input).
+<span class="lineNum">     403 </span>            :  *
+<span class="lineNum">     404 </span>            :  * \param GR_start_index Vector of block start indices within the matrix
+<span class="lineNum">     405 </span>            :  *                       array (input).
+<span class="lineNum">     406 </span>            :  *
+<span class="lineNum">     407 </span>            :  * \param gR Array containing gR (output).
+<a name="408"><span class="lineNum">     408 </span>            :  *</a>
+<span class="lineNum">     409 </span>            :  */
+<span class="lineNum">     410 </span><span class="lineNoCov">          0 : void rGF::calculate_gR_rec(int block, std::vector&lt;int&gt; Bmin, </span>
+<span class="lineNum">     411 </span>            :                            std::vector&lt;int&gt; Bmax, 
+<span class="lineNum">     412 </span>            :                            std::vector&lt;int&gt; GR_start_index, CPX *gR)
+<span class="lineNum">     413 </span>            : {
+<span class="lineNum">     414 </span>            : 
+<span class="lineNum">     415 </span>            :   //double start_time = get_time(0.0);
+<span class="lineNum">     416 </span>            : 
+<span class="lineNum">     417 </span><span class="lineNoCov">          0 :   int diagonal_length = Bmax[block] - Bmin[block] + 1;</span>
+<span class="lineNum">     418 </span><span class="lineNoCov">          0 :   int diagonal_block_size = diagonal_length * diagonal_length;</span>
+<span class="lineNum">     419 </span>            : 
+<span class="lineNum">     420 </span><span class="lineNoCov">          0 :   CPX *sigmaR = tmp0;</span>
+<span class="lineNum">     421 </span><span class="lineNoCov">          0 :   CPX *inverted_gR = tmp1;</span>
+<span class="lineNum">     422 </span><span class="lineNoCov">          0 :   get_diagonal_block(block, Bmin, Bmax, inverted_gR);</span>
+<span class="lineNum">     423 </span>            : 
+<span class="lineNum">     424 </span>            :   // inverted_gR += -1 * sigmaR:
+<span class="lineNum">     425 </span><span class="lineNoCov">          0 :   c_zaxpy(diagonal_block_size, CPX(-1.0, 0.0), sigmaR, 1, inverted_gR, 1);</span>
+<span class="lineNum">     426 </span>            : 
+<span class="lineNum">     427 </span>            :   // gR = inverted_gR^{-1}:
+<span class="lineNum">     428 </span><span class="lineNoCov">          0 :   int *pivot_vector = new int[diagonal_length];</span>
+<span class="lineNum">     429 </span>            :   int status;
+<span class="lineNum">     430 </span>            :   c_zgetrf(diagonal_length, diagonal_length, inverted_gR, diagonal_length,
+<span class="lineNum">     431 </span><span class="lineNoCov">          0 :            pivot_vector, &amp;status);</span>
+<span class="lineNum">     432 </span><span class="lineNoCov">          0 :   set_to_unity(diagonal_length, &amp;gR[GR_start_index[block]]);</span>
+<span class="lineNum">     433 </span><span class="lineNoCov">          0 :   c_zgetrs('N', diagonal_length, diagonal_length, inverted_gR, diagonal_length,</span>
+<span class="lineNum">     434 </span><span class="lineNoCov">          0 :            pivot_vector, &amp;gR[GR_start_index[block]], diagonal_length, &amp;status);</span>
+<span class="lineNum">     435 </span>            : 
+<span class="lineNum">     436 </span>            :   /*std::stringstream gR_filename;
+<span class="lineNum">     437 </span>            :   gR_filename &lt;&lt; &quot;tests/rGF/gR_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     438 </span>            :   write_mat_c(&amp;gR[GR_start_index[block]], diagonal_length, diagonal_length,
+<span class="lineNum">     439 </span>            :             gR_filename.str());*/
+<span class="lineNum">     440 </span>            : 
+<span class="lineNum">     441 </span><span class="lineNoCov">          0 :   delete[] pivot_vector;</span>
+<span class="lineNum">     442 </span>            : 
+<span class="lineNum">     443 </span>            :   //std::cout &lt;&lt; &quot;gR_inv_&quot; &lt;&lt; block &lt;&lt; &quot;: &quot; &lt;&lt; get_time(start_time) &lt;&lt; &quot;\n&quot;;
+<span class="lineNum">     444 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     445 </span>            : 
+<span class="lineNum">     446 </span>            : /** \brief Function to calculate a block of gR
+<span class="lineNum">     447 </span>            :  *
+<span class="lineNum">     448 </span>            :  * Function to calcuate gR = (matrix_{i,i})^{-1} for a given subblock i,i
+<span class="lineNum">     449 </span>            :  * of the main matrix. To be used for the lowest block of gR if the self
+<span class="lineNum">     450 </span>            :  * energies are already applied to the matrix.
+<span class="lineNum">     451 </span>            :  *
+<span class="lineNum">     452 </span>            :  * \param block The index of the block to calculate (input).
+<span class="lineNum">     453 </span>            :  *
+<span class="lineNum">     454 </span>            :  * \param Bmin Vector of block start indices along the diagonal (input).
+<span class="lineNum">     455 </span>            :  *
+<span class="lineNum">     456 </span>            :  * \param Bmax Vector of block end indices along the diagonal (input).
+<span class="lineNum">     457 </span>            :  *
+<span class="lineNum">     458 </span>            :  * \param GR_start_index Vector of block start indices within the matrix
+<span class="lineNum">     459 </span>            :  *                       array (input).
+<span class="lineNum">     460 </span>            :  *
+<span class="lineNum">     461 </span>            :  * \param gR Array containing gR (output).
+<a name="462"><span class="lineNum">     462 </span>            :  *</a>
+<span class="lineNum">     463 </span>            :  */
+<span class="lineNum">     464 </span><span class="lineNoCov">          0 : void rGF::calculate_gR_init(int block, std::vector&lt;int&gt; Bmin, </span>
+<span class="lineNum">     465 </span>            :                             std::vector&lt;int&gt; Bmax, 
+<span class="lineNum">     466 </span>            :                             std::vector&lt;int&gt; GR_start_index, CPX *gR)
+<span class="lineNum">     467 </span>            : {
+<span class="lineNum">     468 </span>            : 
+<span class="lineNum">     469 </span>            :   //double start_time = get_time(0.0);
+<span class="lineNum">     470 </span>            : 
+<span class="lineNum">     471 </span><span class="lineNoCov">          0 :   int diagonal_length = Bmax[block] - Bmin[block] + 1;</span>
+<span class="lineNum">     472 </span>            : 
+<span class="lineNum">     473 </span><span class="lineNoCov">          0 :   CPX *inverted_gR = tmp0;</span>
+<span class="lineNum">     474 </span><span class="lineNoCov">          0 :   get_diagonal_block(block, Bmin, Bmax, inverted_gR);</span>
+<span class="lineNum">     475 </span>            : 
+<span class="lineNum">     476 </span>            :   // gR = inverted_gR^{-1}:
+<span class="lineNum">     477 </span><span class="lineNoCov">          0 :   int *pivot_vector = new int[diagonal_length];</span>
+<span class="lineNum">     478 </span>            :   int status;
+<span class="lineNum">     479 </span>            :   c_zgetrf(diagonal_length, diagonal_length, inverted_gR, diagonal_length,
+<span class="lineNum">     480 </span><span class="lineNoCov">          0 :            pivot_vector, &amp;status);</span>
+<span class="lineNum">     481 </span><span class="lineNoCov">          0 :   set_to_unity(diagonal_length, &amp;gR[GR_start_index[block]]);</span>
+<span class="lineNum">     482 </span><span class="lineNoCov">          0 :   c_zgetrs('N', diagonal_length, diagonal_length, inverted_gR, diagonal_length,</span>
+<span class="lineNum">     483 </span><span class="lineNoCov">          0 :            pivot_vector, &amp;gR[GR_start_index[block]], diagonal_length, &amp;status);</span>
+<span class="lineNum">     484 </span>            : 
+<span class="lineNum">     485 </span>            :   /*std::stringstream gR_filename;
+<span class="lineNum">     486 </span>            :   gR_filename &lt;&lt; &quot;tests/rGF/gR_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     487 </span>            :   write_mat_c(&amp;gR[GR_start_index[block]], diagonal_length, diagonal_length,
+<span class="lineNum">     488 </span>            :             gR_filename.str());*/
+<span class="lineNum">     489 </span>            : 
+<span class="lineNum">     490 </span><span class="lineNoCov">          0 :   delete[] pivot_vector;</span>
+<span class="lineNum">     491 </span>            : 
+<span class="lineNum">     492 </span>            :   //std::cout &lt;&lt; &quot;gR_inv_&quot; &lt;&lt; block &lt;&lt; &quot;: &quot; &lt;&lt; get_time(start_time) &lt;&lt; &quot;\n&quot;;
+<span class="lineNum">     493 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     494 </span>            : 
+<span class="lineNum">     495 </span>            : 
+<span class="lineNum">     496 </span>            : /** \brief Function to calculate sigmaR
+<span class="lineNum">     497 </span>            :  *
+<span class="lineNum">     498 </span>            :  * This function calculates sigmaR as
+<span class="lineNum">     499 </span>            :  *
+<span class="lineNum">     500 </span>            :  *  sigmaR_{i} = T_{i,i+1} * gR_{i+1} * T_{i+1,i}
+<span class="lineNum">     501 </span>            :  *
+<span class="lineNum">     502 </span>            :  * \post sigmaR will be stored in tmp0 after return.
+<span class="lineNum">     503 </span>            :  *
+<span class="lineNum">     504 </span>            :  * \param block Index of the block of gR to calculate (input).
+<span class="lineNum">     505 </span>            :  *
+<span class="lineNum">     506 </span>            :  * \param Bmin Vector of block start indices along the diagonal (input).
+<span class="lineNum">     507 </span>            :  *
+<span class="lineNum">     508 </span>            :  * \param Bmax Vector of block end indices along the diagonal (input).
+<span class="lineNum">     509 </span>            :  *
+<span class="lineNum">     510 </span>            :  * \param GR_start_index Vector of block start indices within the matrix
+<span class="lineNum">     511 </span>            :  *                       array (input).
+<span class="lineNum">     512 </span>            :  *
+<span class="lineNum">     513 </span>            :  * \param gR The matrix containing the already calculated blocks of gR
+<span class="lineNum">     514 </span>            :  *           (input).
+<a name="515"><span class="lineNum">     515 </span>            :  *</a>
+<span class="lineNum">     516 </span>            :  */
+<span class="lineNum">     517 </span><span class="lineNoCov">          0 : void rGF::calculate_sigmaR(int block, std::vector&lt;int&gt; Bmin,</span>
+<span class="lineNum">     518 </span>            :                            std::vector&lt;int&gt; Bmax,
+<span class="lineNum">     519 </span>            :                            std::vector&lt;int&gt; GR_start_index, CPX *gR)
+<span class="lineNum">     520 </span>            : {
+<span class="lineNum">     521 </span>            : 
+<span class="lineNum">     522 </span>            :   int result_size;
+<span class="lineNum">     523 </span>            :   int precursor_size;
+<span class="lineNum">     524 </span>            : 
+<span class="lineNum">     525 </span>            :   //double start_time = get_time(0.0);
+<span class="lineNum">     526 </span>            :   
+<span class="lineNum">     527 </span><span class="lineNoCov">          0 :   assert(block &lt; (int)(Bmin.size() - 1));</span>
+<span class="lineNum">     528 </span><span class="lineNoCov">          0 :   assert(block &gt;= 0);</span>
+<span class="lineNum">     529 </span>            : 
+<span class="lineNum">     530 </span><span class="lineNoCov">          0 :   result_size = Bmax[block] - Bmin[block] + 1;</span>
+<span class="lineNum">     531 </span><span class="lineNoCov">          0 :   precursor_size = Bmax[block+1] - Bmin[block+1] + 1;</span>
+<span class="lineNum">     532 </span><span class="lineNoCov">          0 :   int oversize = result_size;</span>
+<span class="lineNum">     533 </span>            :   if ( oversize &lt; precursor_size) oversize = precursor_size;
+<span class="lineNum">     534 </span>            : 
+<span class="lineNum">     535 </span><span class="lineNoCov">          0 :   TCSR&lt;CPX&gt; *T_iip1 = sparse_CSR;</span>
+<span class="lineNum">     536 </span><span class="lineNoCov">          0 :   TCSC&lt;CPX,int&gt; *T_ip1i = sparse_CSC;</span>
+<span class="lineNum">     537 </span><span class="lineNoCov">          0 :   CPX *sigmaR = tmp0;</span>
+<span class="lineNum">     538 </span><span class="lineNoCov">          0 :   CPX *T_iip1_gR_ip1 = tmp1;</span>
+<span class="lineNum">     539 </span>            : 
+<span class="lineNum">     540 </span><span class="lineNoCov">          0 :   get_Tip1i_csc_Tiip1_csr(block, Bmin, Bmax, T_ip1i, T_iip1);</span>
+<span class="lineNum">     541 </span>            :   // T_iip1_gR_ip1 =  T_{i,i+1} * gR_{i+1,i+1}
+<span class="lineNum">     542 </span><span class="lineNoCov">          0 :   transpose_full_matrix(&amp;gR[GR_start_index[block+1]], precursor_size, </span>
+<span class="lineNum">     543 </span><span class="lineNoCov">          0 :                         precursor_size, sigmaR);</span>
+<span class="lineNum">     544 </span>            :   T_iip1-&gt;trans_mat_vec_mult(sigmaR, T_iip1_gR_ip1,
+<span class="lineNum">     545 </span><span class="lineNoCov">          0 :                             precursor_size, precursor_size);</span>
+<span class="lineNum">     546 </span>            :   // sigmaR = T_iip1_gR_ip1 * T_ip1i
+<span class="lineNum">     547 </span><span class="lineNoCov">          0 :   T_ip1i-&gt;vec_mat_mult(T_iip1_gR_ip1, sigmaR, result_size);</span>
+<span class="lineNum">     548 </span>            : 
+<span class="lineNum">     549 </span>            :   //std::cout &lt;&lt; &quot;sigmaR_&quot; &lt;&lt; block &lt;&lt; &quot;: &quot; &lt;&lt; get_time(start_time) &lt;&lt; &quot;\n&quot;;
+<span class="lineNum">     550 </span>            : 
+<span class="lineNum">     551 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     552 </span>            : 
+<span class="lineNum">     553 </span>            : 
+<span class="lineNum">     554 </span>            : /** \brief Function to calculate GR_{i}
+<span class="lineNum">     555 </span>            :  *
+<span class="lineNum">     556 </span>            :  * This function calculates GR_{i} as 
+<span class="lineNum">     557 </span>            :  *
+<span class="lineNum">     558 </span>            :  *   GR_{i} = gR_{i} + gR_{i} * T_{i,i-1} * GR_{i-1} * T{i-1,i} * gR_{i}
+<span class="lineNum">     559 </span>            :  *
+<span class="lineNum">     560 </span>            :  * and GR_{i-1,i} as
+<span class="lineNum">     561 </span>            :  *
+<span class="lineNum">     562 </span>            :  *   GR_{i-1,i} = -1 * GR_{i-1} * T_{i-1,i} * gR_{i}
+<span class="lineNum">     563 </span>            :  *
+<span class="lineNum">     564 </span>            :  * \pre tmp0 contains GR_{i-1}
+<span class="lineNum">     565 </span>            :  *
+<span class="lineNum">     566 </span>            :  * \post tmp0 contains GR_{i}
+<span class="lineNum">     567 </span>            :  *
+<span class="lineNum">     568 </span>            :  * \post tmp1 contains GR_{i-1, i}
+<span class="lineNum">     569 </span>            :  *
+<span class="lineNum">     570 </span>            :  * \param block Index i of the block GR_{i} to calculate (input).
+<span class="lineNum">     571 </span>            :  *
+<span class="lineNum">     572 </span>            :  * \param Bmin Vector of block start indices along the diagonal (input).
+<span class="lineNum">     573 </span>            :  *
+<span class="lineNum">     574 </span>            :  * \param Bmax Vector of block end indices along the diagonal (input).
+<span class="lineNum">     575 </span>            :  *
+<span class="lineNum">     576 </span>            :  * \param gR The matrix containing gR_{i} (input).
+<span class="lineNum">     577 </span>            :  *
+<span class="lineNum">     578 </span>            :  * \note: There's commented out code to calculate blocks of the first column of
+<span class="lineNum">     579 </span>            :  * GR.
+<a name="580"><span class="lineNum">     580 </span>            :  *</a>
+<span class="lineNum">     581 </span>            :  */
+<span class="lineNum">     582 </span><span class="lineNoCov">          0 : void rGF::calculate_GR(int block, std::vector&lt;int&gt; Bmin, std::vector&lt;int&gt; Bmax, </span>
+<span class="lineNum">     583 </span>            :                        CPX *gR, CPX *GR, CPX *GRNNp1)
+<span class="lineNum">     584 </span>            : {
+<span class="lineNum">     585 </span>            : 
+<span class="lineNum">     586 </span>            :   //double start_time = get_time(0.0);
+<span class="lineNum">     587 </span>            : 
+<span class="lineNum">     588 </span><span class="lineNoCov">          0 :   assert(block &gt; 0 &amp;&amp; block &lt; (int)Bmin.size());</span>
+<span class="lineNum">     589 </span><span class="lineNoCov">          0 :   int result_size = Bmax[block] - Bmin[block] + 1;</span>
+<span class="lineNum">     590 </span><span class="lineNoCov">          0 :   int precursor_size = Bmax[block-1] - Bmin[block-1] + 1;</span>
+<span class="lineNum">     591 </span><span class="lineNoCov">          0 :   int oversize = result_size;</span>
+<span class="lineNum">     592 </span>            :   if (oversize &lt; precursor_size) {oversize = precursor_size;}
+<span class="lineNum">     593 </span>            : 
+<span class="lineNum">     594 </span><span class="lineNoCov">          0 :   TCSC&lt;CPX,int&gt; *T_im1i = sparse_CSC;</span>
+<span class="lineNum">     595 </span><span class="lineNoCov">          0 :   TCSR&lt;CPX&gt; *T_iim1 = sparse_CSR;</span>
+<span class="lineNum">     596 </span><span class="lineNoCov">          0 :   CPX *GR_block = tmp0;</span>
+<span class="lineNum">     597 </span><span class="lineNoCov">          0 :   CPX *tmp = tmp1;</span>
+<span class="lineNum">     598 </span>            : 
+<span class="lineNum">     599 </span><span class="lineNoCov">          0 :   get_Tip1i_csr_Tiip1_csc(block - 1, Bmin, Bmax, T_iim1, T_im1i);</span>
+<span class="lineNum">     600 </span>            : 
+<span class="lineNum">     601 </span>            :   /* Calculation of GRN1_block
+<span class="lineNum">     602 </span>            :   *if (we_want_to_calc_GRN1) {
+<span class="lineNum">     603 </span>            :   *  int first_size = Bmax[0] - Bmin[0] + 1;
+<span class="lineNum">     604 </span>            :   *  transpose_full_matrix(GRN1_block, precursor_size, first_size, 
+<span class="lineNum">     605 </span>            :   *                        GRN1_transposed);
+<span class="lineNum">     606 </span>            :   *  T_iim1-&gt;trans_mat_vec_mult(GRN1_block_transposed, M_tmp, first_size, 
+<span class="lineNum">     607 </span>            :   *                            precursor_size);
+<span class="lineNum">     608 </span>            :   *  c_zgemm('N', 'N', result_size, first_size, result_size, CPX(-1.0, 0.0),
+<span class="lineNum">     609 </span>            :   *          gR, result_size, M_tmp, result_size, CPX(0.0, 0.0), GRN1_block,
+<span class="lineNum">     610 </span>            :   *          result_size);
+<span class="lineNum">     611 </span>            :   *}
+<span class="lineNum">     612 </span>            :   */
+<span class="lineNum">     613 </span>            : 
+<span class="lineNum">     614 </span>            :   // GR_{i} = gR_{i} + gR_{i} * T_{i,i-1} * GR_{i-1} * T_{i-1,i} * gR_{i}
+<span class="lineNum">     615 </span>            :   // GR_{i-1,i} =                      -1 * GR_{i-1} * T_{i-1,i} * gR_{i}
+<span class="lineNum">     616 </span>            : 
+<span class="lineNum">     617 </span>            :   // change to fortran memory layout
+<span class="lineNum">     618 </span><span class="lineNoCov">          0 :   transpose_full_matrix(GR_block, precursor_size, precursor_size, tmp);</span>
+<span class="lineNum">     619 </span>            : 
+<span class="lineNum">     620 </span>            :   // Check preconditions
+<span class="lineNum">     621 </span>            :   /*std::stringstream filename;
+<span class="lineNum">     622 </span>            :   filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/GR_&quot; &lt;&lt; block-1 &lt;&lt; &quot;_it&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     623 </span>            :   write_mat_c(tmp, precursor_size, precursor_size, filename.str());
+<span class="lineNum">     624 </span>            :   filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/gR_&quot; &lt;&lt; block &lt;&lt; &quot;_it&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     625 </span>            :   write_mat_c(gR, result_size, result_size, filename.str());
+<span class="lineNum">     626 </span>            :   filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/T_&quot; &lt;&lt; block-1 &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     627 </span>            :   const std::string &amp;filename_str = filename.str();
+<span class="lineNum">     628 </span>            :   const char *cfilename = filename_str.c_str();
+<span class="lineNum">     629 </span>            :   T_im1i-&gt;write(cfilename);*/
+<span class="lineNum">     630 </span>            : 
+<span class="lineNum">     631 </span>            :   // GR_block = tmp * T_{i-1,i}, dim: precursor_size*result_size (but we over-
+<span class="lineNum">     632 </span>            :   // allocate). The routine produces Fortran-style matrices, i.e. the dimensions
+<span class="lineNum">     633 </span>            :   // are result_size*precursor_size
+<span class="lineNum">     634 </span>            :   // NOTE: vec_mat_mult(in, out, number_of_rows for 'in')
+<span class="lineNum">     635 </span><span class="lineNoCov">          0 :   T_im1i-&gt;vec_mat_mult(tmp, GR_block, precursor_size);</span>
+<span class="lineNum">     636 </span>            :   /*filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/A_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     637 </span>            :   write_mat_c(GR_block, result_size, precursor_size, filename.str());*/
+<span class="lineNum">     638 </span>            : 
+<span class="lineNum">     639 </span>            :   // GRNNp1[..] = GR_block * gR_{i} = GR_{i-1} * T_{i-1,i} * gR_{i}, 
+<span class="lineNum">     640 </span>            :   // dim: precursor_size*result_size
+<span class="lineNum">     641 </span>            :   // NOTE: LDA is effectively the stride of the matrix A in BLAS (result_size
+<span class="lineNum">     642 </span>            :   // in our case)
+<span class="lineNum">     643 </span><span class="lineNoCov">          0 :   c_zgemm('N', 'T', result_size, precursor_size, result_size, CPX(1.0, 0.0),</span>
+<span class="lineNum">     644 </span>            :           gR, result_size, GR_block, precursor_size, CPX(0.0, 0.0), GRNNp1,
+<span class="lineNum">     645 </span><span class="lineNoCov">          0 :           result_size);</span>
+<span class="lineNum">     646 </span>            :   /*filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/B_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     647 </span>            :   write_mat_c(GRNNp1, precursor_size, result_size, filename.str());*/
+<span class="lineNum">     648 </span>            : 
+<span class="lineNum">     649 </span>            :   // tmp = T_{i,i-1} * GRNNp1 = T_{i,i-1} * GR_block * T_{i-1,i} * gR_{i},
+<span class="lineNum">     650 </span>            :   // dim: result_size*result_size
+<span class="lineNum">     651 </span>            :   // NOTE: trans_mat_vec_mult(in, out, cols_of_non_transposed_in, &lt;ignored&gt;)
+<span class="lineNum">     652 </span><span class="lineNoCov">          0 :   T_iim1-&gt;trans_mat_vec_mult(GRNNp1, tmp, result_size, result_size);</span>
+<span class="lineNum">     653 </span>            :   /*filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/C_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     654 </span>            :   write_mat_c(tmp, result_size, result_size, filename.str());*/
+<span class="lineNum">     655 </span>            : 
+<span class="lineNum">     656 </span>            :   // GRNNp1 *= -1, dim: precursor_size*result_size
+<span class="lineNum">     657 </span>            :   // M_TODO: we could also account for the factor at result construction time
+<span class="lineNum">     658 </span><span class="lineNoCov">          0 :   c_zscal(precursor_size * result_size, CPX(-1.0, 0.0), GRNNp1, 1);</span>
+<span class="lineNum">     659 </span>            :   /*filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/D_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     660 </span>            :   write_mat_c(GRNNp1, precursor_size, result_size, filename.str());*/
+<span class="lineNum">     661 </span>            : 
+<span class="lineNum">     662 </span>            :   // GR_block = gR * tmp = gR_{i} * T_{i,i-1} * GR_block * T_{i-1,i} * gR_{i},
+<span class="lineNum">     663 </span>            :   // dim: result_size*result_size
+<span class="lineNum">     664 </span><span class="lineNoCov">          0 :   c_zgemm('T', 'N', result_size, result_size, result_size, CPX(1.0, 0.0),</span>
+<span class="lineNum">     665 </span>            :           tmp, result_size, gR, result_size, CPX(0.0, 0.0), GR_block, 
+<span class="lineNum">     666 </span><span class="lineNoCov">          0 :           result_size);</span>
+<span class="lineNum">     667 </span>            :   /*filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/E_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     668 </span>            :   write_mat_c(GR_block, result_size, result_size, filename.str());*/
+<span class="lineNum">     669 </span>            : 
+<span class="lineNum">     670 </span>            :   // GR_block += gR = gR_{i} + gR_{i} * T_{i,i-1} * GR_block * T_{i-1,i} * gR_{i},
+<span class="lineNum">     671 </span>            :   // dim: result_size*result_size
+<span class="lineNum">     672 </span><span class="lineNoCov">          0 :   c_zaxpy(result_size * result_size, CPX(1.0, 0.0), gR, 1, GR_block, 1);</span>
+<span class="lineNum">     673 </span><span class="lineNoCov">          0 :   c_zcopy(result_size * result_size, GR_block, 1, GR, 1);</span>
+<span class="lineNum">     674 </span>            :   /*filename.str(&quot;&quot;); filename &lt;&lt; &quot;tests/rGF/F_&quot; &lt;&lt; block &lt;&lt; &quot;.csv&quot;;
+<span class="lineNum">     675 </span>            :   write_mat_c(GR_block, result_size, result_size, filename.str());*/
+<span class="lineNum">     676 </span>            : 
+<span class="lineNum">     677 </span>            :   //std::cout &lt;&lt; &quot;GR_&quot; &lt;&lt; block &lt;&lt; &quot;: &quot; &lt;&lt; get_time(start_time) &lt;&lt; &quot;\n&quot;; */
+<span class="lineNum">     678 </span>            : 
+<span class="lineNum">     679 </span><span class="lineNoCov">          0 :   return;</span>
+<span class="lineNum">     680 </span>            : 
+<span class="lineNum">     681 </span>            : }
+<span class="lineNum">     682 </span>            : 
+<span class="lineNum">     683 </span>            : 
+<span class="lineNum">     684 </span>            : /** \brief Function to transpose (dense) matrices
+<span class="lineNum">     685 </span>            :  *
+<span class="lineNum">     686 </span>            :  * \param normal The rows*cols matrix to be transposed (input).
+<span class="lineNum">     687 </span>            :  *
+<span class="lineNum">     688 </span>            :  * \param rows The number of rows of the matrix (input).
+<span class="lineNum">     689 </span>            :  *
+<span class="lineNum">     690 </span>            :  * \param cols The number of columns of the matrix (input).
+<span class="lineNum">     691 </span>            :  *
+<a name="692"><span class="lineNum">     692 </span>            :  * \param transposed The matrix in transposed form (a cols*rows matrix) (output).</a>
+<span class="lineNum">     693 </span>            :  */
+<span class="lineNum">     694 </span><span class="lineNoCov">          0 : void rGF::transpose_full_matrix(CPX *normal, int rows, int cols, CPX *transposed)</span>
+<span class="lineNum">     695 </span>            : {
+<span class="lineNum">     696 </span><span class="lineNoCov">          0 :   for (int j=0; j &lt; cols; ++j) {</span>
+<span class="lineNum">     697 </span><span class="lineNoCov">          0 :     c_zcopy(rows, &amp;normal[j*rows], 1, &amp;transposed[j], cols);</span>
+<span class="lineNum">     698 </span>            :   }
+<span class="lineNum">     699 </span><span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     700 </span>            : 
+<span class="lineNum">     701 </span>            : 
+<span class="lineNum">     702 </span>            : /** \brief Set a full matrix to unity
+<span class="lineNum">     703 </span>            :  *
+<span class="lineNum">     704 </span>            :  * \param diagonal_length The diagonal length of the square matrix (input)
+<span class="lineNum">     705 </span>            :  *
+<a name="706"><span class="lineNum">     706 </span>            :  * \param unity The array containing the matrix to set to unity (input/output)</a>
+<span class="lineNum">     707 </span>            :  */
+<span class="lineNum">     708 </span><span class="lineNoCov">          0 : void rGF::set_to_unity(int diagonal_length, CPX *unity)</span>
+<span class="lineNum">     709 </span>            : {
+<span class="lineNum">     710 </span><span class="lineNoCov">          0 :   set_to_zero(diagonal_length * diagonal_length, unity);</span>
+<span class="lineNum">     711 </span><span class="lineNoCov">          0 :   CPX *ones = new CPX[diagonal_length];</span>
+<span class="lineNum">     712 </span><span class="lineNoCov">          0 :   for (int i = 0; i &lt; diagonal_length; ++i) {</span>
+<span class="lineNum">     713 </span><span class="lineNoCov">          0 :     ones[i] = CPX(1.0, 0.0);</span>
+<span class="lineNum">     714 </span>            :   }
+<a name="715"><span class="lineNum">     715 </span><span class="lineNoCov">          0 :   int N = diagonal_length;</span></a>
+<span class="lineNum">     716 </span><span class="lineNoCov">          0 :   c_zcopy(N, ones, 1, unity, N+1);</span>
+<span class="lineNum">     717 </span><span class="lineCov">          4 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/main.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - main.cpp<span style="font-size: 80%;"> (source / <a href="main.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &lt;mpi.h&gt;
+<span class="lineNum">      13 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      14 </span>            : #include &lt;assert.h&gt;
+<span class="lineNum">      15 </span>            : #include &quot;libcp2k.h&quot;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : #ifdef HAVE_OMEN_POISSON
+<span class="lineNum">      18 </span>            : #include &quot;Types.H&quot;
+<span class="lineNum">      19 </span>            : #include &quot;InputParameter.H&quot;
+<span class="lineNum">      20 </span>            : #include &quot;WireGenerator.H&quot;
+<span class="lineNum">      21 </span>            : #include &quot;FEMGrid.H&quot;
+<span class="lineNum">      22 </span>            : #include &quot;Poisson.H&quot;
+<span class="lineNum">      23 </span>            : 
+<span class="lineNum">      24 </span>            : extern &quot;C&quot; {
+<span class="lineNum">      25 </span>            :     void yyrestart(FILE *);
+<span class="lineNum">      26 </span>            :     void yyparse();
+<span class="lineNum">      27 </span>            :     extern FILE *yyin;
+<span class="lineNum">      28 </span>            : }
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : PARAM *parameter;
+<span class="lineNum">      31 </span>            : WireStructure *nanowire;
+<span class="lineNum">      32 </span>            : ENERGY *En;
+<span class="lineNum">      33 </span>            : VOLTAGE *voltage;
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : WireGenerator* Wire;
+<span class="lineNum">      36 </span>            : FEMGrid *FEM;
+<span class="lineNum">      37 </span>            : Poisson *OMEN_Poisson_Solver;
+<span class="lineNum">      38 </span>            : #endif
+<span class="lineNum">      39 </span>            : 
+<span class="lineNum">      40 </span>            : void c_scf_method(
+<span class="lineNum">      41 </span>            :     cp2k_transport_parameters cp2k_transport_params,
+<span class="lineNum">      42 </span>            :     cp2k_csr_interop_type S,
+<span class="lineNum">      43 </span>            :     cp2k_csr_interop_type KS,
+<span class="lineNum">      44 </span>            :     cp2k_csr_interop_type* P,
+<span class="lineNum">      45 </span>            :     cp2k_csr_interop_type* PImag
+<span class="lineNum">      46 </span>            :     );
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span><span class="lineCov">          2 : int main (int argc, char **argv)</span>
+<span class="lineNum">      49 </span>            : {
+<span class="lineNum">      50 </span><span class="lineCov">          2 :    MPI_Init(&amp;argc,&amp;argv);</span>
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            : #ifdef HAVE_OMEN_POISSON
+<span class="lineNum">      53 </span>            :    if (argc&gt;2) {
+<span class="lineNum">      54 </span>            :       yyin = fopen(argv[2],&quot;r&quot;);
+<span class="lineNum">      55 </span>            :       init_parameters();
+<span class="lineNum">      56 </span>            :       yyrestart(yyin);
+<span class="lineNum">      57 </span>            :       yyparse();
+<span class="lineNum">      58 </span>            :       fclose(yyin);
+<span class="lineNum">      59 </span>            :       Wire = new WireGenerator(parameter-&gt;lattype,0);
+<span class="lineNum">      60 </span>            :       Wire-&gt;execute_simple(nanowire,MPI_COMM_WORLD);
+<span class="lineNum">      61 </span>            :       FEM = new FEMGrid();
+<span class="lineNum">      62 </span>            :       int worldsize;
+<span class="lineNum">      63 </span>            :       MPI_Comm_size(MPI_COMM_WORLD,&amp;worldsize);
+<span class="lineNum">      64 </span>            :       FEM-&gt;execute_task(Wire,nanowire,worldsize,1,MPI_COMM_WORLD,MPI_COMM_WORLD);
+<span class="lineNum">      65 </span>            :       OMEN_Poisson_Solver = new Poisson();
+<span class="lineNum">      66 </span>            :       OMEN_Poisson_Solver-&gt;init(Wire,nanowire,FEM,worldsize,1,MPI_COMM_WORLD);
+<span class="lineNum">      67 </span>            :    }
+<span class="lineNum">      68 </span>            : #endif
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span><span class="lineCov">          2 :    cp2k_init_without_mpi();</span>
+<span class="lineNum">      71 </span>            :    force_env_t force_env;
+<span class="lineNum">      72 </span><span class="lineCov">          2 :    cp2k_create_force_env_comm(&amp;force_env, argv[1], &quot;__STD_OUT__&quot;, MPI_Comm_c2f(MPI_COMM_WORLD));</span>
+<span class="lineNum">      73 </span><span class="lineCov">          2 :    cp2k_transport_set_callback(force_env, &amp;c_scf_method);</span>
+<span class="lineNum">      74 </span>            :    int natom;
+<span class="lineNum">      75 </span><span class="lineCov">          2 :    cp2k_get_natom(force_env, &amp;natom);</span>
+<span class="lineNum">      76 </span><span class="lineCov">          2 :    cp2k_calc_energy_force(force_env);</span>
+<span class="lineNum">      77 </span>            :    double e_pot;
+<span class="lineNum">      78 </span><span class="lineCov">          2 :    cp2k_get_potential_energy(force_env, &amp;e_pot);</span>
+<span class="lineNum">      79 </span><span class="lineCov">          6 :    std::vector&lt;double&gt; force(natom*3,0.0);</span>
+<span class="lineNum">      80 </span><span class="lineCov">          4 :    cp2k_get_forces(force_env, &amp;force[0], force.size());</span>
+<span class="lineNum">      81 </span><span class="lineCov">          6 :    std::vector&lt;double&gt; pos(natom*3,0.0);</span>
+<span class="lineNum">      82 </span><span class="lineCov">          4 :    cp2k_get_positions(force_env, &amp;pos[0], pos.size());</span>
+<span class="lineNum">      83 </span><span class="lineCov">          2 :    cp2k_destroy_force_env(force_env);</span>
+<span class="lineNum">      84 </span><span class="lineCov">          2 :    cp2k_finalize_without_mpi();</span>
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            : #ifdef HAVE_OMEN_POISSON
+<span class="lineNum">      87 </span>            :    if (argc&gt;2) {
+<span class="lineNum">      88 </span>            :       delete OMEN_Poisson_Solver;
+<span class="lineNum">      89 </span>            :       delete FEM;
+<span class="lineNum">      90 </span>            :       delete Wire;
+<span class="lineNum">      91 </span>            :       delete_parameters();
+<span class="lineNum">      92 </span>            :    }
+<span class="lineNum">      93 </span>            : #endif
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span><span class="lineCov">          2 :    MPI_Finalize();</span>
+<span class="lineNum">      96 </span><span class="lineCov">          2 :    return 0;</span>
+<span class="lineNum">      97 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

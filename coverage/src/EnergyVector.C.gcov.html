@@ -1,0 +1,716 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cp2k-omen_cov.info - src/EnergyVector.C</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - EnergyVector.C<span style="font-size: 80%;"> (source / <a href="EnergyVector.C.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cp2k-omen_cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">206</td>
+            <td class="headerCovTableEntry">428</td>
+            <td class="headerCovTableEntryLo">48.1 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-12-30 22:09:47</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryMed">80.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            : Copyright (c) 2017 ETH Zurich
+<span class="lineNum">       3 </span>            : Sascha Brueck, Mauro Calderara, Mohammad Hossein Bani-Hashemian, and Mathieu Luisier
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            : Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            : The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<span class="lineNum">      10 </span>            : */
+<span class="lineNum">      11 </span>            : 
+<span class="lineNum">      12 </span>            : #include &quot;pexsi/pole.hpp&quot;
+<span class="lineNum">      13 </span>            : #include &quot;Utilities.H&quot;
+<span class="lineNum">      14 </span>            : #include &quot;Density.H&quot;
+<span class="lineNum">      15 </span>            : #include &quot;GetSingularities.H&quot;
+<span class="lineNum">      16 </span>            : #include &quot;Quadrature.H&quot;
+<span class="lineNum">      17 </span>            : #include &quot;EnergyVector.H&quot;
+<span class="lineNum">      18 </span>            : #include &lt;iterator&gt;
+<span class="lineNum">      19 </span>            : #include &lt;limits&gt;
+<a name="20"><span class="lineNum">      20 </span>            : #include &lt;vector&gt;</a>
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span><span class="lineCov">          2 : Energyvector::Energyvector()</span>
+<span class="lineNum">      23 </span>            : {
+<span class="lineNum">      24 </span><span class="lineCov">          2 :     MPI_Comm_size(MPI_COMM_WORLD,&amp;nprocs);</span>
+<span class="lineNum">      25 </span><span class="lineCov">          2 :     MPI_Comm_rank(MPI_COMM_WORLD,&amp;iam);</span>
+<a name="26"><span class="lineNum">      26 </span><span class="lineCov">          2 : }</span></a>
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span><span class="lineCov">          2 : Energyvector::~Energyvector()</span>
+<span class="lineNum">      29 </span>            : {
+<span class="lineNum">      30 </span><span class="lineCov">          2 : }</span>
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span><span class="lineCov">          2 : int Energyvector::Execute(cp2k_csr_interop_type Overlap,cp2k_csr_interop_type KohnSham,cp2k_csr_interop_type *P,cp2k_csr_interop_type *PImag,std::vector&lt;double&gt; &amp;muvec,std::vector&lt;contact_type&gt; contactvec,std::vector&lt;int&gt; Bsizes,std::vector&lt;int&gt; orb_per_at,double *rho_atom,transport_parameters transport_params)</span>
+<span class="lineNum">      33 </span>            : {
+<span class="lineNum">      34 </span><span class="lineCov">          4 :     std::vector&lt;CPX&gt; energyvector;</span>
+<span class="lineNum">      35 </span><span class="lineCov">          4 :     std::vector&lt;CPX&gt; energyvector_real;</span>
+<span class="lineNum">      36 </span><span class="lineCov">          4 :     std::vector&lt;CPX&gt; stepvector;</span>
+<span class="lineNum">      37 </span><span class="lineCov">          4 :     std::vector&lt;CPX&gt; stepvector_real;</span>
+<span class="lineNum">      38 </span><span class="lineCov">          4 :     std::vector&lt;CPX&gt; drdmvector;</span>
+<span class="lineNum">      39 </span><span class="lineCov">          4 :     std::vector&lt; std::vector&lt;int&gt; &gt; propagating_sizes;</span>
+<span class="lineNum">      40 </span><span class="lineCov">          4 :     if (determine_energyvector(energyvector,stepvector,drdmvector,energyvector_real,stepvector_real,propagating_sizes,KohnSham,Overlap,muvec,contactvec,transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">      41 </span><span class="lineCov">          8 :     if (!iam) cout &lt;&lt; &quot;Size of Energyvectors &quot; &lt;&lt; energyvector.size() &lt;&lt; &quot; &quot; &lt;&lt; energyvector_real.size() &lt;&lt; endl;</span>
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span><span class="lineCov">          2 :     distribution_methods::distribution_method_type distribution_method_cc = distribution_methods::NO_DISTRIBUTION;</span>
+<span class="lineNum">      44 </span><span class="lineCov">          2 :     if (energyvector.size()) {</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :         if (transport_params.inv_solver_method==inv_solver_methods::FULL)         distribution_method_cc = distribution_methods::CEILING_DISTRIBUTION;</span>
+<span class="lineNum">      46 </span><span class="lineNoCov">          0 :         else if (transport_params.inv_solver_method==inv_solver_methods::PEXSI)   distribution_method_cc = distribution_methods::FLOOR_DISTRIBUTION;</span>
+<span class="lineNum">      47 </span><span class="lineNoCov">          0 :         else if (transport_params.inv_solver_method==inv_solver_methods::PARDISO) distribution_method_cc = distribution_methods::MASTER_DISTRIBUTION;</span>
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :         else if (transport_params.inv_solver_method==inv_solver_methods::RGF)     distribution_method_cc = distribution_methods::MASTER_DISTRIBUTION;</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :         else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">      50 </span>            :     }
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span><span class="lineCov">          2 :     distribution_methods::distribution_method_type distribution_method = distribution_methods::NO_DISTRIBUTION;</span>
+<span class="lineNum">      53 </span><span class="lineCov">          2 :     if (energyvector_real.size()) {</span>
+<span class="lineNum">      54 </span><span class="lineCov">          2 :         distribution_method = distribution_methods::CEILING_DISTRIBUTION;</span>
+<span class="lineNum">      55 </span><span class="lineCov">          2 :         if (transport_params.lin_solver_method==lin_solver_methods::SPLITSOLVE) distribution_method = distribution_methods::SPLITSOLVE_DISTRIBUTION;</span>
+<span class="lineNum">      56 </span><span class="lineCov">          2 :         if (transport_params.lin_solver_method==lin_solver_methods::PARDISO)    distribution_method = distribution_methods::MASTER_DISTRIBUTION;</span>
+<span class="lineNum">      57 </span><span class="lineCov">          2 :         if (transport_params.lin_solver_method==lin_solver_methods::UMFPACK)    distribution_method = distribution_methods::MASTER_DISTRIBUTION;</span>
+<span class="lineNum">      58 </span><span class="lineCov">          2 :         if (transport_params.lin_solver_method==lin_solver_methods::SUPERLU &amp;&amp; distribution_method_cc==distribution_methods::FLOOR_DISTRIBUTION) distribution_method = distribution_methods::FLOOR_DISTRIBUTION;</span>
+<span class="lineNum">      59 </span><span class="lineCov">          2 :         if (transport_params.lin_solver_method==lin_solver_methods::MUMPS   &amp;&amp; distribution_method_cc==distribution_methods::FLOOR_DISTRIBUTION) distribution_method = distribution_methods::FLOOR_DISTRIBUTION;</span>
+<span class="lineNum">      60 </span>            :     }
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span><span class="lineCov">          2 :     if (transport_params.tasks_per_point==transport_params.tasks_per_point_cc &amp;&amp; distribution_method==distribution_method_cc) {</span>
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 :         if (distribute_and_execute(energyvector,stepvector,drdmvector,energyvector_real,stepvector_real,propagating_sizes,distribution_method,transport_params.tasks_per_point,Overlap,KohnSham,P,PImag,muvec,contactvec,Bsizes,orb_per_at,rho_atom,transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">      64 </span>            :     } else {
+<span class="lineNum">      65 </span><span class="lineCov">          2 :         if (energyvector.size()) if (distribute_and_execute(energyvector,stepvector,drdmvector,std::vector&lt;CPX&gt;(),std::vector&lt;CPX&gt;(),propagating_sizes,distribution_method_cc,transport_params.tasks_per_point_cc,Overlap,KohnSham,P,PImag,muvec,contactvec,Bsizes,orb_per_at,rho_atom,transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">      66 </span><span class="lineCov">          2 :         double *Ptmp = NULL;</span>
+<span class="lineNum">      67 </span><span class="lineCov">          2 :         if (energyvector.size() &amp;&amp; energyvector_real.size()) {</span>
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 :             Ptmp = new double[P-&gt;nze_local];</span>
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :             c_dcopy(P-&gt;nze_local,P-&gt;nzvals_local,1,Ptmp,1);</span>
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :             c_dscal(P-&gt;nze_local,0.0,P-&gt;nzvals_local,1);</span>
+<span class="lineNum">      71 </span>            :         }
+<span class="lineNum">      72 </span><span class="lineCov">         24 :         if (energyvector_real.size()) if (distribute_and_execute(std::vector&lt;CPX&gt;(),std::vector&lt;CPX&gt;(),std::vector&lt;CPX&gt;(),energyvector_real,stepvector_real,propagating_sizes,distribution_method,transport_params.tasks_per_point,Overlap,KohnSham,P,PImag,muvec,contactvec,Bsizes,orb_per_at,rho_atom,transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">      73 </span><span class="lineCov">          2 :         if (energyvector.size() &amp;&amp; energyvector_real.size()) {</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :             c_daxpy(P-&gt;nze_local,1.0,Ptmp,1,P-&gt;nzvals_local,1);</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :             delete[] Ptmp;</span>
+<span class="lineNum">      76 </span>            :             Ptmp = NULL;
+<span class="lineNum">      77 </span>            :         }
+<span class="lineNum">      78 </span>            :     }
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            :     return 0;
+<span class="lineNum">      81 </span>            : }
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span><span class="lineCov">          2 : int Energyvector::distribute_and_execute(std::vector&lt;CPX&gt; energyvector,std::vector&lt;CPX&gt; stepvector,std::vector&lt;CPX&gt; drdmvector,std::vector&lt;CPX&gt; energyvector_real,std::vector&lt;CPX&gt; stepvector_real,std::vector&lt; std::vector&lt;int&gt; &gt; propagating_sizes,distribution_methods::distribution_method_type distribution_method,int tasks_per_point,cp2k_csr_interop_type Overlap,cp2k_csr_interop_type KohnSham,cp2k_csr_interop_type *P,cp2k_csr_interop_type *PImag,std::vector&lt;double&gt; &amp;muvec,std::vector&lt;contact_type&gt; contactvec,std::vector&lt;int&gt; Bsizes,std::vector&lt;int&gt; orb_per_at,double *rho_atom,transport_parameters transport_params)</span>
+<span class="lineNum">      84 </span>            : {
+<span class="lineNum">      85 </span>            : double sabtime;
+<span class="lineNum">      86 </span><span class="lineCov">          8 :     std::vector&lt;int&gt; Tsizes = get_tsizes(distribution_method,Overlap.nrows_total-transport_params.cutl-transport_params.cutr,Bsizes,orb_per_at,transport_params.gpus_per_point,tasks_per_point);</span>
+<span class="lineNum">      87 </span><span class="lineCov">          2 :     if (!Tsizes.size()) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">      88 </span><span class="lineCov">          2 : sabtime=get_time(0.0);</span>
+<span class="lineNum">      89 </span>            :     MPI_Comm matrix_comm;
+<span class="lineNum">      90 </span><span class="lineCov">          4 :     TCSR&lt;double&gt; *OverlapCollect  = new TCSR&lt;double&gt;(Overlap ,MPI_COMM_WORLD,&amp;Tsizes[0],Tsizes.size(),transport_params.cutl,transport_params.cutr,&amp;matrix_comm);</span>
+<span class="lineNum">      91 </span><span class="lineCov">          2 :     MPI_Comm_free(&amp;matrix_comm);</span>
+<span class="lineNum">      92 </span><span class="lineCov">          4 :     TCSR&lt;double&gt; *KohnShamCollect = new TCSR&lt;double&gt;(KohnSham,MPI_COMM_WORLD,&amp;Tsizes[0],Tsizes.size(),transport_params.cutl,transport_params.cutr,&amp;matrix_comm);</span>
+<span class="lineNum">      93 </span><span class="lineCov">          2 :     if (transport_params.cutl || transport_params.cutr) {</span>
+<span class="lineNum">      94 </span><span class="lineNoCov">          0 :         TCSR&lt;double&gt; *OverlapCollectCut  = new TCSR&lt;double&gt;(OverlapCollect ,0,OverlapCollect-&gt;size_tot,transport_params.cutl,OverlapCollect-&gt;size_tot);</span>
+<span class="lineNum">      95 </span><span class="lineNoCov">          0 :         TCSR&lt;double&gt; *KohnShamCollectCut = new TCSR&lt;double&gt;(KohnShamCollect,0,OverlapCollect-&gt;size_tot,transport_params.cutl,OverlapCollect-&gt;size_tot);</span>
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :         delete OverlapCollect;</span>
+<span class="lineNum">      97 </span><span class="lineNoCov">          0 :         delete KohnShamCollect;</span>
+<span class="lineNum">      98 </span>            :         OverlapCollect  = OverlapCollectCut;
+<span class="lineNum">      99 </span>            :         KohnShamCollect = KohnShamCollectCut;
+<span class="lineNum">     100 </span>            :     }
+<span class="lineNum">     101 </span><span class="lineCov">          4 :     c_dscal(KohnShamCollect-&gt;n_nonzeros,transport_params.evoltfactor,KohnShamCollect-&gt;nnz,1);</span>
+<span class="lineNum">     102 </span><span class="lineCov">          2 :     TCSR&lt;double&gt; *DensReal = new TCSR&lt;double&gt;(OverlapCollect);</span>
+<span class="lineNum">     103 </span><span class="lineCov">          4 :     c_dscal(DensReal-&gt;n_nonzeros,0.0,DensReal-&gt;nnz,1);</span>
+<span class="lineNum">     104 </span><span class="lineCov">          2 :     TCSR&lt;double&gt; *DensImag = NULL;</span>
+<span class="lineNum">     105 </span><span class="lineCov">          2 :     if (transport_params.cp2k_method!=cp2k_methods::LOCAL_SCF) {</span>
+<span class="lineNum">     106 </span><span class="lineCov">          2 :         DensImag = new TCSR&lt;double&gt;(OverlapCollect);</span>
+<span class="lineNum">     107 </span><span class="lineCov">          2 :         c_dscal(DensImag-&gt;n_nonzeros,0.0,DensImag-&gt;nnz,1);</span>
+<span class="lineNum">     108 </span>            :     }
+<span class="lineNum">     109 </span><span class="lineCov">          4 : if (!iam) cout &lt;&lt; &quot;TIME FOR DISTRIBUTING MATRICES &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineCov">          2 : sabtime=get_time(0.0);</span>
+<span class="lineNum">     112 </span><span class="lineCov">          6 :     std::vector&lt;double&gt; transmission(energyvector_real.size(),0.0);</span>
+<span class="lineNum">     113 </span>            :     int matrix_size,matrix_rank;
+<span class="lineNum">     114 </span><span class="lineCov">          2 :     MPI_Comm_size(matrix_comm,&amp;matrix_size);</span>
+<span class="lineNum">     115 </span><span class="lineCov">          2 :     MPI_Comm_rank(matrix_comm,&amp;matrix_rank);</span>
+<span class="lineNum">     116 </span><span class="lineCov">          2 :     int matrix_id = iam/matrix_size;</span>
+<span class="lineNum">     117 </span><span class="lineCov">          2 :     int n_mat_comm = nprocs/matrix_size;</span>
+<span class="lineNum">     118 </span><span class="lineCov">          2 :     int transmission_warning=0;</span>
+<span class="lineNum">     119 </span><span class="lineCov">          2 :     int propagating_warning=0;</span>
+<span class="lineNum">     120 </span><span class="lineCov">          2 :     int degeneracy_warning=0;</span>
+<span class="lineNum">     121 </span><span class="lineCov">          8 :     energyvector.insert(energyvector.end(),energyvector_real.begin(),energyvector_real.end());</span>
+<span class="lineNum">     122 </span><span class="lineCov">          8 :     stepvector.insert(stepvector.end(),stepvector_real.begin(),stepvector_real.end());</span>
+<span class="lineNum">     123 </span><span class="lineCov">          8 :     drdmvector.insert(drdmvector.end(),stepvector_real.begin(),stepvector_real.end());</span>
+<span class="lineNum">     124 </span>            :     MPI_File file;
+<span class="lineNum">     125 </span>            :     MPI_Status status;
+<span class="lineNum">     126 </span><span class="lineCov">          4 :     stringstream mysstream;</span>
+<span class="lineNum">     127 </span><span class="lineCov">          4 :     mysstream &lt;&lt; &quot;DOS_Profile_&quot; &lt;&lt; transport_params.cp2k_scf_iter;</span>
+<span class="lineNum">     128 </span><span class="lineCov">          6 :     MPI_File_open(MPI_COMM_WORLD,mysstream.str().c_str(),MPI_MODE_CREATE|MPI_MODE_WRONLY,MPI_INFO_NULL,&amp;file);</span>
+<span class="lineNum">     129 </span><span class="lineCov">          8 :     for (int iseq=0;iseq&lt;int(ceil(double(energyvector.size())/n_mat_comm));iseq++) {</span>
+<span class="lineNum">     130 </span><span class="lineCov">          2 :         int jpos=matrix_id+iseq*n_mat_comm;</span>
+<span class="lineNum">     131 </span><span class="lineCov">          2 :         int propos=jpos-(energyvector.size()-energyvector_real.size());</span>
+<span class="lineNum">     132 </span><span class="lineCov">          2 :         if (jpos&lt;int(energyvector.size())) {</span>
+<span class="lineNum">     133 </span><span class="lineCov">          3 :             if (abs(stepvector[jpos])&gt;0.0) {</span>
+<span class="lineNum">     134 </span><span class="lineCov">          4 :                 std::vector&lt;result_type&gt; resvec(muvec.size());</span>
+<span class="lineNum">     135 </span><span class="lineCov">          1 :                 int dosprofilesize = orb_per_at.size()-1;</span>
+<span class="lineNum">     136 </span><span class="lineCov">          1 :                 if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     137 </span><span class="lineNoCov">          0 :                     dosprofilesize = OverlapCollect-&gt;size_tot;</span>
+<span class="lineNum">     138 </span>            :                 }
+<span class="lineNum">     139 </span><span class="lineCov">          6 :                 for (uint i_mu=0;i_mu&lt;muvec.size();i_mu++) {</span>
+<span class="lineNum">     140 </span><span class="lineCov">          4 :                     resvec[i_mu].dosprofile = new double[dosprofilesize]();</span>
+<span class="lineNum">     141 </span>            :                 }
+<span class="lineNum">     142 </span>            :                 transport_methods::transport_method_type method;
+<span class="lineNum">     143 </span><span class="lineCov">          1 :                 if (propos&gt;=0) {</span>
+<span class="lineNum">     144 </span><span class="lineCov">          1 :                     if (transport_params.negf_solver) {</span>
+<span class="lineNum">     145 </span>            :                         method=transport_methods::NEGF;
+<span class="lineNum">     146 </span>            :                     } else {
+<span class="lineNum">     147 </span><span class="lineCov">          1 :                         method=transport_methods::WF;</span>
+<span class="lineNum">     148 </span>            :                     }
+<span class="lineNum">     149 </span>            :                 } else {
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :                     if (transport_params.obc) {</span>
+<span class="lineNum">     151 </span>            :                         method=transport_methods::GF;
+<span class="lineNum">     152 </span>            :                     } else {
+<span class="lineNum">     153 </span><span class="lineNoCov">          0 :                         method=transport_methods::EQ;</span>
+<span class="lineNum">     154 </span>            :                     }
+<span class="lineNum">     155 </span>            :                 }
+<span class="lineNum">     156 </span><span class="lineCov">          8 :                 if (density(KohnShamCollect,OverlapCollect,DensReal,DensImag,energyvector[jpos],stepvector[jpos],drdmvector[jpos],method,muvec,contactvec,resvec,Bsizes,orb_per_at,transport_params,matrix_comm)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     157 </span><span class="lineCov">          1 :                 if (!matrix_rank &amp;&amp; propos&gt;=0) {</span>
+<span class="lineNum">     158 </span><span class="lineCov">          8 :                     for (uint i_mu=0;i_mu&lt;muvec.size();i_mu++) {</span>
+<span class="lineNum">     159 </span><span class="lineCov">          4 :                         MPI_Offset offset = (i_mu*energyvector_real.size()+propos)*dosprofilesize*sizeof(double);</span>
+<span class="lineNum">     160 </span><span class="lineCov">          2 :                         MPI_File_seek(file,offset,MPI_SEEK_SET);</span>
+<span class="lineNum">     161 </span><span class="lineCov">          4 :                         MPI_File_write(file,resvec[i_mu].dosprofile,dosprofilesize,MPI_DOUBLE,&amp;status);</span>
+<span class="lineNum">     162 </span><span class="lineCov">          8 :                         if (resvec[i_mu].npro!=propagating_sizes[propos][i_mu] &amp;&amp; transport_params.real_int_method==real_int_methods::GAUSSCHEBYSHEV) propagating_warning++;</span>
+<span class="lineNum">     163 </span><span class="lineCov">          2 :                         if (resvec[i_mu].eigval_degeneracy&gt;=0) degeneracy_warning++;</span>
+<span class="lineNum">     164 </span><span class="lineCov">          2 :                         if (resvec[i_mu].rcond&lt;numeric_limits&lt;double&gt;::epsilon()) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     165 </span>            :                     }
+<span class="lineNum">     166 </span><span class="lineCov">          6 :                     bool transmission_difference=abs(abs(resvec[0].transm)-abs(resvec[1].transm))/max(1.0,min(abs(resvec[0].transm),abs(resvec[1].transm)))&lt;0.1;</span>
+<span class="lineNum">     167 </span><span class="lineCov">          5 :                     bool transmission_magnitude=abs(resvec[0].transm)&lt;=*max_element(propagating_sizes[propos].begin(),propagating_sizes[propos].end())*10.0 || transport_params.real_int_method!=real_int_methods::GAUSSCHEBYSHEV;</span>
+<span class="lineNum">     168 </span><span class="lineCov">          1 :                     if (transmission_difference &amp;&amp; transmission_magnitude) {</span>
+<span class="lineNum">     169 </span><span class="lineCov">          2 :                         transmission[propos]=resvec[0].transm;</span>
+<span class="lineNum">     170 </span>            :                     } else {
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :                         transmission_warning++;</span>
+<span class="lineNum">     172 </span>            :                     }
+<span class="lineNum">     173 </span>            :                 }
+<span class="lineNum">     174 </span><span class="lineCov">          8 :                 for (uint i_mu=0;i_mu&lt;muvec.size();i_mu++) {</span>
+<span class="lineNum">     175 </span><span class="lineCov">          4 :                     delete[] resvec[i_mu].dosprofile;</span>
+<span class="lineNum">     176 </span>            :                 }
+<span class="lineNum">     177 </span>            :             }
+<span class="lineNum">     178 </span>            :         }
+<span class="lineNum">     179 </span><span class="lineCov">          5 :         if (!iam) cout &lt;&lt; &quot;Finished &quot; &lt;&lt; int((iseq+1)*100.0/ceil(double(energyvector.size())/n_mat_comm)) &lt;&lt; &quot;%&quot; &lt;&lt; endl;</span>
+<span class="lineNum">     180 </span>            :     }
+<span class="lineNum">     181 </span><span class="lineCov">          2 :     MPI_File_close(&amp;file);</span>
+<span class="lineNum">     182 </span><span class="lineCov">          4 : if (!iam) cout &lt;&lt; &quot;TIME FOR DENSITY &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     183 </span><span class="lineCov">          2 :     MPI_Allreduce(MPI_IN_PLACE,&amp;transmission_warning,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     184 </span><span class="lineCov">          2 :     if (!iam) if (transmission_warning) cout &lt;&lt; &quot;WARNING: INCORRECT TRANSMISSION FOR &quot; &lt;&lt; int(transmission_warning*100.0/energyvector.size()) &lt;&lt; &quot;%&quot; &lt;&lt; &quot; OF THE ENERGY POINTS&quot; &lt;&lt; endl;</span>
+<span class="lineNum">     185 </span><span class="lineCov">          2 :     MPI_Allreduce(MPI_IN_PLACE,&amp;propagating_warning,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     186 </span><span class="lineCov">          2 :     if (!iam) if (propagating_warning) cout &lt;&lt; &quot;WARNING: DEVIATION IN NUMBER OF BANDS FOR &quot; &lt;&lt; int(propagating_warning*100.0/energyvector.size()/muvec.size()) &lt;&lt; &quot;%&quot; &lt;&lt; &quot; OF THE ENERGY POINTS&quot; &lt;&lt; endl;</span>
+<span class="lineNum">     187 </span><span class="lineCov">          2 :     MPI_Allreduce(MPI_IN_PLACE,&amp;degeneracy_warning,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     188 </span><span class="lineCov">          2 :     if (!iam) if (degeneracy_warning) cout &lt;&lt; &quot;WARNING: DEGENERACY OF THE EIGENVECTORS FOR &quot; &lt;&lt; int(degeneracy_warning*100.0/energyvector.size()/muvec.size()) &lt;&lt; &quot;%&quot; &lt;&lt; &quot; OF THE ENERGY POINTS&quot; &lt;&lt; endl;</span>
+<span class="lineNum">     189 </span><span class="lineCov">          2 :     MPI_Allreduce(MPI_IN_PLACE,&amp;transmission[0],energyvector_real.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     190 </span><span class="lineCov">         10 :     if (energyvector_real.size()) write_transmission_current(energyvector_real,stepvector_real,transmission,muvec,transport_params);</span>
+<span class="lineNum">     191 </span>            : 
+<span class="lineNum">     192 </span><span class="lineCov">          2 :     if (transport_params.get_fermi_neutral) {</span>
+<span class="lineNum">     193 </span>            :         int ind_hi;
+<span class="lineNum">     194 </span>            :         int ind_lo;
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :         if (muvec[0]&gt;muvec[1]) {</span>
+<span class="lineNum">     196 </span>            :             ind_hi=0;
+<span class="lineNum">     197 </span>            :             ind_lo=1;
+<span class="lineNum">     198 </span>            :         } else {
+<span class="lineNum">     199 </span><span class="lineNoCov">          0 :             ind_hi=1;</span>
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :             ind_lo=0;</span>
+<span class="lineNum">     201 </span>            :         }
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :         int start_hi=contactvec[ind_hi].start+contactvec[ind_hi].inj_sign*contactvec[ind_hi].bandwidth*contactvec[ind_hi].ndof;</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :         int start_lo=contactvec[ind_lo].start+contactvec[ind_lo].inj_sign*contactvec[ind_lo].bandwidth*contactvec[ind_lo].ndof;</span>
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :         int end_hi=start_hi+contactvec[ind_hi].ndof;</span>
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :         int end_lo=start_lo+contactvec[ind_lo].ndof;</span>
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :         double norbnc_hi=0.0;</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :         double norbnc_lo=0.0;</span>
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :         double drdmcc_lo=0.0;</span>
+<span class="lineNum">     209 </span><span class="lineNoCov">          0 :         for (int i=0;i&lt;OverlapCollect-&gt;size;i++) {</span>
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :             int ib=OverlapCollect-&gt;first_row+i;</span>
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :             if (ib&gt;=start_hi &amp;&amp; ib&lt;end_hi) {</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :                 for (int e=OverlapCollect-&gt;edge_i[i]-OverlapCollect-&gt;findx;e&lt;OverlapCollect-&gt;edge_i[i+1]-OverlapCollect-&gt;findx;e++) {</span>
+<span class="lineNum">     213 </span><span class="lineNoCov">          0 :                     norbnc_hi-=OverlapCollect-&gt;nnz[e]*DensReal-&gt;nnz[e];</span>
+<span class="lineNum">     214 </span>            :                 }
+<span class="lineNum">     215 </span>            :             }
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :             if (ib&gt;=start_lo &amp;&amp; ib&lt;end_lo) {</span>
+<span class="lineNum">     217 </span><span class="lineNoCov">          0 :                 for (int e=OverlapCollect-&gt;edge_i[i]-OverlapCollect-&gt;findx;e&lt;OverlapCollect-&gt;edge_i[i+1]-OverlapCollect-&gt;findx;e++) {</span>
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 :                     norbnc_lo-=OverlapCollect-&gt;nnz[e]*DensReal-&gt;nnz[e];</span>
+<span class="lineNum">     219 </span><span class="lineNoCov">          0 :                     drdmcc_lo+=OverlapCollect-&gt;nnz[e]*DensImag-&gt;nnz[e];</span>
+<span class="lineNum">     220 </span>            :                 }
+<span class="lineNum">     221 </span>            :             }
+<span class="lineNum">     222 </span>            :         }
+<span class="lineNum">     223 </span><span class="lineNoCov">          0 :         MPI_Allreduce(MPI_IN_PLACE,&amp;norbnc_hi,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :         MPI_Allreduce(MPI_IN_PLACE,&amp;norbnc_lo,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     225 </span><span class="lineNoCov">          0 :         MPI_Allreduce(MPI_IN_PLACE,&amp;drdmcc_lo,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     226 </span><span class="lineNoCov">          0 :         norbnc_hi+=contactvec[ind_hi].n_ele/2.0;</span>
+<span class="lineNum">     227 </span><span class="lineNoCov">          0 :         norbnc_lo+=contactvec[ind_lo].n_ele/2.0;</span>
+<span class="lineNum">     228 </span><span class="lineNoCov">          0 :         if (!iam) {</span>
+<span class="lineNum">     229 </span><span class="lineNoCov">          0 :             ifstream dosfile(mysstream.str().c_str(),ios::in|ios::binary);</span>
+<span class="lineNum">     230 </span><span class="lineNoCov">          0 :             if (dosfile.fail()) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :             dosfile.seekg(ind_hi*energyvector_real.size()*OverlapCollect-&gt;size_tot*sizeof(double),ios::beg);</span>
+<span class="lineNum">     232 </span><span class="lineNoCov">          0 :             std::vector&lt;double&gt; dosvector(energyvector_real.size()*OverlapCollect-&gt;size_tot);</span>
+<span class="lineNum">     233 </span><span class="lineNoCov">          0 :             dosfile.read((char*)&amp;dosvector[0],energyvector_real.size()*OverlapCollect-&gt;size_tot*sizeof(double));</span>
+<span class="lineNum">     234 </span><span class="lineNoCov">          0 :             dosfile.close();</span>
+<span class="lineNum">     235 </span><span class="lineNoCov">          0 :             std::vector&lt;double&gt; dos_hi(energyvector_real.size(),0.0);</span>
+<span class="lineNum">     236 </span><span class="lineNoCov">          0 :             std::vector&lt;double&gt; dos_lo(energyvector_real.size(),0.0);</span>
+<span class="lineNum">     237 </span><span class="lineNoCov">          0 :             for (uint ie=0;ie&lt;energyvector_real.size();ie++) {</span>
+<span class="lineNum">     238 </span><span class="lineNoCov">          0 :                 for (int ib=start_hi;ib&lt;end_hi;ib++) {</span>
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :                     dos_hi[ie]+=dosvector[ie*OverlapCollect-&gt;size_tot+ib];</span>
+<span class="lineNum">     240 </span>            :                 }
+<span class="lineNum">     241 </span><span class="lineNoCov">          0 :                 for (int ib=start_lo;ib&lt;end_lo;ib++) {</span>
+<span class="lineNum">     242 </span><span class="lineNoCov">          0 :                     dos_lo[ie]+=dosvector[ie*OverlapCollect-&gt;size_tot+ib];</span>
+<span class="lineNum">     243 </span>            :                 }
+<span class="lineNum">     244 </span>            :             }
+<span class="lineNum">     245 </span><span class="lineNoCov">          0 :             dosvector=std::vector&lt;double&gt;();</span>
+<span class="lineNum">     246 </span><span class="lineNoCov">          0 :             double nele_hi=0.0;</span>
+<span class="lineNum">     247 </span><span class="lineNoCov">          0 :             for (uint ie=0;ie&lt;energyvector_real.size();ie++) {</span>
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :                 double diff_fermi = fermi(real(energyvector_real[ie]),muvec[ind_hi],transport_params.temperature,0)-fermi(real(energyvector_real[ie]),muvec[ind_lo],transport_params.temperature,0);</span>
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :                 nele_hi += real(stepvector_real[ie])*diff_fermi*dos_hi[ie];</span>
+<span class="lineNum">     250 </span>            :             }
+<span class="lineNum">     251 </span><span class="lineNoCov">          0 :             while (norbnc_hi-nele_hi&gt;1.0E-10) {</span>
+<span class="lineNum">     252 </span>            :                 double drdm_hi=0.0;
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :                 for (uint ie=0;ie&lt;energyvector_real.size();ie++) {</span>
+<span class="lineNum">     254 </span><span class="lineNoCov">          0 :                     double drdm_fermi = fermi(real(energyvector_real[ie]),muvec[ind_hi],transport_params.temperature,2);</span>
+<span class="lineNum">     255 </span><span class="lineNoCov">          0 :                     drdm_hi += real(stepvector_real[ie])*drdm_fermi*dos_hi[ie];</span>
+<span class="lineNum">     256 </span>            :                 }
+<span class="lineNum">     257 </span><span class="lineNoCov">          0 :                 if (abs(drdm_hi)&lt;1.0E-12) break;</span>
+<span class="lineNum">     258 </span><span class="lineNoCov">          0 :                 muvec[ind_hi]+=(norbnc_hi-nele_hi)/drdm_hi;</span>
+<span class="lineNum">     259 </span><span class="lineNoCov">          0 :                 nele_hi=0.0;</span>
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 :                 for (uint ie=0;ie&lt;energyvector_real.size();ie++) {</span>
+<span class="lineNum">     261 </span><span class="lineNoCov">          0 :                     double diff_fermi = fermi(real(energyvector_real[ie]),muvec[ind_hi],transport_params.temperature,0)-fermi(real(energyvector_real[ie]),muvec[ind_lo],transport_params.temperature,0);</span>
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :                     nele_hi += real(stepvector_real[ie])*diff_fermi*dos_hi[ie];</span>
+<span class="lineNum">     263 </span>            :                 }
+<span class="lineNum">     264 </span>            :             }
+<span class="lineNum">     265 </span>            :             double nele_lo=0.0;
+<span class="lineNum">     266 </span><span class="lineNoCov">          0 :             for (uint ie=0;ie&lt;energyvector_real.size();ie++) {</span>
+<span class="lineNum">     267 </span><span class="lineNoCov">          0 :                 double diff_fermi = fermi(real(energyvector_real[ie]),muvec[ind_hi],transport_params.temperature,0)-fermi(real(energyvector_real[ie]),muvec[ind_lo],transport_params.temperature,0);</span>
+<span class="lineNum">     268 </span><span class="lineNoCov">          0 :                 nele_lo += real(stepvector_real[ie])*diff_fermi*dos_lo[ie];</span>
+<span class="lineNum">     269 </span>            :             }
+<span class="lineNum">     270 </span><span class="lineNoCov">          0 :             muvec[ind_lo]+=(norbnc_lo-nele_lo)/drdmcc_lo;</span>
+<span class="lineNum">     271 </span>            :         }
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :         MPI_Bcast(&amp;muvec[0],muvec.size(),MPI_DOUBLE,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     273 </span>            :     }
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span><span class="lineCov">          2 :     if (transport_params.cutl || transport_params.cutr) {</span>
+<span class="lineNum">     276 </span><span class="lineNoCov">          0 :         TCSR&lt;double&gt; *DensRealCollect = new TCSR&lt;double&gt;(*P,MPI_COMM_WORLD,&amp;Tsizes[0],Tsizes.size(),transport_params.cutl,transport_params.cutr,&amp;matrix_comm);</span>
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :         c_dscal(DensRealCollect-&gt;n_nonzeros,double(Tsizes.size())/double(nprocs),DensRealCollect-&gt;nnz,1);</span>
+<span class="lineNum">     278 </span><span class="lineNoCov">          0 :         DensReal-&gt;copy_shifted(DensRealCollect,0,OverlapCollect-&gt;size_tot,transport_params.cutl,OverlapCollect-&gt;size_tot);</span>
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :         delete DensReal;</span>
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :         DensReal = DensRealCollect;</span>
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :         if (transport_params.cp2k_method!=cp2k_methods::LOCAL_SCF &amp;&amp; PImag!=NULL) {</span>
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :             TCSR&lt;double&gt; *DensImagCollect = new TCSR&lt;double&gt;(*PImag,MPI_COMM_WORLD,&amp;Tsizes[0],Tsizes.size(),transport_params.cutl,transport_params.cutr,&amp;matrix_comm);</span>
+<span class="lineNum">     283 </span><span class="lineNoCov">          0 :             c_dscal(DensImagCollect-&gt;n_nonzeros,double(Tsizes.size())/double(nprocs),DensImagCollect-&gt;nnz,1);</span>
+<span class="lineNum">     284 </span><span class="lineNoCov">          0 :             DensImag-&gt;copy_shifted(DensImagCollect,0,OverlapCollect-&gt;size_tot,transport_params.cutl,OverlapCollect-&gt;size_tot);</span>
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :             delete DensImag;</span>
+<span class="lineNum">     286 </span>            :             DensImag = DensImagCollect;
+<span class="lineNum">     287 </span>            :         }
+<span class="lineNum">     288 </span>            :     }
+<span class="lineNum">     289 </span><span class="lineCov">          2 :     if (transport_params.cp2k_method!=cp2k_methods::LOCAL_SCF) {</span>
+<span class="lineNum">     290 </span><span class="lineCov">          2 :         if (!(transport_params.cp2k_method==cp2k_methods::TRANSMISSION &amp;&amp; transport_params.extra_scf)) {</span>
+<span class="lineNum">     291 </span><span class="lineNoCov">          0 :             DensReal-&gt;distribute_back(*P,MPI_COMM_WORLD,&amp;Tsizes[0],Tsizes.size(),transport_params.cutl,transport_params.cutr,matrix_comm);</span>
+<span class="lineNum">     292 </span>            :         }
+<span class="lineNum">     293 </span><span class="lineCov">          2 :         if (PImag!=NULL) {</span>
+<span class="lineNum">     294 </span><span class="lineCov">          4 :             DensImag-&gt;distribute_back(*PImag,MPI_COMM_WORLD,&amp;Tsizes[0],Tsizes.size(),transport_params.cutl,transport_params.cutr,matrix_comm);</span>
+<span class="lineNum">     295 </span>            :         }
+<span class="lineNum">     296 </span>            :     } else {
+<span class="lineNum">     297 </span><span class="lineNoCov">          0 :         DensReal-&gt;atom_allocate(OverlapCollect,&amp;orb_per_at[0],rho_atom,2.0);</span>
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :         MPI_Allreduce(MPI_IN_PLACE,rho_atom,orb_per_at.size()-1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);</span>
+<span class="lineNum">     299 </span>            :     }
+<span class="lineNum">     300 </span><span class="lineCov">          2 :     MPI_Comm_free(&amp;matrix_comm);</span>
+<span class="lineNum">     301 </span>            : 
+<span class="lineNum">     302 </span><span class="lineCov">          2 :     delete KohnShamCollect;</span>
+<span class="lineNum">     303 </span><span class="lineCov">          2 :     delete OverlapCollect;</span>
+<span class="lineNum">     304 </span><span class="lineCov">          2 :     delete DensReal;</span>
+<span class="lineNum">     305 </span><span class="lineCov">          2 :     if (transport_params.cp2k_method!=cp2k_methods::LOCAL_SCF) {</span>
+<span class="lineNum">     306 </span><span class="lineCov">          2 :         delete DensImag;</span>
+<span class="lineNum">     307 </span>            :     }
+<span class="lineNum">     308 </span>            : 
+<span class="lineNum">     309 </span>            :     return 0;
+<span class="lineNum">     310 </span>            : }
+<span class="lineNum">     311 </span>            : 
+<span class="lineNum">     312 </span><span class="lineCov">          2 : std::vector&lt;int&gt; Energyvector::get_tsizes(distribution_methods::distribution_method_type distribution_method,int nrows_total_cut,std::vector&lt;int&gt; Bsizes,std::vector&lt;int&gt; orb_per_at,int gpus_per_point,int tasks_per_point)</span>
+<span class="lineNum">     313 </span>            : {
+<span class="lineNum">     314 </span><span class="lineCov">          2 :     std::vector&lt;int&gt; Tsizes;</span>
+<span class="lineNum">     315 </span><span class="lineCov">          2 :     if (distribution_method==distribution_methods::SPLITSOLVE_DISTRIBUTION) {</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :         std::vector&lt;int&gt; Bmin(1,0);</span>
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 :         for (uint i=1;i&lt;Bsizes.size();i++) Bmin.push_back(Bmin[i-1]+Bsizes[i-1]);</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 :         std::vector&lt;int&gt; Fsizes;</span>
+<span class="lineNum">     319 </span><span class="lineNoCov">          0 :         for (uint i=0;i&lt;Bsizes.size();i++) Fsizes.push_back(orb_per_at[Bmin[i]+Bsizes[i]]-orb_per_at[Bmin[i]]);</span>
+<span class="lineNum">     320 </span><span class="lineNoCov">          0 :         Tsizes.assign(tasks_per_point,0);</span>
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :         double load_max=pow(double((nrows_total_cut)/gpus_per_point),3);</span>
+<span class="lineNum">     322 </span><span class="lineNoCov">          0 :         int stride=tasks_per_point/gpus_per_point;</span>
+<span class="lineNum">     323 </span><span class="lineNoCov">          0 :         int iblock=0;</span>
+<span class="lineNum">     324 </span><span class="lineNoCov">          0 :         for (int igpu=0;igpu&lt;gpus_per_point;igpu++) {</span>
+<span class="lineNum">     325 </span><span class="lineNoCov">          0 :             int Gsize=0;</span>
+<span class="lineNum">     326 </span><span class="lineNoCov">          0 :             Gsize+=Fsizes[iblock++];</span>
+<span class="lineNum">     327 </span><span class="lineNoCov">          0 :             Gsize+=Fsizes[iblock++];</span>
+<span class="lineNum">     328 </span><span class="lineNoCov">          0 :             while (pow(double(Gsize+Fsizes[iblock]),3)&lt;=load_max &amp;&amp; int(Fsizes.size())-iblock-1&gt;=2*(gpus_per_point-igpu-1) &amp;&amp; iblock&lt;int(Fsizes.size())) {</span>
+<span class="lineNum">     329 </span><span class="lineNoCov">          0 :                 Gsize+=Fsizes[iblock++];</span>
+<span class="lineNum">     330 </span>            :             }
+<span class="lineNum">     331 </span><span class="lineNoCov">          0 :             if (igpu==gpus_per_point-1) {</span>
+<span class="lineNum">     332 </span><span class="lineNoCov">          0 :                 while (iblock&lt;int(Fsizes.size())) {</span>
+<span class="lineNum">     333 </span><span class="lineNoCov">          0 :                     Gsize+=Fsizes[iblock++];</span>
+<span class="lineNum">     334 </span>            :                 }
+<span class="lineNum">     335 </span>            :             }
+<span class="lineNum">     336 </span><span class="lineNoCov">          0 :             int loc=stride*(2*(igpu/2)+1)-1;</span>
+<span class="lineNum">     337 </span><span class="lineNoCov">          0 :             if (igpu%2) loc++;</span>
+<span class="lineNum">     338 </span><span class="lineNoCov">          0 :             Tsizes[loc]=Gsize;</span>
+<span class="lineNum">     339 </span>            :         }
+<span class="lineNum">     340 </span><span class="lineCov">          2 :     } else if (distribution_method==distribution_methods::FLOOR_DISTRIBUTION) {</span>
+<span class="lineNum">     341 </span><span class="lineNoCov">          0 :         int loc_size=int(floor(double(nrows_total_cut)/double(tasks_per_point)));</span>
+<span class="lineNum">     342 </span><span class="lineNoCov">          0 :         Tsizes.assign(tasks_per_point,loc_size);</span>
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :         Tsizes[tasks_per_point-1]=nrows_total_cut-(tasks_per_point-1)*loc_size;</span>
+<span class="lineNum">     344 </span><span class="lineCov">          2 :     } else if (distribution_method==distribution_methods::CEILING_DISTRIBUTION) {</span>
+<span class="lineNum">     345 </span><span class="lineCov">          2 :         int loc_size=int(ceil(double(nrows_total_cut)/double(tasks_per_point)));</span>
+<span class="lineNum">     346 </span><span class="lineCov">          4 :         Tsizes.assign(tasks_per_point,loc_size);</span>
+<span class="lineNum">     347 </span><span class="lineCov">          4 :         Tsizes[tasks_per_point-1]=nrows_total_cut-(tasks_per_point-1)*loc_size;</span>
+<span class="lineNum">     348 </span><span class="lineNoCov">          0 :     } else if (distribution_method==distribution_methods::MASTER_DISTRIBUTION) {</span>
+<span class="lineNum">     349 </span><span class="lineNoCov">          0 :         Tsizes.assign(tasks_per_point,0);</span>
+<span class="lineNum">     350 </span><span class="lineNoCov">          0 :         Tsizes[0]=nrows_total_cut;</span>
+<span class="lineNum">     351 </span>            :     }
+<span class="lineNum">     352 </span><span class="lineCov">          2 :     return Tsizes;</span>
+<span class="lineNum">     353 </span>            : }
+<span class="lineNum">     354 </span>            : 
+<span class="lineNum">     355 </span><span class="lineCov">          2 : int Energyvector::write_transmission_current(std::vector&lt;CPX&gt; energyvector,std::vector&lt;CPX&gt; stepvector,std::vector&lt;double&gt; transmission,std::vector&lt;double&gt; muvec,transport_parameters transport_params)</span>
+<span class="lineNum">     356 </span>            : {
+<span class="lineNum">     357 </span><span class="lineCov">          2 :     if (!iam) {</span>
+<span class="lineNum">     358 </span><span class="lineCov">          2 :         stringstream mysstream;</span>
+<span class="lineNum">     359 </span><span class="lineCov">          2 :         mysstream &lt;&lt; &quot;Transmission_&quot; &lt;&lt; transport_params.cp2k_scf_iter;</span>
+<span class="lineNum">     360 </span><span class="lineCov">          4 :         ofstream myfile(mysstream.str().c_str());</span>
+<span class="lineNum">     361 </span><span class="lineCov">          2 :         myfile.precision(15);</span>
+<span class="lineNum">     362 </span><span class="lineCov">          1 :         double current = 0.0;</span>
+<span class="lineNum">     363 </span><span class="lineCov">          4 :         for (uint iele=0;iele&lt;energyvector.size();iele++) {</span>
+<span class="lineNum">     364 </span><span class="lineCov">          3 :             if (!imag(energyvector[iele])) {</span>
+<span class="lineNum">     365 </span><span class="lineCov">         11 :                 myfile &lt;&lt; real(energyvector[iele]) &lt;&lt; &quot; &quot; &lt;&lt; real(stepvector[iele]) &lt;&lt; &quot; &quot; &lt;&lt; transmission[iele] &lt;&lt; endl;</span>
+<span class="lineNum">     366 </span><span class="lineCov">          4 :                 double diff_fermi = fermi(real(energyvector[iele]),muvec[0],transport_params.temperature,0)-fermi(real(energyvector[iele]),muvec[1],transport_params.temperature,0);</span>
+<span class="lineNum">     367 </span><span class="lineCov">          4 :                 current += transport_params.conduct_quant*diff_fermi*real(stepvector[iele])*(-transmission[iele]);</span>
+<span class="lineNum">     368 </span>            :             }
+<span class="lineNum">     369 </span>            :         }
+<span class="lineNum">     370 </span><span class="lineCov">          1 :         myfile.close();</span>
+<span class="lineNum">     371 </span><span class="lineCov">          5 :         cout &lt;&lt; &quot;CURRENT FROM TRANSMISSION &quot; &lt;&lt; transport_params.cp2k_scf_iter &lt;&lt; &quot; IS &quot; &lt;&lt; current &lt;&lt; endl;</span>
+<span class="lineNum">     372 </span>            :     }
+<span class="lineNum">     373 </span><span class="lineCov">          2 :     if (!iam &amp;&amp; transport_params.cp2k_method==cp2k_methods::TRANSMISSION) {</span>
+<span class="lineNum">     374 </span><span class="lineCov">          2 :         ofstream myfile(&quot;CurrentFromTransmissionComplete&quot;);</span>
+<span class="lineNum">     375 </span><span class="lineCov">          2 :         ofstream myfily(&quot;CurrentFromTransmissionAboveFermiLevel&quot;);</span>
+<span class="lineNum">     376 </span><span class="lineCov">          2 :         myfile.precision(15);</span>
+<span class="lineNum">     377 </span><span class="lineCov">          2 :         myfily.precision(15);</span>
+<span class="lineNum">     378 </span><span class="lineCov">       1202 :         for (int ibias=-600;ibias&lt;=600;ibias++) {</span>
+<span class="lineNum">     379 </span><span class="lineCov">       1201 :             double dbias=ibias*0.001;</span>
+<span class="lineNum">     380 </span><span class="lineCov">       1201 :             double currentc = 0.0;</span>
+<span class="lineNum">     381 </span><span class="lineCov">       1201 :             double currentf = 0.0;</span>
+<span class="lineNum">     382 </span><span class="lineCov">       4804 :             for (uint iele=0;iele&lt;energyvector.size();iele++) {</span>
+<span class="lineNum">     383 </span><span class="lineCov">       3603 :                 if (!imag(energyvector[iele])) {</span>
+<span class="lineNum">     384 </span><span class="lineCov">       3603 :                     double diff_fermi = fermi(real(energyvector[iele]),muvec[0]-dbias,transport_params.temperature,0)-fermi(real(energyvector[iele]),muvec[0],transport_params.temperature,0);</span>
+<span class="lineNum">     385 </span><span class="lineCov">       4804 :                     double current = transport_params.conduct_quant*diff_fermi*real(stepvector[iele])*(-transmission[iele]);</span>
+<span class="lineNum">     386 </span><span class="lineCov">       1201 :                     currentc += current;</span>
+<span class="lineNum">     387 </span><span class="lineCov">       2402 :                     if (real(energyvector[iele])&gt;muvec[0]) {</span>
+<span class="lineNum">     388 </span><span class="lineCov">       1201 :                         currentf += current;</span>
+<span class="lineNum">     389 </span>            :                     }
+<span class="lineNum">     390 </span>            :                 }
+<span class="lineNum">     391 </span>            :             }
+<span class="lineNum">     392 </span><span class="lineCov">       4804 :             myfile &lt;&lt; dbias &lt;&lt; &quot; &quot; &lt;&lt; currentc &lt;&lt; endl;</span>
+<span class="lineNum">     393 </span><span class="lineCov">       1201 :             if (ibias&gt;=0) {</span>
+<span class="lineNum">     394 </span><span class="lineCov">       1803 :                 myfily &lt;&lt; dbias &lt;&lt; &quot; &quot; &lt;&lt; currentf &lt;&lt; endl;</span>
+<span class="lineNum">     395 </span>            :             }
+<span class="lineNum">     396 </span>            :         }
+<span class="lineNum">     397 </span><span class="lineCov">          1 :         myfile.close();</span>
+<span class="lineNum">     398 </span><span class="lineCov">          1 :         myfily.close();</span>
+<span class="lineNum">     399 </span>            :     }
+<span class="lineNum">     400 </span><span class="lineCov">          2 :     return 0;</span>
+<span class="lineNum">     401 </span>            : }
+<span class="lineNum">     402 </span>            : 
+<span class="lineNum">     403 </span><span class="lineCov">          2 : int Energyvector::determine_energyvector(std::vector&lt;CPX&gt; &amp;energyvector_cc,std::vector&lt;CPX&gt; &amp;stepvector_cc,std::vector&lt;CPX&gt; &amp;drdmvector_cc,std::vector&lt;CPX&gt; &amp;energyvector,std::vector&lt;CPX&gt; &amp;stepvector,std::vector&lt; std::vector&lt;int&gt; &gt; &amp;propagating_sizes,cp2k_csr_interop_type KohnSham,cp2k_csr_interop_type Overlap,std::vector&lt;double&gt; &amp;muvec,std::vector&lt;contact_type&gt; contactvec,transport_parameters transport_params)</span>
+<span class="lineNum">     404 </span>            : {
+<span class="lineNum">     405 </span><span class="lineCov">          6 :     Singularities singularities(transport_params,contactvec);</span>
+<span class="lineNum">     406 </span><span class="lineCov">          2 :     int propagating_from_bs = (transport_params.real_int_method==real_int_methods::GAUSSCHEBYSHEV);</span>
+<span class="lineNum">     407 </span><span class="lineCov">          2 : double sabtime=get_time(0.0);</span>
+<span class="lineNum">     408 </span><span class="lineCov">          2 :     if ( singularities.Execute(KohnSham,Overlap) ) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     409 </span><span class="lineCov">         16 :     if (transport_params.update_fermi) for (uint i_mu=0;i_mu&lt;muvec.size();i_mu++) muvec[i_mu]=singularities.determine_fermi(contactvec[i_mu].n_ele,i_mu);</span>
+<span class="lineNum">     410 </span><span class="lineCov">          4 :     if (!iam &amp;&amp; contactvec.size()==muvec.size()+1) {</span>
+<span class="lineNum">     411 </span><span class="lineNoCov">          0 :         double gate_charge=contactvec[muvec.size()].n_ele;</span>
+<span class="lineNum">     412 </span><span class="lineNoCov">          0 :         double doping=contactvec[0].n_ele-gate_charge;</span>
+<span class="lineNum">     413 </span><span class="lineNoCov">          0 :         double intrinsic_charge=singularities.determine_charge(muvec[0],muvec.size(),0)-gate_charge;</span>
+<span class="lineNum">     414 </span><span class="lineNoCov">          0 :         cout &lt;&lt; &quot;Conduction band charge on gate from bandstructure: &quot; &lt;&lt; intrinsic_charge &lt;&lt; &quot; Built-in potential: &quot; &lt;&lt; transport_params.temperature*log(doping/intrinsic_charge) &lt;&lt; endl;</span>
+<span class="lineNum">     415 </span><span class="lineNoCov">          0 :         double free_charge_lead=singularities.determine_free_charge(muvec[0],0);</span>
+<span class="lineNum">     416 </span><span class="lineNoCov">          0 :         double free_charge_gate=singularities.determine_free_charge(muvec[0],muvec.size());</span>
+<span class="lineNum">     417 </span><span class="lineNoCov">          0 :         cout &lt;&lt; &quot;Free charge lead: &quot; &lt;&lt; free_charge_lead &lt;&lt; &quot; Free charge gate: &quot; &lt;&lt; free_charge_gate &lt;&lt; &quot; Built-in potential: &quot; &lt;&lt; transport_params.temperature*log(free_charge_lead/free_charge_gate) &lt;&lt; endl;</span>
+<span class="lineNum">     418 </span>            :     }
+<span class="lineNum">     419 </span><span class="lineCov">          2 :     double bands_start=singularities.energy_gs;</span>
+<span class="lineNum">     420 </span><span class="lineCov">          4 : if (!iam) cout &lt;&lt; &quot;TIME FOR SINGULARITIES &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     421 </span>            :     int follow_bands = (transport_params.real_int_method==real_int_methods::GAUSSCHEBYSHEV);
+<span class="lineNum">     422 </span>            :     int debugout = 0;
+<span class="lineNum">     423 </span><span class="lineCov">         12 :     for (uint i_mu=0;i_mu&lt;contactvec.size();i_mu++) singularities.write_bandstructure(i_mu,transport_params.cp2k_scf_iter,follow_bands,debugout);</span>
+<span class="lineNum">     424 </span>            :  
+<span class="lineNum">     425 </span><span class="lineCov">          2 :     double Temp=transport_params.temperature;</span>
+<span class="lineNum">     426 </span><span class="lineCov">          2 :     double delta_eps_fermi=-log(transport_params.eps_fermi)*Temp;</span>
+<span class="lineNum">     427 </span><span class="lineCov">          6 :     double muvec_min=*min_element(muvec.begin(),muvec.end());</span>
+<span class="lineNum">     428 </span><span class="lineCov">          6 :     double muvec_max=*max_element(muvec.begin(),muvec.end());</span>
+<span class="lineNum">     429 </span><span class="lineCov">          8 :     double muvec_avg=accumulate(muvec.begin(),muvec.end(),0.0)/muvec.size();</span>
+<span class="lineNum">     430 </span><span class="lineCov">          2 :     double nonequi_start=muvec_min-delta_eps_fermi;</span>
+<span class="lineNum">     431 </span><span class="lineCov">          2 :     double nonequi_end=muvec_max+delta_eps_fermi;</span>
+<span class="lineNum">     432 </span>            : 
+<span class="lineNum">     433 </span><span class="lineCov">          4 : if (!iam) cout &lt;&lt; &quot;Fermi level difference &quot; &lt;&lt; muvec_max-muvec_min &lt;&lt; endl;</span>
+<span class="lineNum">     434 </span>            : 
+<span class="lineNum">     435 </span>            : // all localized states with lowest fermi level corresponding to occupation of localized states in bandgap
+<span class="lineNum">     436 </span><span class="lineCov">          2 :     if (transport_params.cp2k_method==cp2k_methods::LOCAL_SCF) {</span>
+<span class="lineNum">     437 </span>            : //      double energy_vb=*max_element(singularities.energies_vb.begin(),singularities.energies_vb.end());
+<span class="lineNum">     438 </span><span class="lineNoCov">          0 :         double energy_cb=*min_element(singularities.energies_cb.begin(),singularities.energies_cb.end());</span>
+<span class="lineNum">     439 </span><span class="lineNoCov">          0 :         if (assign_real_axis_energies(energy_cb,nonequi_end,energyvector,stepvector,singularities.energies_extremum,muvec.size(),transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     440 </span><span class="lineCov">          2 :     } else if (transport_params.cp2k_method==cp2k_methods::TRANSPORT) {</span>
+<span class="lineNum">     441 </span><span class="lineNoCov">          0 :         if (assign_cmpx_cont_energies(bands_start,muvec_min,energyvector_cc,stepvector_cc,drdmvector_cc,transport_params.temperature,transport_params.n_abscissae)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     442 </span><span class="lineNoCov">          0 :         if (assign_real_axis_energies(nonequi_start,nonequi_end,energyvector,stepvector,singularities.energies_extremum,muvec.size(),transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     443 </span><span class="lineCov">          2 :     } else if (transport_params.cp2k_method==cp2k_methods::TRANSMISSION) {</span>
+<span class="lineNum">     444 </span><span class="lineCov">          2 :         if (!transport_params.extra_scf) {</span>
+<span class="lineNum">     445 </span><span class="lineNoCov">          0 :             if (assign_cmpx_cont_energies(bands_start,muvec_avg,energyvector_cc,stepvector_cc,drdmvector_cc,transport_params.temperature,transport_params.n_abscissae)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     446 </span>            :         } else {
+<span class="lineNum">     447 </span><span class="lineCov">          2 :             if (transport_params.energy_interval&lt;=0.0) {</span>
+<span class="lineNum">     448 </span><span class="lineCov">          4 :                 energyvector.assign(1,muvec_avg);</span>
+<span class="lineNum">     449 </span><span class="lineCov">          4 :                 stepvector.assign(1,1.0);</span>
+<span class="lineNum">     450 </span>            :             } else {
+<span class="lineNum">     451 </span><span class="lineNoCov">          0 :                 if (assign_real_axis_energies(nonequi_start,nonequi_end,energyvector,stepvector,singularities.energies_extremum,muvec.size(),transport_params)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     452 </span>            :             }
+<span class="lineNum">     453 </span>            :         }
+<span class="lineNum">     454 </span><span class="lineNoCov">          0 :     } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     455 </span><span class="lineCov">          2 :     if (!iam) {</span>
+<span class="lineNum">     456 </span><span class="lineCov">          2 :         ofstream myfile(&quot;E_dat&quot;);</span>
+<span class="lineNum">     457 </span><span class="lineCov">          2 :         myfile.precision(15);</span>
+<span class="lineNum">     458 </span><span class="lineCov">          2 :         myfile &lt;&lt; energyvector.size() &lt;&lt; endl;</span>
+<span class="lineNum">     459 </span><span class="lineCov">          5 :         for (uint iele=0;iele&lt;energyvector.size();iele++)</span>
+<span class="lineNum">     460 </span><span class="lineCov">          5 :             myfile &lt;&lt; real(energyvector[iele]) &lt;&lt; endl;</span>
+<span class="lineNum">     461 </span><span class="lineCov">          1 :         myfile.close();</span>
+<span class="lineNum">     462 </span>            :     }
+<span class="lineNum">     463 </span>            : // get propagating modes from bandstructure
+<span class="lineNum">     464 </span><span class="lineCov">          2 :     propagating_sizes.resize(energyvector.size());</span>
+<span class="lineNum">     465 </span><span class="lineCov">         12 :     for (uint ie=0;ie&lt;energyvector.size();ie++) propagating_sizes[ie].resize(contactvec.size(),-1);</span>
+<span class="lineNum">     466 </span><span class="lineCov">          2 :     if (propagating_from_bs) {</span>
+<span class="lineNum">     467 </span><span class="lineCov">          2 : double sabtime=get_time(0.0);</span>
+<span class="lineNum">     468 </span><span class="lineCov">          2 :         if (!iam) {</span>
+<span class="lineNum">     469 </span><span class="lineCov">          2 :             std::vector&lt; std::vector&lt; std::vector&lt;double&gt; &gt; &gt; propagating = singularities.get_propagating(energyvector);</span>
+<span class="lineNum">     470 </span><span class="lineCov">          5 :             for (uint ie=0;ie&lt;energyvector.size();ie++) {</span>
+<span class="lineNum">     471 </span><span class="lineCov">          8 :                 for (uint i_mu=0;i_mu&lt;contactvec.size();i_mu++) {</span>
+<span class="lineNum">     472 </span><span class="lineCov">         12 :                     propagating_sizes[ie][i_mu]=propagating[i_mu][ie].size();</span>
+<span class="lineNum">     473 </span>            :                 }
+<span class="lineNum">     474 </span>            :             }
+<span class="lineNum">     475 </span>            :         }
+<span class="lineNum">     476 </span><span class="lineCov">          4 : if (!iam) cout &lt;&lt; &quot;TIME FOR PROPAGATING MODES &quot; &lt;&lt; get_time(sabtime) &lt;&lt; endl;</span>
+<span class="lineNum">     477 </span><span class="lineCov">         10 :         for (uint ie=0;ie&lt;energyvector.size();ie++) {</span>
+<span class="lineNum">     478 </span><span class="lineCov">          6 :             MPI_Bcast(&amp;propagating_sizes[ie][0],contactvec.size(),MPI_INT,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     479 </span>            :         }
+<span class="lineNum">     480 </span><span class="lineCov">          4 :         if (!iam &amp;&amp; contactvec.size()==muvec.size()+1 &amp;&amp; transport_params.cp2k_method==cp2k_methods::TRANSPORT) {</span>
+<span class="lineNum">     481 </span><span class="lineNoCov">          0 :             double cb_max = *max_element(singularities.energies_cb.begin(),singularities.energies_cb.end());</span>
+<span class="lineNum">     482 </span><span class="lineNoCov">          0 :             double current = 0.0;</span>
+<span class="lineNum">     483 </span><span class="lineNoCov">          0 :             for (uint iele=0;iele&lt;energyvector.size();iele++) {</span>
+<span class="lineNum">     484 </span><span class="lineNoCov">          0 :                 if (!imag(energyvector[iele]) &amp;&amp; real(energyvector[iele])&gt;cb_max) {</span>
+<span class="lineNum">     485 </span><span class="lineNoCov">          0 :                     double diff_fermi = fermi(real(energyvector[iele]),muvec[0],transport_params.temperature,0)-fermi(real(energyvector[iele]),muvec[1],transport_params.temperature,0);</span>
+<span class="lineNum">     486 </span><span class="lineNoCov">          0 :                     current += transport_params.conduct_quant*diff_fermi*real(stepvector[iele])*propagating_sizes[iele][contactvec.size()-1];</span>
+<span class="lineNum">     487 </span>            :                 }
+<span class="lineNum">     488 </span>            :             }
+<span class="lineNum">     489 </span><span class="lineNoCov">          0 :             cout &lt;&lt; &quot;CURRENT FROM BANDSTRUCTURE &quot; &lt;&lt; transport_params.cp2k_scf_iter &lt;&lt; &quot; IS &quot; &lt;&lt; current &lt;&lt; endl;</span>
+<span class="lineNum">     490 </span>            :         }
+<span class="lineNum">     491 </span><span class="lineCov">          4 :         if (!iam &amp;&amp; contactvec.size()==muvec.size()+1 &amp;&amp; transport_params.cp2k_method==cp2k_methods::TRANSMISSION) {</span>
+<span class="lineNum">     492 </span><span class="lineNoCov">          0 :             stringstream mysstream;</span>
+<span class="lineNum">     493 </span><span class="lineNoCov">          0 :             mysstream &lt;&lt; &quot;CurrentFromBandstructure_&quot; &lt;&lt; transport_params.cp2k_scf_iter;</span>
+<span class="lineNum">     494 </span><span class="lineNoCov">          0 :             ofstream myfile(mysstream.str().c_str());</span>
+<span class="lineNum">     495 </span><span class="lineNoCov">          0 :             myfile.precision(15);</span>
+<span class="lineNum">     496 </span><span class="lineNoCov">          0 :             double cb_max = *max_element(singularities.energies_cb.begin(),singularities.energies_cb.end());</span>
+<span class="lineNum">     497 </span><span class="lineNoCov">          0 :             for (int ibias=-600;ibias&lt;=600;ibias++) {</span>
+<span class="lineNum">     498 </span><span class="lineNoCov">          0 :                 double dbias=ibias*0.001;</span>
+<span class="lineNum">     499 </span><span class="lineNoCov">          0 :                 double current = 0.0;</span>
+<span class="lineNum">     500 </span><span class="lineNoCov">          0 :                 for (uint iele=0;iele&lt;energyvector.size();iele++) {</span>
+<span class="lineNum">     501 </span><span class="lineNoCov">          0 :                     if (!imag(energyvector[iele]) &amp;&amp; real(energyvector[iele])&gt;cb_max) {</span>
+<span class="lineNum">     502 </span><span class="lineNoCov">          0 :                         double diff_fermi = fermi(real(energyvector[iele]),muvec[0]-dbias,transport_params.temperature,0)-fermi(real(energyvector[iele]),muvec[0],transport_params.temperature,0);</span>
+<span class="lineNum">     503 </span><span class="lineNoCov">          0 :                         current += transport_params.conduct_quant*diff_fermi*real(stepvector[iele])*propagating_sizes[iele][contactvec.size()-1];</span>
+<span class="lineNum">     504 </span>            :                     }
+<span class="lineNum">     505 </span>            :                 }
+<span class="lineNum">     506 </span><span class="lineNoCov">          0 :                 myfile &lt;&lt; dbias &lt;&lt; &quot; &quot; &lt;&lt; current &lt;&lt; endl;</span>
+<span class="lineNum">     507 </span>            :             }
+<span class="lineNum">     508 </span><span class="lineNoCov">          0 :             myfile.close();</span>
+<span class="lineNum">     509 </span>            :         }
+<span class="lineNum">     510 </span><span class="lineCov">          4 :         if (!iam &amp;&amp; contactvec.size()==muvec.size()+1 &amp;&amp; transport_params.cp2k_method==cp2k_methods::TRANSMISSION) {</span>
+<span class="lineNum">     511 </span><span class="lineNoCov">          0 :             stringstream mysstream;</span>
+<span class="lineNum">     512 </span><span class="lineNoCov">          0 :             mysstream &lt;&lt; &quot;TransmissionFromBandstructure_&quot; &lt;&lt; transport_params.cp2k_scf_iter;</span>
+<span class="lineNum">     513 </span><span class="lineNoCov">          0 :             ofstream myfile(mysstream.str().c_str());</span>
+<span class="lineNum">     514 </span><span class="lineNoCov">          0 :             myfile.precision(15);</span>
+<span class="lineNum">     515 </span><span class="lineNoCov">          0 :             double cb_max = *max_element(singularities.energies_cb.begin(),singularities.energies_cb.end());</span>
+<span class="lineNum">     516 </span><span class="lineNoCov">          0 :             for (uint iele=0;iele&lt;energyvector.size();iele++)</span>
+<span class="lineNum">     517 </span><span class="lineNoCov">          0 :                 if (!imag(energyvector[iele]))</span>
+<span class="lineNum">     518 </span><span class="lineNoCov">          0 :                     myfile &lt;&lt; real(energyvector[iele]) &lt;&lt; &quot; &quot; &lt;&lt; real(stepvector[iele]) &lt;&lt; &quot; &quot; &lt;&lt; (real(energyvector[iele])&gt;cb_max)*propagating_sizes[iele][contactvec.size()-1] &lt;&lt; endl;</span>
+<span class="lineNum">     519 </span><span class="lineNoCov">          0 :             myfile.close();</span>
+<span class="lineNum">     520 </span>            :         }
+<span class="lineNum">     521 </span>            :     }
+<span class="lineNum">     522 </span>            :     return 0;
+<span class="lineNum">     523 </span>            : }
+<span class="lineNum">     524 </span>            : 
+<span class="lineNum">     525 </span><span class="lineNoCov">          0 : int Energyvector::assign_real_axis_energies(double nonequi_start,double nonequi_end,std::vector&lt;CPX&gt; &amp;energyvector,std::vector&lt;CPX&gt; &amp;stepvector,const std::vector&lt; std::vector&lt;double&gt; &gt; &amp;energies_extremum,int muvec_size,transport_parameters transport_params)</span>
+<span class="lineNum">     526 </span>            : {
+<span class="lineNum">     527 </span><span class="lineNoCov">          0 :     energyvector.clear();</span>
+<span class="lineNum">     528 </span><span class="lineNoCov">          0 :     stepvector.clear();</span>
+<span class="lineNum">     529 </span><span class="lineNoCov">          0 :     if (transport_params.real_int_method==real_int_methods::READFROMFILE) {</span>
+<span class="lineNum">     530 </span><span class="lineNoCov">          0 :         ifstream evecfile(&quot;E.dat&quot;);</span>
+<span class="lineNum">     531 </span><span class="lineNoCov">          0 :         if (evecfile.fail()) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     532 </span><span class="lineNoCov">          0 :         istream_iterator&lt;double&gt; start_evec(evecfile), end_evec;</span>
+<span class="lineNum">     533 </span><span class="lineNoCov">          0 :         energyvector.assign(start_evec,end_evec);</span>
+<span class="lineNum">     534 </span><span class="lineNoCov">          0 :         if (energyvector.size()==1) {</span>
+<span class="lineNum">     535 </span><span class="lineNoCov">          0 :             stepvector.push_back(1.0);</span>
+<span class="lineNum">     536 </span>            :         } else {
+<span class="lineNum">     537 </span><span class="lineNoCov">          0 :             stepvector.assign(1,(energyvector[1]-energyvector[0])/2.0);</span>
+<span class="lineNum">     538 </span><span class="lineNoCov">          0 :             for (uint istep=1;istep&lt;energyvector.size()-1;istep++) {</span>
+<span class="lineNum">     539 </span><span class="lineNoCov">          0 :                 stepvector.push_back((energyvector[istep+1]-energyvector[istep-1])/2.0);</span>
+<span class="lineNum">     540 </span>            :             }
+<span class="lineNum">     541 </span><span class="lineNoCov">          0 :             stepvector.push_back((energyvector[energyvector.size()-1]-energyvector[energyvector.size()-2])/2.0);</span>
+<span class="lineNum">     542 </span>            :         }
+<span class="lineNum">     543 </span><span class="lineNoCov">          0 :         evecfile.close();</span>
+<span class="lineNum">     544 </span><span class="lineNoCov">          0 :     } else if (transport_params.real_int_method==real_int_methods::TRAPEZOIDAL) {</span>
+<span class="lineNum">     545 </span><span class="lineNoCov">          0 :         for (int istep=0;istep&lt;int(abs(nonequi_end-nonequi_start)/transport_params.energy_interval)+1;istep++) {</span>
+<span class="lineNum">     546 </span><span class="lineNoCov">          0 :             energyvector.push_back(nonequi_start+(istep+0.5)*transport_params.energy_interval);</span>
+<span class="lineNum">     547 </span><span class="lineNoCov">          0 :             stepvector.push_back(transport_params.energy_interval);</span>
+<span class="lineNum">     548 </span>            :         }
+<span class="lineNum">     549 </span><span class="lineNoCov">          0 :     } else if (transport_params.real_int_method==real_int_methods::GAUSSCHEBYSHEV) {</span>
+<span class="lineNum">     550 </span><span class="lineNoCov">          0 :         std::vector&lt;double&gt; energylist;</span>
+<span class="lineNum">     551 </span>            :         int n_energies;
+<span class="lineNum">     552 </span><span class="lineNoCov">          0 :         if (!iam) {</span>
+<span class="lineNum">     553 </span><span class="lineNoCov">          0 :             energylist.push_back(nonequi_start);</span>
+<span class="lineNum">     554 </span><span class="lineNoCov">          0 :             for (int i_mu=0;i_mu&lt;muvec_size;i_mu++)</span>
+<span class="lineNum">     555 </span><span class="lineNoCov">          0 :                 for (uint i_energies=0;i_energies&lt;energies_extremum[i_mu].size();i_energies++)</span>
+<span class="lineNum">     556 </span><span class="lineNoCov">          0 :                     if (energies_extremum[i_mu][i_energies]&gt;nonequi_start &amp;&amp; energies_extremum[i_mu][i_energies]&lt;nonequi_end)</span>
+<span class="lineNum">     557 </span><span class="lineNoCov">          0 :                         energylist.push_back(energies_extremum[i_mu][i_energies]);</span>
+<span class="lineNum">     558 </span><span class="lineNoCov">          0 :             energylist.push_back(nonequi_end);</span>
+<span class="lineNum">     559 </span><span class="lineNoCov">          0 :             std::sort(energylist.begin(),energylist.end());</span>
+<span class="lineNum">     560 </span><span class="lineNoCov">          0 :             n_energies=energylist.size();</span>
+<span class="lineNum">     561 </span>            :         }
+<span class="lineNum">     562 </span><span class="lineNoCov">          0 :         MPI_Bcast(&amp;n_energies,1,MPI_INT,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     563 </span><span class="lineNoCov">          0 :         energylist.resize(n_energies);</span>
+<span class="lineNum">     564 </span><span class="lineNoCov">          0 :         MPI_Bcast(&amp;energylist[0],n_energies,MPI_DOUBLE,0,MPI_COMM_WORLD);</span>
+<span class="lineNum">     565 </span><span class="lineNoCov">          0 :         if (int(abs(nonequi_end-nonequi_start)/transport_params.energy_interval)+1&lt;n_energies*transport_params.num_interval) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     566 </span><span class="lineNoCov">          0 :         double smallest_energy_distance=transport_params.min_interval;</span>
+<span class="lineNum">     567 </span><span class="lineNoCov">          0 :         if (!iam) cout&lt;&lt;&quot;Smallest enery distance &quot;&lt;&lt;smallest_energy_distance&lt;&lt;endl;</span>
+<span class="lineNum">     568 </span><span class="lineNoCov">          0 :         if (!iam) cout&lt;&lt;&quot;Max number of points per small interval &quot;&lt;&lt;transport_params.num_interval&lt;&lt;endl;</span>
+<span class="lineNum">     569 </span><span class="lineNoCov">          0 :         if (!iam) cout&lt;&lt;&quot;Average distance for big intervals &quot;&lt;&lt;transport_params.energy_interval&lt;&lt;endl;</span>
+<span class="lineNum">     570 </span><span class="lineNoCov">          0 :         if (!iam) cout&lt;&lt;&quot;Singularities in range &quot;&lt;&lt; n_energies-2 &lt;&lt; endl;</span>
+<span class="lineNum">     571 </span><span class="lineNoCov">          0 :         for (uint i_energies=1;i_energies&lt;energylist.size();i_energies++) {</span>
+<span class="lineNum">     572 </span><span class="lineNoCov">          0 :             int num_points_per_interval=max(transport_params.num_interval,int(ceil(abs(energylist[i_energies]-energylist[i_energies-1])/transport_params.energy_interval)));</span>
+<span class="lineNum">     573 </span><span class="lineNoCov">          0 :             while ((energylist[i_energies]-energylist[i_energies-1])/2.0*(1.0-cos(M_PI/(2.0*num_points_per_interval)))&lt;smallest_energy_distance &amp;&amp; num_points_per_interval&gt;1)</span>
+<span class="lineNum">     574 </span>            : //          while ((energylist[i_energies]-energylist[i_energies-1])/2.0*(1.0-tanh(M_PI/2.0*sinh(3.0)))&lt;smallest_energy_distance &amp;&amp; num_points_per_interval&gt;1)
+<span class="lineNum">     575 </span><span class="lineNoCov">          0 :                 --num_points_per_interval;</span>
+<span class="lineNum">     576 </span><span class="lineNoCov">          0 :             if (num_points_per_interval&gt;1) {</span>
+<span class="lineNum">     577 </span><span class="lineNoCov">          0 :                 Quadrature quadrature(quadrature_types::GC,energylist[i_energies-1],energylist[i_energies],num_points_per_interval);</span>
+<span class="lineNum">     578 </span><span class="lineNoCov">          0 :                 energyvector.insert(energyvector.end(),quadrature.abscissae.begin(),quadrature.abscissae.end());</span>
+<span class="lineNum">     579 </span><span class="lineNoCov">          0 :                 stepvector.insert(stepvector.end(),quadrature.weights.begin(),quadrature.weights.end());</span>
+<span class="lineNum">     580 </span>            :             }
+<span class="lineNum">     581 </span>            :         }
+<span class="lineNum">     582 </span><span class="lineNoCov">          0 :     } else return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     583 </span>            :     return 0;
+<span class="lineNum">     584 </span>            : }
+<span class="lineNum">     585 </span>            : 
+<span class="lineNum">     586 </span><span class="lineNoCov">          0 : int Energyvector::assign_cmpx_cont_energies(double start,double mu,std::vector&lt;CPX&gt; &amp;energyvector,std::vector&lt;CPX&gt; &amp;stepvector,std::vector&lt;CPX&gt; &amp;drdmvector,double Temp,int num_points_on_contour)</span>
+<span class="lineNum">     587 </span>            : {
+<span class="lineNum">     588 </span><span class="lineNoCov">          0 :     energyvector.clear();</span>
+<span class="lineNum">     589 </span><span class="lineNoCov">          0 :     stepvector.clear();</span>
+<span class="lineNum">     590 </span><span class="lineNoCov">          0 :     drdmvector.clear();</span>
+<span class="lineNum">     591 </span>            :     enum cc_int_method {do_pexsi,do_pole_summation,do_contour,do_line};
+<span class="lineNum">     592 </span><span class="lineNoCov">          0 :     cc_int_method method=do_pexsi;</span>
+<span class="lineNum">     593 </span>            :     if (method==do_pexsi) {
+<span class="lineNum">     594 </span><span class="lineNoCov">          0 :         energyvector.resize(num_points_on_contour);</span>
+<span class="lineNum">     595 </span><span class="lineNoCov">          0 :         stepvector.resize(num_points_on_contour);</span>
+<span class="lineNum">     596 </span><span class="lineNoCov">          0 :         drdmvector.resize(num_points_on_contour);</span>
+<span class="lineNum">     597 </span><span class="lineNoCov">          0 :         double EM=abs(mu-start); // Max|E-mu| for all Eigenvalues E of </span>
+<span class="lineNum">     598 </span><span class="lineNoCov">          0 :         if (PEXSI::GetPoleDensity(&amp;energyvector[0],&amp;stepvector[0],num_points_on_contour,Temp,0.0,EM,mu)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     599 </span><span class="lineNoCov">          0 :         c_zscal(num_points_on_contour,CPX(M_PI/2.0,0.0),&amp;stepvector[0],1);</span>
+<span class="lineNum">     600 </span><span class="lineNoCov">          0 :         if (PEXSI::GetPoleDensityDrvMu(&amp;energyvector[0],&amp;drdmvector[0],num_points_on_contour,Temp,0.0,EM,mu)) return (LOGCERR, EXIT_FAILURE);</span>
+<span class="lineNum">     601 </span><span class="lineNoCov">          0 :         c_zscal(num_points_on_contour,CPX(M_PI/2.0,0.0),&amp;drdmvector[0],1);</span>
+<span class="lineNum">     602 </span>            :     } else if (method==do_pole_summation) {
+<span class="lineNum">     603 </span>            :         double Temp_r=1.0*Temp;
+<span class="lineNum">     604 </span>            :         double Temp_i=1.0*Temp;
+<span class="lineNum">     605 </span>            :         double eps=-log((numeric_limits&lt;double&gt;::epsilon)())*Temp;
+<span class="lineNum">     606 </span>            :         double eps_r=-log((numeric_limits&lt;double&gt;::epsilon)())*Temp_r;
+<span class="lineNum">     607 </span>            :         double mu_r=start-eps_r;
+<span class="lineNum">     608 </span>            :         double eps_i=-log((numeric_limits&lt;double&gt;::epsilon)())*Temp_i;
+<span class="lineNum">     609 </span>            :         CPX    mu_i=CPX(mu_r-eps_r,eps_i);
+<span class="lineNum">     610 </span>            : 
+<span class="lineNum">     611 </span>            :         int nu;
+<span class="lineNum">     612 </span>            :         CPX zval;
+<span class="lineNum">     613 </span>            :         nu=0;
+<span class="lineNum">     614 </span>            :         while (imag(zval=CPX(mu,(2*nu+++1)*M_PI*Temp))&lt;2.0*eps_i) {
+<span class="lineNum">     615 </span>            :             energyvector.push_back(zval);
+<span class="lineNum">     616 </span>            :             stepvector.push_back(-CPX(0.0,2.0*M_PI*Temp)*fermi(CPX(0.0,-1.0)*zval,CPX(0.0,-1.0)*mu_i,Temp_i,0));
+<span class="lineNum">     617 </span>            :         }
+<span class="lineNum">     618 </span>            : 
+<span class="lineNum">     619 </span>            :         nu=0;
+<span class="lineNum">     620 </span>            :         while (imag(zval=CPX(mu_r,(2*nu+++1)*M_PI*Temp_r))&lt;2.0*eps_i) {
+<span class="lineNum">     621 </span>            :             energyvector.push_back(zval);
+<span class="lineNum">     622 </span>            :             stepvector.push_back(+CPX(0.0,2.0*M_PI*Temp_r)*fermi(CPX(0.0,-1.0)*zval,CPX(0.0,-1.0)*mu_i,Temp_i,0));
+<span class="lineNum">     623 </span>            :         }
+<span class="lineNum">     624 </span>            : 
+<span class="lineNum">     625 </span>            :         nu=0;
+<span class="lineNum">     626 </span>            :         while (real(zval=mu_i+CPX((2*nu+++1)*M_PI*Temp_i,0.0))&lt;mu+eps) {
+<span class="lineNum">     627 </span>            :             energyvector.push_back(zval);
+<span class="lineNum">     628 </span>            :             stepvector.push_back(CPX(2.0*M_PI*Temp_i,0.0)*(fermi(zval,CPX(1.0,0.0)*mu,Temp,0)-fermi(zval,CPX(1.0,0.0)*mu_r,Temp_r,0)));
+<span class="lineNum">     629 </span>            :         }
+<span class="lineNum">     630 </span>            :     } else if (method==do_contour) {
+<span class="lineNum">     631 </span>            :         Quadrature quadrature(quadrature_types::CCGL,start,mu,num_points_on_contour);//mu is end here
+<span class="lineNum">     632 </span>            :         energyvector.insert(energyvector.end(),quadrature.abscissae.begin(),quadrature.abscissae.end());
+<span class="lineNum">     633 </span>            :         stepvector.insert(stepvector.end(),quadrature.weights.begin(),quadrature.weights.end());
+<span class="lineNum">     634 </span>            :     } else if (method==do_line) {
+<span class="lineNum">     635 </span>            :         Quadrature quadrature(quadrature_types::MR,start,mu,num_points_on_contour);//mu is end here
+<span class="lineNum">     636 </span>            :         energyvector.insert(energyvector.end(),quadrature.abscissae.begin(),quadrature.abscissae.end());
+<span class="lineNum">     637 </span>            :         stepvector.insert(stepvector.end(),quadrature.weights.begin(),quadrature.weights.end());
+<a name="638"><span class="lineNum">     638 </span>            :     }</a>
+<span class="lineNum">     639 </span><span class="lineNoCov">          0 :     return 0;</span>
+<span class="lineNum">     640 </span><span class="lineCov">          4 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
