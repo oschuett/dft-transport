@@ -19,8 +19,13 @@
        N_ATOMS 6
        INJECTION_SIGN NEGATIVE
       &END
-!      LINEAR_SOLVER MUMPS
-      LINEAR_SOLVER SUPERLU
+
+     ! FULL and BANDED work
+     ! SUPERLU and SPLITSOLVE crash
+     ! MUMPS, PARDISO, and UMFPACK not available
+
+     LINEAR_SOLVER FULL
+
       MATRIX_INVERSION_METHOD PEXSI
 !      &PRINT
 !       &CURRENT

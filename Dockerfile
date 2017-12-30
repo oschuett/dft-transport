@@ -23,8 +23,7 @@ RUN source /opt/cp2k-toolchain/install/setup  && \
 ENV PATH="/opt/omen/src:${PATH}"
 
 WORKDIR /opt/omen/tests/input_files/gnr
-CMD source /opt/cp2k-toolchain/install/setup  && \
-    mpiexec -np 2 transport gnr.inp
+CMD ["./run_test.sh"]
 
 #EOF
 
